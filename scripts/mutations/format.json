@@ -1,0 +1,512 @@
+[
+ {
+  "name": "format: limit: MAX_TIME one lower",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "253_402_300_799_999",
+  "new": "253_402_300_799_998"
+ },
+ {
+  "name": "format: time: > becomes >=",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "ms > MAX_TIME",
+  "new": "ms >= MAX_TIME"
+ },
+ {
+  "name": "format: time: 0 refused",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "ms < 0 || ms > MAX_TIME",
+  "new": "ms < 1 || ms > MAX_TIME"
+ },
+ {
+  "name": "format: time: fraction accepted",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (!Number.isSafeInteger(ms) || ms < 0 || ms > MAX_TIME)",
+  "new": "if (ms < 0 || ms > MAX_TIME)"
+ },
+ {
+  "name": "format: time: slice minutes to seconds",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "iso.slice(11, 16)",
+  "new": "iso.slice(11, 19)"
+ },
+ {
+  "name": "format: time: date slice too long",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "iso.slice(0, 10)",
+  "new": "iso.slice(0, 11)"
+ },
+ {
+  "name": "format: time: no UTC suffix",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": " UTC`;",
+  "new": "`;"
+ },
+ {
+  "name": "format: raw: empty and bare minus accepted",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "/^-?[0-9]+$/",
+  "new": "/^-?[0-9]*$/"
+ },
+ {
+  "name": "format: raw: plus sign accepted",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "/^-?[0-9]+$/",
+  "new": "/^[+-]?[0-9]+$/"
+ },
+ {
+  "name": "format: raw: leading space accepted",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "/^-?[0-9]+$/",
+  "new": "/-?[0-9]+$/"
+ },
+ {
+  "name": "format: raw: trailing text accepted",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "/^-?[0-9]+$/",
+  "new": "/^-?[0-9]+/"
+ },
+ {
+  "name": "format: group: pairs not triples",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "(?:[0-9]{3})+",
+  "new": "(?:[0-9]{2})+"
+ },
+ {
+  "name": "format: group: no end anchor",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "(?![0-9]))/g",
+  "new": "))/g"
+ },
+ {
+  "name": "format: render: pad one short",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": ".padStart(dp + 1, \"0\")",
+  "new": ".padStart(dp, \"0\")"
+ },
+ {
+  "name": "format: render: trims one zero only",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "/0+$/, \"\");\n  return group(whole)",
+  "new": "/0$/, \"\");\n  return group(whole)"
+ },
+ {
+  "name": "format: render: no integer grouping",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "return group(whole) + (frac",
+  "new": "return whole + (frac"
+ },
+ {
+  "name": "format: units: decimals max 37",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "checkInt(\"decimals\", decimals, 0, MAX_DECIMALS);\n  checkInt(\"maxFraction\"",
+  "new": "checkInt(\"decimals\", decimals, 0, MAX_DECIMALS + 1);\n  checkInt(\"maxFraction\""
+ },
+ {
+  "name": "format: units: decimals max exclusive",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (!Number.isSafeInteger(value) || value < min || value > max)",
+  "new": "if (!Number.isSafeInteger(value) || value < min || value >= max)"
+ },
+ {
+  "name": "format: units: min exclusive",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (!Number.isSafeInteger(value) || value < min || value > max)",
+  "new": "if (!Number.isSafeInteger(value) || value <= min || value > max)"
+ },
+ {
+  "name": "format: units: integer check dropped",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (!Number.isSafeInteger(value) || value < min || value > max)",
+  "new": "if (value < min || value > max)"
+ },
+ {
+  "name": "format: units: maxFraction max 19",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "checkInt(\"maxFraction\", maxFraction, 0, MAX_FRACTION)",
+  "new": "checkInt(\"maxFraction\", maxFraction, 0, MAX_FRACTION + 1)"
+ },
+ {
+  "name": "format: units: default maxFraction 3",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "maxFraction = 4",
+  "new": "maxFraction = 3"
+ },
+ {
+  "name": "format: units: truncates",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "(abs * 2n + divisor) / (2n * divisor)",
+  "new": "(abs * 2n) / (2n * divisor)"
+ },
+ {
+  "name": "format: units: half rounds down",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "(abs * 2n + divisor) / (2n * divisor)",
+  "new": "(abs * 2n + divisor - 1n) / (2n * divisor)"
+ },
+ {
+  "name": "format: units: zero not special",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (abs === 0n) return \"0\";",
+  "new": ""
+ },
+ {
+  "name": "format: units: tiny loses sign",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "return `${sign}<${render(1n, dp)}`",
+  "new": "return `<${render(1n, dp)}`"
+ },
+ {
+  "name": "format: units: sign lost",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "const sign = negative ? \"-\" : \"\";",
+  "new": "const sign = \"\";"
+ },
+ {
+  "name": "format: units: tiny rule off",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (n === 0n) return",
+  "new": "if (false) return"
+ },
+ {
+  "name": "format: price: negative token amount ok",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (tokens < 0n || quoted < 0n)",
+  "new": "if (quoted < 0n)"
+ },
+ {
+  "name": "format: price: negative quote ok",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (tokens < 0n || quoted < 0n)",
+  "new": "if (tokens < 0n)"
+ },
+ {
+  "name": "format: price: zero tokens divides",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (tokens === 0n) throw",
+  "new": "if (tokens === -1n) throw"
+ },
+ {
+  "name": "format: price: significant max 41",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "checkInt(\"significant\", significant, 1, MAX_SIGNIFICANT)",
+  "new": "checkInt(\"significant\", significant, 1, MAX_SIGNIFICANT + 1)"
+ },
+ {
+  "name": "format: price: significant min 0",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "checkInt(\"significant\", significant, 1, MAX_SIGNIFICANT)",
+  "new": "checkInt(\"significant\", significant, 0, MAX_SIGNIFICANT)"
+ },
+ {
+  "name": "format: price: default 3 digits",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "significant = 4",
+  "new": "significant = 3"
+ },
+ {
+  "name": "format: price: one digit too few above 1",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "significant - whole.toString().length",
+  "new": "significant - 1 - whole.toString().length"
+ },
+ {
+  "name": "format: price: negative decimals not clamped",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "Math.max(0, significant - whole.toString().length)",
+  "new": "significant - whole.toString().length"
+ },
+ {
+  "name": "format: price: first digit position off by one",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "dp = p - 1 + significant",
+  "new": "dp = p + significant"
+ },
+ {
+  "name": "format: price: first digit position off by minus",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "dp = p - 1 + significant",
+  "new": "dp = p - 2 + significant"
+ },
+ {
+  "name": "format: price: scan starts at num",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "let scaled = num * 10n;",
+  "new": "let scaled = num;"
+ },
+ {
+  "name": "format: price: scan steps by 2",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "p++;",
+  "new": "p += 2;"
+ },
+ {
+  "name": "format: price: truncates",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "(num * 10n ** BigInt(dp) * 2n + den) / (2n * den)",
+  "new": "(num * 10n ** BigInt(dp) * 2n) / (2n * den)"
+ },
+ {
+  "name": "format: price: token decimals ignored",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "const num = quoted * 10n ** BigInt(tokenDecimals);",
+  "new": "const num = quoted;"
+ },
+ {
+  "name": "format: price: quote decimals ignored",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "const den = tokens * 10n ** BigInt(quoteDecimals);",
+  "new": "const den = tokens;"
+ },
+ {
+  "name": "format: price: zero quote not 0",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (quoted === 0n) return \"0\";",
+  "new": "if (quoted === -1n) return \"0\";"
+ },
+ {
+  "name": "format: percent: 1 refused",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "share < 0 || share > 1) {\n    throw new FormatError(\"a share",
+  "new": "share < 0 || share >= 1) {\n    throw new FormatError(\"a share"
+ },
+ {
+  "name": "format: percent: 0 refused",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "share < 0 || share > 1) {\n    throw new FormatError(\"a share",
+  "new": "share <= 0 || share > 1) {\n    throw new FormatError(\"a share"
+ },
+ {
+  "name": "format: percent: NaN accepted",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "!Number.isFinite(share) || share < 0",
+  "new": "share < 0"
+ },
+ {
+  "name": "format: percent: null shows 0%",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (share === null) return \"—\";",
+  "new": "if (share === null) return \"0%\";"
+ },
+ {
+  "name": "format: percent: digits fixed to 1",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "(share * 100).toFixed(digits)",
+  "new": "(share * 100).toFixed(1)"
+ },
+ {
+  "name": "format: percent: factor 10",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "share * 100",
+  "new": "share * 10"
+ },
+ {
+  "name": "format: percent: digits max 7",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "checkInt(\"digits\", digits, 0, 6)",
+  "new": "checkInt(\"digits\", digits, 0, 7)"
+ },
+ {
+  "name": "format: percent: digits min 1",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "checkInt(\"digits\", digits, 0, 6)",
+  "new": "checkInt(\"digits\", digits, 1, 6)"
+ },
+ {
+  "name": "format: percent: default digits 2",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "digits = 1",
+  "new": "digits = 2"
+ },
+ {
+  "name": "format: age: negative accepted",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "!Number.isSafeInteger(ms) || ms < 0) throw new FormatError(\"an age",
+  "new": "!Number.isSafeInteger(ms)) throw new FormatError(\"an age"
+ },
+ {
+  "name": "format: age: fraction accepted",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "!Number.isSafeInteger(ms) || ms < 0) throw new FormatError(\"an age",
+  "new": "ms < 0) throw new FormatError(\"an age"
+ },
+ {
+  "name": "format: age: seconds round",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "Math.floor(ms / 1000)",
+  "new": "Math.round(ms / 1000)"
+ },
+ {
+  "name": "format: age: 60s stays seconds",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "seconds < 60",
+  "new": "seconds <= 60"
+ },
+ {
+  "name": "format: age: 60m stays minutes",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "minutes < 60",
+  "new": "minutes <= 60"
+ },
+ {
+  "name": "format: age: 24h stays hours",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "hours < 24",
+  "new": "hours <= 24"
+ },
+ {
+  "name": "format: age: whole hours show minutes",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "minutes % 60 === 0 ?",
+  "new": "minutes % 60 !== 0 ?"
+ },
+ {
+  "name": "format: age: whole days show hours",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "hours % 24 === 0 ?",
+  "new": "hours % 24 !== 0 ?"
+ },
+ {
+  "name": "format: age: hour remainder",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "`${hours}h ${minutes % 60}m`",
+  "new": "`${hours}h ${minutes}m`"
+ },
+ {
+  "name": "format: age: day remainder",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "`${days}d ${hours % 24}h`",
+  "new": "`${days}d ${hours}h`"
+ },
+ {
+  "name": "format: short: boundary strict",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "address.length <= head + tail + 1",
+  "new": "address.length < head + tail + 1"
+ },
+ {
+  "name": "format: short: boundary loose",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "address.length <= head + tail + 1",
+  "new": "address.length <= head + tail + 2"
+ },
+ {
+  "name": "format: short: tail off by one",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "address.slice(address.length - tail)",
+  "new": "address.slice(address.length - tail - 1)"
+ },
+ {
+  "name": "format: short: head off by one",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "address.slice(0, head)",
+  "new": "address.slice(0, head + 1)"
+ },
+ {
+  "name": "format: short: no ellipsis",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "}…${address",
+  "new": "}${address"
+ },
+ {
+  "name": "format: short: head min 1",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "checkInt(\"head\", head, 0, 64)",
+  "new": "checkInt(\"head\", head, 1, 64)"
+ },
+ {
+  "name": "format: short: tail min 1",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "checkInt(\"tail\", tail, 0, 64)",
+  "new": "checkInt(\"tail\", tail, 1, 64)"
+ },
+ {
+  "name": "format: short: head max 65",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "checkInt(\"head\", head, 0, 64)",
+  "new": "checkInt(\"head\", head, 0, 65)"
+ },
+ {
+  "name": "format: short: tail max 65",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "checkInt(\"tail\", tail, 0, 64)",
+  "new": "checkInt(\"tail\", tail, 0, 65)"
+ },
+ {
+  "name": "format: short: head max 63",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "checkInt(\"head\", head, 0, 64)",
+  "new": "checkInt(\"head\", head, 0, 63)"
+ },
+ {
+  "name": "format: signal: null says no",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (value === null) return \"unknown\";",
+  "new": "if (value === null) return \"no\";"
+ },
+ {
+  "name": "format: signal: true says no",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "value ? \"yes\" : \"no\"",
+  "new": "value ? \"no\" : \"yes\""
+ },
+ {
+  "name": "format: signal: non-finite accepted",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (!Number.isFinite(value)) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "format: signal: sign lost",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "const sign = value < 0 ? \"-\" : \"\";",
+  "new": "const sign = \"\";"
+ },
+ {
+  "name": "format: signal: 3 digits",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "3 - exponent",
+  "new": "2 - exponent"
+ },
+ {
+  "name": "format: signal: 5 digits",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "3 - exponent",
+  "new": "4 - exponent"
+ },
+ {
+  "name": "format: signal: negative precision",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "Math.max(0, 3 - exponent)",
+  "new": "3 - exponent"
+ },
+ {
+  "name": "format: signal: precision cap off",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "Math.min(MAX_FRACTION, Math.max(0, 3 - exponent))",
+  "new": "Math.max(0, 3 - exponent)"
+ },
+ {
+  "name": "format: signal: tiny shows 0",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (/^0(?:\\.0*)?$/.test(fixed) && abs !== 0) return",
+  "new": "if (false) return"
+ },
+ {
+  "name": "format: signal: tiny loses sign",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "return `${sign}<${render(1n, MAX_FRACTION)}`",
+  "new": "return `<${render(1n, MAX_FRACTION)}`"
+ },
+ {
+  "name": "format: signal: zeros not trimmed",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "const trimmed = frac.replace(/0+$/, \"\");",
+  "new": "const trimmed = frac;"
+ },
+ {
+  "name": "format: signal: no grouping",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "return sign + group(whole) +",
+  "new": "return sign + whole +"
+ }
+]

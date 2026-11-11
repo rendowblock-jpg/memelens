@@ -5,7 +5,7 @@ usage: mutate.py MUTATIONS.json TEST_FILE [TEST_FILE ...]
 MUTATIONS.json: [{"name": "...", "file": "packages/data/src/store.ts", "old": "...", "new": "..."}]
 Each mutation must match exactly once. A mutant is CAUGHT if the tests fail, SURVIVED if they pass.
 """
-import json, os, shutil, subprocess, sys, tempfile
+import json, os, shutil, signal, subprocess, sys, tempfile, time
 
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 muts = json.load(open(sys.argv[1]))
@@ -24,14 +24,31 @@ def skip(directory, names):
     return out
 
 
+def run_tests(timeout):
+    """Runs the tests in the scratch copy. Returns (exit code, output, hung). On a timeout the whole process group
+    is killed (npx -> vitest -> workers), so a mutant that loops forever cannot leave a spinning process behind."""
+    proc = subprocess.Popen(["npx", "vitest", "run", *tests], cwd=scratch, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            text=True, start_new_session=True)
+    try:
+        out, _ = proc.communicate(timeout=timeout)
+        return proc.returncode, out, False
+    except subprocess.TimeoutExpired:
+        os.killpg(proc.pid, signal.SIGKILL)
+        out, _ = proc.communicate()
+        return None, out, True
+
+
 try:
     shutil.copytree(root, scratch, symlinks=True, dirs_exist_ok=True, ignore=skip)
     # A mutant only counts as "caught" if the tests were green without it. Check that first.
-    base = subprocess.run(["npx", "vitest", "run", *tests], cwd=scratch, capture_output=True, text=True, timeout=120)
-    if base.returncode != 0:
-        print("BASELINE RED: the tests fail without any mutation, so no result below would mean anything.")
-        print("\n".join(base.stdout.splitlines()[-15:]))
+    started = time.monotonic()
+    code, out, hung = run_tests(300)
+    if hung or code != 0:
+        print("BASELINE RED: the tests fail (or hang) without any mutation, so no result below would mean anything.")
+        print("\n".join(out.splitlines()[-15:]))
         sys.exit(3)
+    # A mutant that is still running after this long is treated as caught (a hang is a failure the tests notice).
+    limit = max(30, int((time.monotonic() - started) * 8))
     caught = survived = invalid = 0
     for m in muts:
         # A mutant is one edit, or several at once when it has an "also" list of {file, old, new} (used to remove
@@ -47,21 +64,21 @@ try:
                 bad = n
                 break
         if bad is not None:
-            print(f"INVALID  {m['name']}: pattern matched {bad} times (need exactly 1)")
+            print(f"INVALID  {m['name']}: pattern matched {bad} times (need exactly 1)", flush=True)
             invalid += 1
             continue
         for e in edits:
             path = os.path.join(scratch, e["file"])
             text = open(path).read()
             open(path, "w").write(text.replace(e["old"], e["new"], 1))
-        r = subprocess.run(["npx", "vitest", "run", *tests], cwd=scratch, capture_output=True, text=True, timeout=120)
+        code, out, hung = run_tests(limit)
         for path, text in originals.items():
             open(path, "w").write(text)
-        if r.returncode == 0:
-            print(f"SURVIVED {m['name']}")
+        if code == 0:
+            print(f"SURVIVED {m['name']}", flush=True)
             survived += 1
         else:
-            print(f"caught   {m['name']}")
+            print(f"caught   {m['name']}" + (f"  (hang: killed after {limit}s)" if hung else ""), flush=True)
             caught += 1
     print(f"-- {len(muts)} mutants: {caught} caught, {survived} survived, {invalid} invalid")
     sys.exit(1 if (survived or invalid) else 0)
