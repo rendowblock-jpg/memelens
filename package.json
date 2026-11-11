@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc -p packages/core/tsconfig.json --noEmit"
+    "typecheck": "tsc -p packages/core/tsconfig.json --noEmit",
+    "memelens": "node --disable-warning=ExperimentalWarning --import tsx packages/data/src/bin.ts"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",

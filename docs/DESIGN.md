@@ -81,3 +81,20 @@ recorded fixtures, not the live network.
 - Chain: Solana first (default). EVM later via another adapter.
 - Data provider: not chosen. Needs an RPC or indexer key from the user.
 - LLM: any OpenAI-compatible endpoint; default is whatever the user configures.
+
+
+## Status (end of M2)
+
+Done and tested: core analytics (concentration, FIFO PnL, risk score, smart-money ranking), SQLite store,
+ingest, analysis glue, strict CLI with text and JSON output.
+
+Run it: `npm run memelens -- ingest packages/data/fixtures/sample.json --db demo.sqlite`, then
+`npm run memelens -- smart --db demo.sqlite`. Exit codes: 0 done, 1 could not be done, 2 command written wrongly,
+3 ingested but items were rejected.
+
+Known gaps (not hidden):
+- Everything is verified on synthetic data only. Nothing has touched real chain data yet.
+- Risk weights and thresholds are first guesses, not calibrated.
+- Only 6 of 10 risk signals have a data source (creator history, liquidity, clustering, wash trading do not).
+- 3 store ORDER BY tie-break mutants and 3 analyze as-of mutants were left unresolved (see commit history).
+- Not run on Windows. No Electron shell, Solana adapter, agent chat or backtest yet (M3-M6).
