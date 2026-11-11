@@ -1,0 +1,242 @@
+[
+ {
+  "name": "channel: any string accepted",
+  "file": "packages/service/src/api.ts",
+  "old": "if (typeof channel !== \"string\" || !(CHANNELS as readonly string[]).includes(channel)) {",
+  "new": "if (typeof channel !== \"string\") {"
+ },
+ {
+  "name": "(equivalent) channel: non-string accepted via includes only",
+  "file": "packages/service/src/api.ts",
+  "old": "if (typeof channel !== \"string\" || !(CHANNELS",
+  "new": "if (!(CHANNELS"
+ },
+ {
+  "name": "channel: prefix match",
+  "file": "packages/service/src/api.ts",
+  "old": "!(CHANNELS as readonly string[]).includes(channel)",
+  "new": "!(CHANNELS as readonly string[]).some((c) => channel.startsWith(c))"
+ },
+ {
+  "name": "overview: undefined refused",
+  "file": "packages/service/src/api.ts",
+  "old": "if (channel === \"overview\" && payload === undefined) return {};",
+  "new": ""
+ },
+ {
+  "name": "overview: any object accepted",
+  "file": "packages/service/src/api.ts",
+  "old": "overview: {},",
+  "new": "overview: { chain: text(false) },"
+ },
+ {
+  "name": "(equivalent) payload: arrays accepted",
+  "file": "packages/service/src/api.ts",
+  "old": "value === null || Array.isArray(value)) return false;",
+  "new": "value === null) return false;"
+ },
+ {
+  "name": "payload: null accepted as object",
+  "file": "packages/service/src/api.ts",
+  "old": "if (typeof value !== \"object\" || value === null ||",
+  "new": "if (typeof value !== \"object\" ||"
+ },
+ {
+  "name": "payload: inherited props accepted",
+  "file": "packages/service/src/api.ts",
+  "old": "return proto === Object.prototype || proto === null;",
+  "new": "return true;"
+ },
+ {
+  "name": "payload: null-prototype refused",
+  "file": "packages/service/src/api.ts",
+  "old": "return proto === Object.prototype || proto === null;",
+  "new": "return proto === Object.prototype;"
+ },
+ {
+  "name": "unknown keys ignored",
+  "file": "packages/service/src/api.ts",
+  "old": "if (unknown.length > 0) {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "unknown keys: prototype names pass",
+  "file": "packages/service/src/api.ts",
+  "old": "!Object.hasOwn(spec, k)",
+  "new": "!(k in spec)"
+ },
+ {
+  "name": "unknown keys: only first named",
+  "file": "packages/service/src/api.ts",
+  "old": "unknown.map((k) => JSON.stringify(k)).join(\", \")",
+  "new": "JSON.stringify(unknown[0])"
+ },
+ {
+  "name": "required not enforced",
+  "file": "packages/service/src/api.ts",
+  "old": "if (field.required) throw new BadRequest(`${channel}: ${name} is required`);",
+  "new": "if (false) throw new BadRequest(`${channel}: ${name} is required`);"
+ },
+ {
+  "name": "explicit undefined is an error for optional",
+  "file": "packages/service/src/api.ts",
+  "old": "if (value === undefined) {\n      if (field.required)",
+  "new": "if (!(name in payload)) {\n      if (field.required)"
+ },
+ {
+  "name": "null treated as absent",
+  "file": "packages/service/src/api.ts",
+  "old": "if (value === undefined) {",
+  "new": "if (value === undefined || value === null) {"
+ },
+ {
+  "name": "text: spaces allowed",
+  "file": "packages/service/src/api.ts",
+  "old": "const TEXT = /^[^\\s\\u0000-\\u001f\\u007f]{1,200}$/u;",
+  "new": "const TEXT = /^[^\\u0000-\\u001f\\u007f]{1,200}$/u;"
+ },
+ {
+  "name": "text: control chars allowed",
+  "file": "packages/service/src/api.ts",
+  "old": "const TEXT = /^[^\\s\\u0000-\\u001f\\u007f]{1,200}$/u;",
+  "new": "const TEXT = /^[^\\s]{1,200}$/u;"
+ },
+ {
+  "name": "text: 201 allowed",
+  "file": "packages/service/src/api.ts",
+  "old": "{1,200}$/u",
+  "new": "{1,201}$/u"
+ },
+ {
+  "name": "text: empty allowed",
+  "file": "packages/service/src/api.ts",
+  "old": "{1,200}$/u",
+  "new": "{0,200}$/u"
+ },
+ {
+  "name": "text: unanchored end",
+  "file": "packages/service/src/api.ts",
+  "old": "{1,200}$/u",
+  "new": "{1,200}/u"
+ },
+ {
+  "name": "text: unanchored start",
+  "file": "packages/service/src/api.ts",
+  "old": "const TEXT = /^[^",
+  "new": "const TEXT = /[^"
+ },
+ {
+  "name": "text: non-strings coerced",
+  "file": "packages/service/src/api.ts",
+  "old": "return typeof value === \"string\" && TEXT.test(value);",
+  "new": "return TEXT.test(String(value));"
+ },
+ {
+  "name": "number: fractions allowed",
+  "file": "packages/service/src/api.ts",
+  "old": "!Number.isSafeInteger(value)) return false;",
+  "new": "!Number.isFinite(value)) return false;"
+ },
+ {
+  "name": "number: strings allowed",
+  "file": "packages/service/src/api.ts",
+  "old": "if (typeof value !== \"number\" || !Number.isSafeInteger(value)) return false;",
+  "new": "if (!Number.isSafeInteger(Number(value))) return false;"
+ },
+ {
+  "name": "time: negatives allowed",
+  "file": "packages/service/src/api.ts",
+  "old": "return kind === \"time\" ? value >= 0 : value >= 1;",
+  "new": "return kind === \"time\" ? true : value >= 1;"
+ },
+ {
+  "name": "count: zero allowed",
+  "file": "packages/service/src/api.ts",
+  "old": "return kind === \"time\" ? value >= 0 : value >= 1;",
+  "new": "return kind === \"time\" ? value >= 0 : value >= 0;"
+ },
+ {
+  "name": "count: time rule used",
+  "file": "packages/service/src/api.ts",
+  "old": "return kind === \"time\" ? value >= 0 : value >= 1;",
+  "new": "return value >= 0;"
+ },
+ {
+  "name": "dispatch: feed ignores asOf",
+  "file": "packages/service/src/api.ts",
+  "old": "data = feed(store, text(\"chain\"), time(\"asOf\"));",
+  "new": "data = feed(store, text(\"chain\"));"
+ },
+ {
+  "name": "dispatch: token ignores asOf",
+  "file": "packages/service/src/api.ts",
+  "old": "data = tokenDetail(store, text(\"chain\"), text(\"token\"), time(\"asOf\"));",
+  "new": "data = tokenDetail(store, text(\"chain\"), text(\"token\"));"
+ },
+ {
+  "name": "dispatch: wallet ignores asOf",
+  "file": "packages/service/src/api.ts",
+  "old": "data = walletDetail(store, text(\"chain\"), text(\"wallet\"), time(\"asOf\"));",
+  "new": "data = walletDetail(store, text(\"chain\"), text(\"wallet\"));"
+ },
+ {
+  "name": "dispatch: wallet and token swapped",
+  "file": "packages/service/src/api.ts",
+  "old": "data = walletDetail(store, text(\"chain\"), text(\"wallet\"), time(\"asOf\"));",
+  "new": "data = walletDetail(store, text(\"chain\"), text(\"chain\"), time(\"asOf\"));"
+ },
+ {
+  "name": "dispatch: smart ignores minClosed",
+  "file": "packages/service/src/api.ts",
+  "old": "...(minClosed === undefined ? {} : { minClosed }),",
+  "new": ""
+ },
+ {
+  "name": "dispatch: smart from/to swapped",
+  "file": "packages/service/src/api.ts",
+  "old": "from: time(\"from\")!,\n          to: time(\"to\")!,",
+  "new": "from: time(\"to\")!,\n          to: time(\"from\")!,"
+ },
+ {
+  "name": "reply: bigint not converted",
+  "file": "packages/service/src/api.ts",
+  "old": "return { ok: true, data: toWire(data) as ApiResponses[Channel] };",
+  "new": "return { ok: true, data: data as ApiResponses[Channel] };"
+ },
+ {
+  "name": "errors: service errors hidden",
+  "file": "packages/service/src/api.ts",
+  "old": "if (e instanceof BadRequest || e instanceof ServiceError) return",
+  "new": "if (e instanceof BadRequest) return"
+ },
+ {
+  "name": "errors: internal message leaked",
+  "file": "packages/service/src/api.ts",
+  "old": "return { ok: false, error: \"internal error\" };\n  }\n}",
+  "new": "return { ok: false, error: e instanceof Error ? e.message : \"internal error\" };\n  }\n}"
+ },
+ {
+  "name": "errors: sink never called",
+  "file": "packages/service/src/api.ts",
+  "old": "onError?.(e);",
+  "new": ""
+ },
+ {
+  "name": "errors: sink throws escape",
+  "file": "packages/service/src/api.ts",
+  "old": "    try {\n      onError?.(e);\n    } catch {\n      // A broken sink must not turn into a thrown error in the main process.\n    }",
+  "new": "    onError?.(e);"
+ },
+ {
+  "name": "errors: sink called for bad requests too",
+  "file": "packages/service/src/api.ts",
+  "old": "if (e instanceof BadRequest || e instanceof ServiceError) return { ok: false, error: e.message };",
+  "new": "onError?.(e);\n    if (e instanceof BadRequest || e instanceof ServiceError) return { ok: false, error: e.message };"
+ },
+ {
+  "name": "errors: expected errors reported to window as internal",
+  "file": "packages/service/src/api.ts",
+  "old": "if (e instanceof BadRequest || e instanceof ServiceError) return { ok: false, error: e.message };",
+  "new": "if (e instanceof BadRequest || e instanceof ServiceError) return { ok: false, error: \"internal error\" };"
+ }
+]
