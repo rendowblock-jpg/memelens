@@ -6,3 +6,4 @@ out/
 .env
 .env.*
 .vitest/
+__pycache__/
