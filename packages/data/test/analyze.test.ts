@@ -252,7 +252,7 @@ describe("tokenRisk", () => {
     const r = tokenRisk(store, C, "F", 2000)!;
     expect(r.input.creatorShare).toBeUndefined();
     expect(r.unavailable.creatorShare).toMatch(/non-holder/i);
-    expect(r.input.concentration!.total).toBe(10n);
+    expect(r.input.concentration!.topShare[1]).toBe(1); // only w1 is counted; the pool is excluded
   });
 
   it("age is asOf minus creation time, and 0 at the moment of creation", async () => {
