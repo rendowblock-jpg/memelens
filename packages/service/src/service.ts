@@ -19,6 +19,8 @@ export interface Overview {
 export interface FeedRow {
   token: string;
   symbol: string | null;
+  /** Decimals of the token: needed to turn lastPrice (raw units) into a price per whole token. */
+  decimals: number;
   createdAt: number;
   ageMs: number;
   /** Trades at or before asOf. */
@@ -128,6 +130,7 @@ export function feed(store: Store, chain: string, asOf?: number): Feed {
     return {
       token: info.token,
       symbol: info.symbol,
+      decimals: info.decimals,
       createdAt: info.createdAt,
       ageMs: at - info.createdAt,
       trades: trades.length,

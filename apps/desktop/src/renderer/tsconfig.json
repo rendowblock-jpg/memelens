@@ -1,5 +1,17 @@
 {
   "extends": "../../../../tsconfig.base.json",
-  "compilerOptions": { "noEmit": true, "lib": ["ES2022", "DOM"], "types": ["node"] },
-  "include": ["."]
+  "compilerOptions": {
+    "noEmit": true,
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "types": [
+      "node"
+    ],
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "."
+  ]
 }

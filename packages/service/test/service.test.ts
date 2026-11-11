@@ -33,6 +33,14 @@ describe("overview", () => {
   });
 });
 
+describe("feed rows carry the token's decimals (a raw mark cannot become a price without them)", () => {
+  it("copies decimals from the token, including 0 and 9", async () => {
+    const store = await load({ ...scenario(), tokens: [tok("A", { decimals: 9, createdAt: 1000 }), tok("B", { decimals: 0, createdAt: 2000 }), tok("C", { createdAt: 3000 })], trades: [], snapshots: [] });
+    const byToken = Object.fromEntries(feed(store, C, 3000).rows.map((r) => [r.token, r.decimals]));
+    expect(byToken).toEqual({ A: 9, B: 0, C: 6 });
+  });
+});
+
 describe("feed", () => {
   it("lists tokens newest first with trade count, volume, last price, holders and risk, as of a time", async () => {
     const store = await load(scenario());
