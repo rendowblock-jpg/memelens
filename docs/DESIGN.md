@@ -68,7 +68,7 @@ recorded fixtures, not the live network.
 
 - M0 repo, design, core skeleton, first function (concentration) - done
 - M1a core: per-address PnL, FIFO, exact bigint, `asOf` cut-off - done
-- M1b core: risk score (explainable weighted signals)
+- M1b core: risk score (explainable weighted signals, unknown != safe, hard flags) - done
 - M1c core: smart-money ranking (realised PnL + hit rate over a window)
 - M2 storage + ReplayAdapter + ingest, CLI to run analyses on fixtures
 - M3 Electron shell: feed, token page, wallet page
