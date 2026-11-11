@@ -1,0 +1,5 @@
+[
+ {"name":"lastMark: drop `id DESC`","file":"packages/data/src/store.ts","old":"AND quote <> '0' ORDER BY time DESC, id DESC LIMIT 1","new":"AND quote <> '0' ORDER BY time DESC LIMIT 1"},
+ {"name":"tradesForWallet: drop `id` tie-break","file":"packages/data/src/store.ts","old":"WHERE chain=? AND wallet=? AND time<=? ORDER BY time, id","new":"WHERE chain=? AND wallet=? AND time<=? ORDER BY time"},
+ {"name":"tradesForToken: drop `id` tie-break","file":"packages/data/src/store.ts","old":"WHERE chain=? AND token=? AND time<=? ORDER BY time, id","new":"WHERE chain=? AND token=? AND time<=? ORDER BY time"}
+]

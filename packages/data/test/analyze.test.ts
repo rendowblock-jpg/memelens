@@ -379,3 +379,53 @@ function randomData(seed: number): ReplayData {
   );
   return { chain: C, tokens, trades, snapshots };
 }
+
+// ----- the time cut is enforced twice (store query + core function); each layer must hold on its own -------
+
+/**
+ * Wraps a store so a test can see which trades `tradesForWallet` handed back, and can make it leak:
+ * with `leak: true` it ignores the time limit it was given and returns the wallet's whole history.
+ */
+function tapped(store: Store, options: { leak?: boolean } = {}): { store: Store; fetchedTimes: number[] } {
+  const fetchedTimes: number[] = [];
+  const wrapper = new Proxy(store, {
+    get(target, prop) {
+      const value = Reflect.get(target, prop, target);
+      if (typeof value !== "function") return value;
+      if (prop === "tradesForWallet") {
+        return (chain: string, wallet: string, asOf?: number) => {
+          const rows = target.tradesForWallet(chain, wallet, options.leak === true ? undefined : asOf);
+          for (const r of rows) fetchedTimes.push(r.time);
+          return rows;
+        };
+      }
+      return (value as (...a: unknown[]) => unknown).bind(target);
+    },
+  });
+  return { store: wrapper, fetchedTimes };
+}
+
+describe("the time cut holds in each layer on its own", () => {
+  it("walletPnl never pulls a trade after asOf out of the store", async () => {
+    const { store, fetchedTimes } = tapped(await load(scenario()));
+    walletPnl(store, C, "w1", { asOf: 3500 });
+    expect(fetchedTimes.length).toBeGreaterThan(0);
+    expect(Math.max(...fetchedTimes)).toBeLessThanOrEqual(3500);
+  });
+
+  it("walletPnl still cuts at asOf if the store were to hand back later trades", async () => {
+    const base = await load(scenario());
+    const honest = walletPnl(base, C, "w1", { asOf: 3500 });
+    const leaky = tapped(base, { leak: true });
+    const result = walletPnl(leaky.store, C, "w1", { asOf: 3500 });
+    expect(Math.max(...leaky.fetchedTimes)).toBeGreaterThan(3500); // the leak is real, so this test can fail
+    expect(result).toEqual(honest);
+  });
+
+  it("smartMoney never pulls a trade after `to` out of the store", async () => {
+    const { store, fetchedTimes } = tapped(await load(scenario()));
+    smartMoney(store, C, { from: 0, to: 3500, minClosedTokens: 1 });
+    expect(fetchedTimes.length).toBeGreaterThan(0);
+    expect(Math.max(...fetchedTimes)).toBeLessThanOrEqual(3500);
+  });
+});

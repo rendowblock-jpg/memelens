@@ -96,5 +96,11 @@ Known gaps (not hidden):
 - Everything is verified on synthetic data only. Nothing has touched real chain data yet.
 - Risk weights and thresholds are first guesses, not calibrated.
 - Only 6 of 10 risk signals have a data source (creator history, liquidity, clustering, wash trading do not).
-- 3 store ORDER BY tie-break mutants and 3 analyze as-of mutants were left unresolved (see commit history).
+- Two mutation survivors are known and accepted: dropping `, id` from the ascending `ORDER BY time, id` in
+  `Store.tradesForWallet` and `Store.tradesForToken`. They are equivalent under this schema: with or without the
+  trade indexes SQLite scans the `(chain, id)` primary key and its sort keeps that order (checked with
+  `EXPLAIN QUERY PLAN`). The clause stays because it makes the order deterministic whatever the planner does.
+  The third (`lastMark`, descending) is killed by a test that drops the index.
+- Mutation runs cover core, replay, store, ingest, analyze, args, and the CLI options and render layer. They do
+  not cover CLI error-message branches, the ingest and status text, or `bin.ts`.
 - Not run on Windows. No Electron shell, Solana adapter, agent chat or backtest yet (M3-M6).

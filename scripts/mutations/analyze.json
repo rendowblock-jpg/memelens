@@ -1,0 +1,158 @@
+[
+ {
+  "name": "pnl: marks not passed",
+  "file": "packages/data/src/analyze.ts",
+  "old": "marks });\n}\n\n/** Holder concentration",
+  "new": "});\n}\n\n/** Holder concentration"
+ },
+ {
+  "name": "pnl: mark ignores asOf",
+  "file": "packages/data/src/analyze.ts",
+  "old": "const mark = store.lastMark(chain, token, asOf);",
+  "new": "const mark = store.lastMark(chain, token);"
+ },
+ {
+  "name": "pnl: store trades ignore asOf (defence in depth)",
+  "file": "packages/data/src/analyze.ts",
+  "old": "store.tradesForWallet(chain, wallet, asOf);\n  const marks",
+  "new": "store.tradesForWallet(chain, wallet);\n  const marks"
+ },
+ {
+  "name": "pnl: computePnl ignores asOf (defence in depth)",
+  "file": "packages/data/src/analyze.ts",
+  "old": "computePnl(trades, { ...(asOf === undefined ? {} : { asOf }), marks })",
+  "new": "computePnl(trades, { marks })"
+ },
+ {
+  "name": "pnl: null mark stored",
+  "file": "packages/data/src/analyze.ts",
+  "old": "if (mark !== null) marks.set(token, mark);",
+  "new": "marks.set(token, mark as any);"
+ },
+ {
+  "name": "conc: creation check removed",
+  "file": "packages/data/src/analyze.ts",
+  "old": "  const info = store.getToken(chain, token);\n  if (info === null || info.createdAt > asOf) return null;\n  const snapshot = store.holderSnapshot(chain, token, asOf);\n  if (snapshot === null) return null;",
+  "new": "  const info = store.getToken(chain, token);\n  if (info === null) return null;\n  const snapshot = store.holderSnapshot(chain, token, asOf);\n  if (snapshot === null) return null;"
+ },
+ {
+  "name": "conc: unknown token allowed",
+  "file": "packages/data/src/analyze.ts",
+  "old": "  const info = store.getToken(chain, token);\n  if (info === null || info.createdAt > asOf) return null;\n  const snapshot = store.holderSnapshot(chain, token, asOf);\n  if (snapshot === null) return null;",
+  "new": "  const info = store.getToken(chain, token) ?? { excluded: [] as string[], createdAt: 0 };\n  const snapshot = store.holderSnapshot(chain, token, asOf);\n  if (snapshot === null) return null;"
+ },
+ {
+  "name": "conc: pool addresses not excluded",
+  "file": "packages/data/src/analyze.ts",
+  "old": "analyzeConcentration(snapshot.holdings, { exclude: new Set(info.excluded) })",
+  "new": "analyzeConcentration(snapshot.holdings)"
+ },
+ {
+  "name": "conc: age sign flipped",
+  "file": "packages/data/src/analyze.ts",
+  "old": "snapshotAgeMs: asOf - snapshot.time",
+  "new": "snapshotAgeMs: snapshot.time - asOf"
+ },
+ {
+  "name": "risk: created-at boundary >= ",
+  "file": "packages/data/src/analyze.ts",
+  "old": "if (info === null || info.createdAt > asOf) return null;\n\n  const input",
+  "new": "if (info === null || info.createdAt >= asOf) return null;\n\n  const input"
+ },
+ {
+  "name": "risk: pre-creation allowed",
+  "file": "packages/data/src/analyze.ts",
+  "old": "if (info === null || info.createdAt > asOf) return null;\n\n  const input",
+  "new": "if (info === null) return null;\n\n  const input"
+ },
+ {
+  "name": "risk: age = asOf",
+  "file": "packages/data/src/analyze.ts",
+  "old": "ageMs: asOf - info.createdAt",
+  "new": "ageMs: asOf"
+ },
+ {
+  "name": "risk: snapshot ignores asOf",
+  "file": "packages/data/src/analyze.ts",
+  "old": "const snapshot = store.holderSnapshot(chain, token, asOf);\n  const excluded",
+  "new": "const snapshot = store.holderSnapshot(chain, token, Number.MAX_SAFE_INTEGER);\n  const excluded"
+ },
+ {
+  "name": "risk: no-holders case treated as known",
+  "file": "packages/data/src/analyze.ts",
+  "old": "concentration === null || concentration.holders === 0",
+  "new": "concentration === null"
+ },
+ {
+  "name": "risk: pool addresses not excluded",
+  "file": "packages/data/src/analyze.ts",
+  "old": "analyzeConcentration(snapshot.holdings, { exclude: excluded })",
+  "new": "analyzeConcentration(snapshot.holdings)"
+ },
+ {
+  "name": "risk: creator share scale wrong",
+  "file": "packages/data/src/analyze.ts",
+  "old": "Number((held * SCALE) / concentration.total) / Number(SCALE)",
+  "new": "Number((held * SCALE) / concentration.total) / Number(SCALE) / 2"
+ },
+ {
+  "name": "risk: creator unknown not detected",
+  "file": "packages/data/src/analyze.ts",
+  "old": "if (info.creator === null) {",
+  "new": "if (false as boolean) {"
+ },
+ {
+  "name": "risk: creator on excluded list not guarded",
+  "file": "packages/data/src/analyze.ts",
+  "old": "} else if (excluded.has(info.creator)) {",
+  "new": "} else if (false as boolean) {"
+ },
+ {
+  "name": "risk: absent creator not 0",
+  "file": "packages/data/src/analyze.ts",
+  "old": "?.amount ?? 0n;",
+  "new": "?.amount ?? 1n;"
+ },
+ {
+  "name": "risk: mint authority null passed on",
+  "file": "packages/data/src/analyze.ts",
+  "old": "if (info.mintAuthorityActive === null) unavailable.mintAuthority",
+  "new": "if (false as boolean) unavailable.mintAuthority"
+ },
+ {
+  "name": "risk: freeze reason missing",
+  "file": "packages/data/src/analyze.ts",
+  "old": "unavailable.freezeAuthority = \"freeze authority status is not known\";",
+  "new": ""
+ },
+ {
+  "name": "risk: wash trading not listed unavailable",
+  "file": "packages/data/src/analyze.ts",
+  "old": "    washTrading: \"no wash-trade detector yet\",\n",
+  "new": ""
+ },
+ {
+  "name": "risk: no-snapshot creatorShare reason missing",
+  "file": "packages/data/src/analyze.ts",
+  "old": "    unavailable.hhi = NO_SNAPSHOT;\n    unavailable.creatorShare = NO_SNAPSHOT;",
+  "new": "    unavailable.hhi = NO_SNAPSHOT;"
+ },
+ {
+  "name": "risk: snapshotTime always null",
+  "file": "packages/data/src/analyze.ts",
+  "old": "snapshotTime: snapshot === null ? null : snapshot.time",
+  "new": "snapshotTime: null"
+ },
+ {
+  "name": "smart: `to` ignored when listing wallets",
+  "file": "packages/data/src/analyze.ts",
+  "old": "store.walletsWithTrades(chain, options.to)",
+  "new": "store.walletsWithTrades(chain)"
+ },
+ {
+  "name": "smart: `to` ignored when loading trades (defence in depth)",
+  "file": "packages/data/src/analyze.ts",
+  "old": "store.tradesForWallet(chain, address, options.to)",
+  "new": "store.tradesForWallet(chain, address)"
+ }
+]
