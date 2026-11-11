@@ -335,9 +335,12 @@ export class Store {
     return rows.map((r) => r["wallet"] as string);
   }
 
-  /** The price of the most recent trade at or before `asOf`. A weak mark for thin markets; callers should say so. */
+  /**
+   * The price of the most recent trade at or before `asOf`, ignoring zero-quote trades (free transfers are not
+   * a market price). A weak mark for thin markets; callers should say so.
+   */
   lastMark(chain: string, token: string, asOf: number = MAX_TIME): Mark | null {
-    const row = this.stmt("SELECT amount,quote FROM trade WHERE chain=? AND token=? AND time<=? ORDER BY time DESC, id DESC LIMIT 1").get(
+    const row = this.stmt("SELECT amount,quote FROM trade WHERE chain=? AND token=? AND time<=? AND quote <> '0' ORDER BY time DESC, id DESC LIMIT 1").get(
       chain,
       token,
       asOf,

@@ -244,6 +244,16 @@ describe("Store reads", () => {
     expect(s.lastMark("other", "B")).toBeNull();
   });
 
+  it("lastMark skips zero-quote trades: a free transfer is not a market price", () => {
+    const s = mem();
+    s.insertTrade("c", trade("p1", { time: 100, token: "T", amount: 10n, quote: 50n }));
+    s.insertTrade("c", trade("p2", { time: 200, token: "T", amount: 3n, quote: 0n }));
+    expect(s.lastMark("c", "T")).toEqual({ amount: 10n, quote: 50n });
+    expect(s.lastMark("c", "T", 150)).toEqual({ amount: 10n, quote: 50n });
+    s.insertTrade("c", trade("only-free", { time: 100, token: "F", amount: 3n, quote: 0n }));
+    expect(s.lastMark("c", "F")).toBeNull();
+  });
+
   it("ties on time are ordered by id, whatever order they were inserted in", () => {
     const s = mem();
     for (const id of ["m3", "m1", "m2"]) {
