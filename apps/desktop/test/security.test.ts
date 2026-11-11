@@ -159,3 +159,18 @@ describe("CSP", () => {
     expect(CSP).not.toMatch(/unsafe-inline|unsafe-eval|\*|https?:/);
   });
 });
+
+describe("values that are not strings", () => {
+  // The types say string, but the values come from a browser process. `new URL(x)` turns any object into a string
+  // with its toString(), so an object that prints as a trusted URL would be accepted unless the type is checked.
+  const lookAlike = { toString: () => "app://memelens/index.html" };
+  const notStrings: unknown[] = [lookAlike, new URL("app://memelens/index.html"), ["app://memelens/index.html"], 42, null, undefined, {}];
+
+  it("isAppUrl refuses them", () => {
+    for (const v of notStrings) expect(isAppUrl(v as string), String(v)).toBe(false);
+  });
+
+  it("resolveAppFile refuses them", () => {
+    for (const v of notStrings) expect(resolveAppFile(ROOT, v as string), String(v)).toBeNull();
+  });
+});

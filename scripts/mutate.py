@@ -34,16 +34,29 @@ try:
         sys.exit(3)
     caught = survived = invalid = 0
     for m in muts:
-        path = os.path.join(scratch, m["file"])
-        original = open(path).read()
-        n = original.count(m["old"])
-        if n != 1:
-            print(f"INVALID  {m['name']}: pattern matched {n} times (need exactly 1)")
+        # A mutant is one edit, or several at once when it has an "also" list of {file, old, new} (used to remove
+        # two layers that guard the same thing, to show the layers are redundant and not a gap).
+        edits = [m] + list(m.get("also", []))
+        originals = {}
+        bad = None
+        for e in edits:
+            path = os.path.join(scratch, e["file"])
+            originals.setdefault(path, open(path).read())
+            n = originals[path].count(e["old"])
+            if n != 1:
+                bad = n
+                break
+        if bad is not None:
+            print(f"INVALID  {m['name']}: pattern matched {bad} times (need exactly 1)")
             invalid += 1
             continue
-        open(path, "w").write(original.replace(m["old"], m["new"], 1))
+        for e in edits:
+            path = os.path.join(scratch, e["file"])
+            text = open(path).read()
+            open(path, "w").write(text.replace(e["old"], e["new"], 1))
         r = subprocess.run(["npx", "vitest", "run", *tests], cwd=scratch, capture_output=True, text=True, timeout=120)
-        open(path, "w").write(original)
+        for path, text in originals.items():
+            open(path, "w").write(text)
         if r.returncode == 0:
             print(f"SURVIVED {m['name']}")
             survived += 1

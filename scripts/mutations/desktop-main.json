@@ -1,0 +1,579 @@
+[
+ {
+  "name": "serve: HEAD refused",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "method !== \"GET\" && method !== \"HEAD\"",
+  "new": "method !== \"GET\""
+ },
+ {
+  "name": "serve: all methods refused",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "method !== \"GET\" && method !== \"HEAD\"",
+  "new": "method !== \"GET\" || method !== \"HEAD\""
+ },
+ {
+  "name": "serve: all methods allowed",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "if (method !== \"GET\" && method !== \"HEAD\") return { status: 405 };",
+  "new": ""
+ },
+ {
+  "name": "serve: 405 becomes 403",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "return { status: 405 }",
+  "new": "return { status: 403 }"
+ },
+ {
+  "name": "serve: null path not refused",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "if (file === null) return { status: 403 };",
+  "new": "if (file === undefined) return { status: 403 };"
+ },
+ {
+  "name": "serve: null path gives 404",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "if (file === null) return { status: 403 };",
+  "new": "if (file === null) return { status: 404 };"
+ },
+ {
+  "name": "serve: extension case-sensitive",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "extname(file).toLowerCase()",
+  "new": "extname(file)"
+ },
+ {
+  "name": "serve: unknown type gives 404",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "if (type === undefined) return { status: 403 };",
+  "new": "if (type === undefined) return { status: 404 };"
+ },
+ {
+  "name": "serve: unknown type served",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "if (type === undefined) return { status: 403 };",
+  "new": "if (type === undefined) return { status: 200, file, headers: {} };"
+ },
+ {
+  "name": "serve: file system asked before type",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "const type = TYPES[extname(file).toLowerCase()];\n  if (type === undefined) return { status: 403 };\n\n  if (!isFile(file)) return { status: 404 };",
+  "new": "if (!isFile(file)) return { status: 404 };\n  const type = TYPES[extname(file).toLowerCase()];\n  if (type === undefined) return { status: 403 };"
+ },
+ {
+  "name": "serve: missing file served",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "if (!isFile(file)) return { status: 404 };",
+  "new": "if (isFile(file)) return { status: 404 };"
+ },
+ {
+  "name": "serve: missing file gives 403",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "return { status: 404 }",
+  "new": "return { status: 403 }"
+ },
+ {
+  "name": "serve: no existence check",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "if (!isFile(file)) return { status: 404 };",
+  "new": ""
+ },
+ {
+  "name": "serve: no CSP header",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "      \"Content-Security-Policy\": CSP,\n",
+  "new": ""
+ },
+ {
+  "name": "serve: CSP header wrong value",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "\"Content-Security-Policy\": CSP,",
+  "new": "\"Content-Security-Policy\": \"default-src *\","
+ },
+ {
+  "name": "serve: no nosniff",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "      \"X-Content-Type-Options\": \"nosniff\",\n",
+  "new": ""
+ },
+ {
+  "name": "serve: nosniff wrong",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "\"X-Content-Type-Options\": \"nosniff\"",
+  "new": "\"X-Content-Type-Options\": \"sniff\""
+ },
+ {
+  "name": "serve: wrong file in plan",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "    status: 200,\n    file,",
+  "new": "    status: 200,\n    file: root,"
+ },
+ {
+  "name": "serve: type .html removed",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".html\": \"text/html; charset=utf-8\",\n",
+  "new": ""
+ },
+ {
+  "name": "serve: type .html wrong",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".html\": \"text/html; charset=utf-8\",\n",
+  "new": "  \".html\": \"text/html; charset=utf-8x\",\n"
+ },
+ {
+  "name": "serve: type .js removed",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".js\": \"text/javascript; charset=utf-8\",\n",
+  "new": ""
+ },
+ {
+  "name": "serve: type .js wrong",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".js\": \"text/javascript; charset=utf-8\",\n",
+  "new": "  \".js\": \"text/javascript; charset=utf-8x\",\n"
+ },
+ {
+  "name": "serve: type .mjs removed",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".mjs\": \"text/javascript; charset=utf-8\",\n",
+  "new": ""
+ },
+ {
+  "name": "serve: type .mjs wrong",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".mjs\": \"text/javascript; charset=utf-8\",\n",
+  "new": "  \".mjs\": \"text/javascript; charset=utf-8x\",\n"
+ },
+ {
+  "name": "serve: type .css removed",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".css\": \"text/css; charset=utf-8\",\n",
+  "new": ""
+ },
+ {
+  "name": "serve: type .css wrong",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".css\": \"text/css; charset=utf-8\",\n",
+  "new": "  \".css\": \"text/css; charset=utf-8x\",\n"
+ },
+ {
+  "name": "serve: type .json removed",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".json\": \"application/json; charset=utf-8\",\n",
+  "new": ""
+ },
+ {
+  "name": "serve: type .json wrong",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".json\": \"application/json; charset=utf-8\",\n",
+  "new": "  \".json\": \"application/json; charset=utf-8x\",\n"
+ },
+ {
+  "name": "serve: type .svg removed",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".svg\": \"image/svg+xml\",\n",
+  "new": ""
+ },
+ {
+  "name": "serve: type .svg wrong",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".svg\": \"image/svg+xml\",\n",
+  "new": "  \".svg\": \"image/svg+xmlx\",\n"
+ },
+ {
+  "name": "serve: type .png removed",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".png\": \"image/png\",\n",
+  "new": ""
+ },
+ {
+  "name": "serve: type .png wrong",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".png\": \"image/png\",\n",
+  "new": "  \".png\": \"image/pngx\",\n"
+ },
+ {
+  "name": "serve: type .ico removed",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".ico\": \"image/x-icon\",\n",
+  "new": ""
+ },
+ {
+  "name": "serve: type .ico wrong",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".ico\": \"image/x-icon\",\n",
+  "new": "  \".ico\": \"image/x-iconx\",\n"
+ },
+ {
+  "name": "serve: type .woff2 removed",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".woff2\": \"font/woff2\",\n",
+  "new": ""
+ },
+ {
+  "name": "serve: type .woff2 wrong",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".woff2\": \"font/woff2\",\n",
+  "new": "  \".woff2\": \"font/woff2x\",\n"
+ },
+ {
+  "name": "serve: extra type allowed (.txt)",
+  "file": "apps/desktop/src/main/serve.ts",
+  "old": "  \".woff2\": \"font/woff2\",\n",
+  "new": "  \".woff2\": \"font/woff2\",\n  \".txt\": \"text/plain\",\n"
+ },
+ {
+  "name": "policy: relative preload accepted",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "if (!isAbsolute(preload)) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "policy: absolute preload refused",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "if (!isAbsolute(preload)) throw",
+  "new": "if (isAbsolute(preload)) throw"
+ },
+ {
+  "name": "policy: no preload",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    preload,\n",
+  "new": ""
+ },
+ {
+  "name": "policy: contextIsolation flipped",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    contextIsolation: true,",
+  "new": "    contextIsolation: false,"
+ },
+ {
+  "name": "policy: contextIsolation removed",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    contextIsolation: true,\n",
+  "new": ""
+ },
+ {
+  "name": "policy: sandbox flipped",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    sandbox: true,",
+  "new": "    sandbox: false,"
+ },
+ {
+  "name": "policy: sandbox removed",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    sandbox: true,\n",
+  "new": ""
+ },
+ {
+  "name": "policy: nodeIntegration flipped",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    nodeIntegration: false,",
+  "new": "    nodeIntegration: true,"
+ },
+ {
+  "name": "policy: nodeIntegration removed",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    nodeIntegration: false,\n",
+  "new": ""
+ },
+ {
+  "name": "policy: nodeIntegrationInWorker flipped",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    nodeIntegrationInWorker: false,",
+  "new": "    nodeIntegrationInWorker: true,"
+ },
+ {
+  "name": "policy: nodeIntegrationInWorker removed",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    nodeIntegrationInWorker: false,\n",
+  "new": ""
+ },
+ {
+  "name": "policy: nodeIntegrationInSubFrames flipped",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    nodeIntegrationInSubFrames: false,",
+  "new": "    nodeIntegrationInSubFrames: true,"
+ },
+ {
+  "name": "policy: nodeIntegrationInSubFrames removed",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    nodeIntegrationInSubFrames: false,\n",
+  "new": ""
+ },
+ {
+  "name": "policy: webSecurity flipped",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    webSecurity: true,",
+  "new": "    webSecurity: false,"
+ },
+ {
+  "name": "policy: webSecurity removed",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    webSecurity: true,\n",
+  "new": ""
+ },
+ {
+  "name": "policy: allowRunningInsecureContent flipped",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    allowRunningInsecureContent: false,",
+  "new": "    allowRunningInsecureContent: true,"
+ },
+ {
+  "name": "policy: allowRunningInsecureContent removed",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    allowRunningInsecureContent: false,\n",
+  "new": ""
+ },
+ {
+  "name": "policy: webviewTag flipped",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    webviewTag: false,",
+  "new": "    webviewTag: true,"
+ },
+ {
+  "name": "policy: webviewTag removed",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    webviewTag: false,\n",
+  "new": ""
+ },
+ {
+  "name": "policy: experimentalFeatures flipped",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    experimentalFeatures: false,",
+  "new": "    experimentalFeatures: true,"
+ },
+ {
+  "name": "policy: experimentalFeatures removed",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    experimentalFeatures: false,\n",
+  "new": ""
+ },
+ {
+  "name": "policy: spellcheck flipped",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    spellcheck: false,",
+  "new": "    spellcheck: true,"
+ },
+ {
+  "name": "policy: spellcheck removed",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    spellcheck: false,\n",
+  "new": ""
+ },
+ {
+  "name": "policy: devTools always on",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    devTools,\n",
+  "new": "    devTools: true,\n"
+ },
+ {
+  "name": "policy: devTools always off",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    devTools,\n",
+  "new": "    devTools: false,\n"
+ },
+ {
+  "name": "policy: extra loosening flag",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "    devTools,\n",
+  "new": "    devTools,\n    nodeIntegrationInSubFrames2: 1,\n"
+ },
+ {
+  "name": "policy: any navigation allowed",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "return isAppUrl(url);",
+  "new": "return true;"
+ },
+ {
+  "name": "policy: no navigation allowed",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "return isAppUrl(url);",
+  "new": "return false;"
+ },
+ {
+  "name": "policy: new windows allowed",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "return { action: \"deny\" };",
+  "new": "return { action: \"allow\" } as unknown as { action: \"deny\" };"
+ },
+ {
+  "name": "policy: permission granted",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "export function allowPermission(): boolean {\n  return false;",
+  "new": "export function allowPermission(): boolean {\n  return true;"
+ },
+ {
+  "name": "ipc: any sender trusted",
+  "file": "apps/desktop/src/main/ipc.ts",
+  "old": "trusted(event) ?",
+  "new": "true ?"
+ },
+ {
+  "name": "ipc: no sender trusted",
+  "file": "apps/desktop/src/main/ipc.ts",
+  "old": "trusted(event) ?",
+  "new": "false ?"
+ },
+ {
+  "name": "ipc: url type not checked",
+  "file": "apps/desktop/src/main/ipc.ts",
+  "old": "typeof url === \"string\" && isAppUrl(url)",
+  "new": "isAppUrl(url as string)"
+ },
+ {
+  "name": "ipc: only type checked",
+  "file": "apps/desktop/src/main/ipc.ts",
+  "old": "typeof url === \"string\" && isAppUrl(url)",
+  "new": "typeof url === \"string\""
+ },
+ {
+  "name": "ipc: event not null-safe",
+  "file": "apps/desktop/src/main/ipc.ts",
+  "old": "event?.senderFrame?.url",
+  "new": "event.senderFrame?.url"
+ },
+ {
+  "name": "ipc: frame not null-safe",
+  "file": "apps/desktop/src/main/ipc.ts",
+  "old": "event?.senderFrame?.url",
+  "new": "event?.senderFrame.url"
+ },
+ {
+  "name": "ipc: error sink dropped",
+  "file": "apps/desktop/src/main/ipc.ts",
+  "old": "handle(store, channel, payload, onError)",
+  "new": "handle(store, channel, payload)"
+ },
+ {
+  "name": "ipc: channel fixed",
+  "file": "apps/desktop/src/main/ipc.ts",
+  "old": "handle(store, channel, payload, onError)",
+  "new": "handle(store, \"overview\", payload, onError)"
+ },
+ {
+  "name": "ipc: channel from page",
+  "file": "apps/desktop/src/main/ipc.ts",
+  "old": "handle(store, channel, payload, onError)",
+  "new": "handle(store, (payload as { channel: string }).channel, payload, onError)"
+ },
+ {
+  "name": "ipc: payload dropped",
+  "file": "apps/desktop/src/main/ipc.ts",
+  "old": "handle(store, channel, payload, onError)",
+  "new": "handle(store, channel, undefined, onError)"
+ },
+ {
+  "name": "ipc: wrong refusal text",
+  "file": "apps/desktop/src/main/ipc.ts",
+  "old": "error: UNTRUSTED_SENDER }",
+  "new": "error: \"no\" }"
+ },
+ {
+  "name": "ipc: first channel skipped",
+  "file": "apps/desktop/src/main/ipc.ts",
+  "old": "for (const channel of CHANNELS)",
+  "new": "for (const channel of CHANNELS.slice(1))"
+ },
+ {
+  "name": "ipc: last channel skipped",
+  "file": "apps/desktop/src/main/ipc.ts",
+  "old": "for (const channel of CHANNELS)",
+  "new": "for (const channel of CHANNELS.slice(0, -1))"
+ },
+ {
+  "name": "ipc: refusal says ok",
+  "file": "apps/desktop/src/main/ipc.ts",
+  "old": "{ ok: false, error: UNTRUSTED_SENDER }",
+  "new": "{ ok: true, error: UNTRUSTED_SENDER }"
+ },
+ {
+  "name": "preload: list loses smart",
+  "file": "apps/desktop/src/preload/api.ts",
+  "old": "\"wallet\", \"smart\"]",
+  "new": "\"wallet\"]"
+ },
+ {
+  "name": "preload: list loses overview",
+  "file": "apps/desktop/src/preload/api.ts",
+  "old": "[\"overview\", \"feed\"",
+  "new": "[\"feed\""
+ },
+ {
+  "name": "preload: list order changed",
+  "file": "apps/desktop/src/preload/api.ts",
+  "old": "[\"overview\", \"feed\", \"token\", \"wallet\", \"smart\"]",
+  "new": "[\"feed\", \"overview\", \"token\", \"wallet\", \"smart\"]"
+ },
+ {
+  "name": "preload: list gains channel",
+  "file": "apps/desktop/src/preload/api.ts",
+  "old": "\"wallet\", \"smart\"]",
+  "new": "\"wallet\", \"smart\", \"shell\"]"
+ },
+ {
+  "name": "preload: failure rethrown",
+  "file": "apps/desktop/src/preload/api.ts",
+  "old": "return { ok: false, error: \"request failed\" };",
+  "new": "throw new Error(\"x\");"
+ },
+ {
+  "name": "preload: failure reason leaked",
+  "file": "apps/desktop/src/preload/api.ts",
+  "old": "} catch {\n        // The reason is not passed on: it could name paths or internals the page has no business seeing.\n        return { ok: false, error: \"request failed\" };",
+  "new": "} catch (e) {\n        return { ok: false, error: String(e) };"
+ },
+ {
+  "name": "preload: rejection not awaited",
+  "file": "apps/desktop/src/preload/api.ts",
+  "old": "return await invoke(channel, request);",
+  "new": "return invoke(channel, request);"
+ },
+ {
+  "name": "preload: api not frozen",
+  "file": "apps/desktop/src/preload/api.ts",
+  "old": "Object.freeze(api)",
+  "new": "api"
+ },
+ {
+  "name": "preload: request dropped",
+  "file": "apps/desktop/src/preload/api.ts",
+  "old": "invoke(channel, request)",
+  "new": "invoke(channel, undefined)"
+ },
+ {
+  "name": "preload: wrong channel sent",
+  "file": "apps/desktop/src/preload/api.ts",
+  "old": "invoke(channel, request)",
+  "new": "invoke(\"overview\", request)"
+ },
+ {
+  "name": "preload: failure reply says ok",
+  "file": "apps/desktop/src/preload/api.ts",
+  "old": "{ ok: false, error: \"request failed\" }",
+  "new": "{ ok: true, error: \"request failed\" }"
+ },
+ {
+  "name": "security: parse accepts non-strings",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "if (typeof url !== \"string\") return null;",
+  "new": ""
+ },
+ {
+  "name": "security: parse type check inverted",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "if (typeof url !== \"string\") return null;",
+  "new": "if (typeof url === \"string\") return null;"
+ },
+ {
+  "name": "both layers removed: ipc type check AND parse type check",
+  "file": "apps/desktop/src/main/ipc.ts",
+  "old": "typeof url === \"string\" && isAppUrl(url)",
+  "new": "isAppUrl(url as string)",
+  "also": [
+   {
+    "file": "apps/desktop/src/main/security.ts",
+    "old": "if (typeof url !== \"string\") return null;",
+    "new": ""
+   }
+  ]
+ }
+]

@@ -19,6 +19,8 @@ export const CSP = [
 ].join("; ");
 
 function parse(url: string): URL | null {
+  // The types say string, but `new URL(x)` turns any object into a string with its toString(); refuse those.
+  if (typeof url !== "string") return null;
   try {
     return new URL(url);
   } catch {
