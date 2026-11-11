@@ -1,0 +1,236 @@
+[
+ {
+  "name": "feed: volume sums amount not quote",
+  "file": "packages/service/src/service.ts",
+  "old": "for (const t of trades) volumeQuote += t.quote;",
+  "new": "for (const t of trades) volumeQuote += t.amount;"
+ },
+ {
+  "name": "feed: oldest first",
+  "file": "packages/service/src/service.ts",
+  "old": "b.createdAt - a.createdAt ||",
+  "new": "a.createdAt - b.createdAt ||"
+ },
+ {
+  "name": "feed: tie-break flipped",
+  "file": "packages/service/src/service.ts",
+  "old": "(a.token < b.token ? -1 : a.token > b.token ? 1 : 0)",
+  "new": "(a.token < b.token ? 1 : a.token > b.token ? -1 : 0)"
+ },
+ {
+  "name": "feed: ageMs is asOf",
+  "file": "packages/service/src/service.ts",
+  "old": "ageMs: at - info.createdAt,",
+  "new": "ageMs: at,"
+ },
+ {
+  "name": "feed: counted check always true",
+  "file": "packages/service/src/service.ts",
+  "old": "const counted = conc !== null && conc.concentration.holders > 0;",
+  "new": "const counted = conc !== null;"
+ },
+ {
+  "name": "feed: top5 not top10",
+  "file": "packages/service/src/service.ts",
+  "old": "conc.concentration.topShare[10] ?? null",
+  "new": "conc.concentration.topShare[5] ?? null"
+ },
+ {
+  "name": "feed: holders is total",
+  "file": "packages/service/src/service.ts",
+  "old": "holders: counted ? conc.concentration.holders : null,",
+  "new": "holders: counted ? Number(conc.concentration.total) : null,"
+ },
+ {
+  "name": "asOf default is 0",
+  "file": "packages/service/src/service.ts",
+  "old": "if (asOf === undefined) return latest;",
+  "new": "if (asOf === undefined) return 0;"
+ },
+ {
+  "name": "asOf given is ignored",
+  "file": "packages/service/src/service.ts",
+  "old": "checkTime(\"asOf\", asOf);\n  return asOf;",
+  "new": "checkTime(\"asOf\", asOf);\n  return latest;"
+ },
+ {
+  "name": "checkTime: negatives allowed",
+  "file": "packages/service/src/service.ts",
+  "old": "|| value < 0) throw",
+  "new": "|| false) throw"
+ },
+ {
+  "name": "checkTime: fractions allowed",
+  "file": "packages/service/src/service.ts",
+  "old": "if (!Number.isSafeInteger(value) ||",
+  "new": "if (!Number.isFinite(value) ||"
+ },
+ {
+  "name": "chainLatest: unknown chain not refused",
+  "file": "packages/service/src/service.ts",
+  "old": "if (latest === null) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "tokenDetail: created at the instant is hidden",
+  "file": "packages/service/src/service.ts",
+  "old": "info.createdAt > at) return null",
+  "new": "info.createdAt >= at) return null"
+ },
+ {
+  "name": "tokenDetail: future token shown",
+  "file": "packages/service/src/service.ts",
+  "old": "if (info === null || info.createdAt > at) return null;",
+  "new": "if (info === null) return null;"
+ },
+ {
+  "name": "topHolders: address tie-break flipped",
+  "file": "packages/service/src/service.ts",
+  "old": "ak < bk ? -1 : ak > bk ? 1 : 0))",
+  "new": "ak < bk ? 1 : ak > bk ? -1 : 0))"
+ },
+ {
+  "name": "topHolders: ascending amounts",
+  "file": "packages/service/src/service.ts",
+  "old": "av < bv ? 1 : av > bv ? -1 :",
+  "new": "av < bv ? -1 : av > bv ? 1 :"
+ },
+ {
+  "name": "topHolders: 11 not 10",
+  "file": "packages/service/src/service.ts",
+  "old": "const TOP_HOLDERS = 10;",
+  "new": "const TOP_HOLDERS = 11;"
+ },
+ {
+  "name": "recent trades: 21 not 20",
+  "file": "packages/service/src/service.ts",
+  "old": "const RECENT_TRADES = 20;",
+  "new": "const RECENT_TRADES = 21;"
+ },
+ {
+  "name": "recent trades: not reversed",
+  "file": "packages/service/src/service.ts",
+  "old": ".slice(-RECENT_TRADES).reverse()",
+  "new": ".slice(-RECENT_TRADES)"
+ },
+ {
+  "name": "recent trades: oldest 20",
+  "file": "packages/service/src/service.ts",
+  "old": ".slice(-RECENT_TRADES).reverse()",
+  "new": ".slice(0, RECENT_TRADES).reverse()"
+ },
+ {
+  "name": "topHolders: excluded kept",
+  "file": "packages/service/src/service.ts",
+  "old": "if (excluded.has(h.address)) continue;\n      merged.set",
+  "new": "merged.set"
+ },
+ {
+  "name": "topHolders: duplicates not merged",
+  "file": "packages/service/src/service.ts",
+  "old": "merged.set(h.address, (merged.get(h.address) ?? 0n) + h.amount);",
+  "new": "merged.set(h.address, h.amount);"
+ },
+ {
+  "name": "topHolders: share of itself",
+  "file": "packages/service/src/service.ts",
+  "old": "share: ratio(amount, total)",
+  "new": "share: ratio(amount, amount)"
+ },
+ {
+  "name": "topHolders: zero balances kept",
+  "file": "packages/service/src/service.ts",
+  "old": ".filter(([, amount]) => amount > 0n)",
+  "new": ""
+ },
+ {
+  "name": "wallet: asOf not applied to pnl",
+  "file": "packages/service/src/service.ts",
+  "old": "pnl: walletPnl(store, chain, wallet, { asOf: at }),",
+  "new": "pnl: walletPnl(store, chain, wallet),"
+ },
+ {
+  "name": "wallet: asOf not applied to trade count",
+  "file": "packages/service/src/service.ts",
+  "old": "trades: store.tradesForWallet(chain, wallet, at).length,",
+  "new": "trades: store.tradesForWallet(chain, wallet).length,"
+ },
+ {
+  "name": "smart: equal window refused",
+  "file": "packages/service/src/service.ts",
+  "old": "if (req.from > req.to) throw",
+  "new": "if (req.from >= req.to) throw"
+ },
+ {
+  "name": "smart: reversed window allowed",
+  "file": "packages/service/src/service.ts",
+  "old": "if (req.from > req.to) throw new ServiceError(\"from must not be after to\");",
+  "new": ""
+ },
+ {
+  "name": "smart: minClosed 0 allowed",
+  "file": "packages/service/src/service.ts",
+  "old": "req.minClosed < 1)",
+  "new": "req.minClosed < 0)"
+ },
+ {
+  "name": "smart: minClosed ignored",
+  "file": "packages/service/src/service.ts",
+  "old": "...(req.minClosed === undefined ? {} : { minClosedTokens: req.minClosed }),",
+  "new": ""
+ },
+ {
+  "name": "smart: window end ignored",
+  "file": "packages/service/src/service.ts",
+  "old": "to: req.to,\n    ...(req",
+  "new": "to: Number.MAX_SAFE_INTEGER,\n    ...(req"
+ },
+ {
+  "name": "overview: latestTime null",
+  "file": "packages/service/src/service.ts",
+  "old": "latestTime: store.latestTime(chain),",
+  "new": "latestTime: null,"
+ },
+ {
+  "name": "feed: coverage constant",
+  "file": "packages/service/src/service.ts",
+  "old": "coverage: risk.report.coverage,",
+  "new": "coverage: 1,"
+ },
+ {
+  "name": "feed: score constant",
+  "file": "packages/service/src/service.ts",
+  "old": "score: risk.report.score,",
+  "new": "score: 0,"
+ },
+ {
+  "name": "feed: hardFlags dropped",
+  "file": "packages/service/src/service.ts",
+  "old": "hardFlags: risk.report.hardFlags }",
+  "new": "hardFlags: [] }"
+ },
+ {
+  "name": "feed: lastPrice null",
+  "file": "packages/service/src/service.ts",
+  "old": "lastPrice: store.lastMark(chain, info.token, at),",
+  "new": "lastPrice: null,"
+ },
+ {
+  "name": "detail: lastPrice null",
+  "file": "packages/service/src/service.ts",
+  "old": "lastPrice: store.lastMark(chain, token, at),",
+  "new": "lastPrice: null,"
+ },
+ {
+  "name": "detail: snapshot age wrong",
+  "file": "packages/service/src/service.ts",
+  "old": "snapshotAgeMs: conc.snapshotAgeMs,",
+  "new": "snapshotAgeMs: 0,"
+ },
+ {
+  "name": "detail: risk unavailable dropped",
+  "file": "packages/service/src/service.ts",
+  "old": "unavailable: risk.unavailable,",
+  "new": "unavailable: {},"
+ }
+]
