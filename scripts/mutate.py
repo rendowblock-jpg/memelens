@@ -10,9 +10,22 @@ import json, os, shutil, subprocess, sys, tempfile
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 muts = json.load(open(sys.argv[1]))
 tests = sys.argv[2:]
-scratch = tempfile.mkdtemp(prefix="memelens-mut-")
+# Scratch space goes on the real disk, not /tmp (a small shared tmpfs), and the Electron binary (~300 MB, not needed by
+# any unit test) is not copied. Everything else in node_modules is copied, so workspace symlinks resolve to the copy.
+scratch_base = os.environ.get("MUTATE_TMP", os.path.expanduser("~/.cache/memelens-mutate"))
+os.makedirs(scratch_base, exist_ok=True)
+scratch = tempfile.mkdtemp(prefix="memelens-mut-", dir=scratch_base)
+
+
+def skip(directory, names):
+    out = {".git", ".vitest"} & set(names)
+    if os.path.basename(directory) == "node_modules":
+        out |= {"electron"} & set(names)
+    return out
+
+
 try:
-    shutil.copytree(root, scratch, symlinks=True, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".git"))
+    shutil.copytree(root, scratch, symlinks=True, dirs_exist_ok=True, ignore=skip)
     # A mutant only counts as "caught" if the tests were green without it. Check that first.
     base = subprocess.run(["npx", "vitest", "run", *tests], cwd=scratch, capture_output=True, text=True, timeout=120)
     if base.returncode != 0:

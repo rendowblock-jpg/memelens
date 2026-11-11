@@ -5,3 +5,4 @@ out/
 *.sqlite-journal
 .env
 .env.*
+.vitest/

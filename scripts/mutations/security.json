@@ -1,0 +1,236 @@
+[
+ {
+  "name": "origin: wrong host",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "u.hostname.toLowerCase() === \"memelens\"",
+  "new": "u.hostname.toLowerCase() === \"memelens2\""
+ },
+ {
+  "name": "origin: host case-sensitive",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "u.hostname.toLowerCase() === \"memelens\"",
+  "new": "u.hostname === \"memelens\""
+ },
+ {
+  "name": "origin: prefix host",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "u.hostname.toLowerCase() === \"memelens\"",
+  "new": "u.hostname.toLowerCase().startsWith(\"memelens\")"
+ },
+ {
+  "name": "origin: suffix host",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "u.hostname.toLowerCase() === \"memelens\"",
+  "new": "u.hostname.toLowerCase().endsWith(\"memelens\")"
+ },
+ {
+  "name": "origin: any scheme",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "u.protocol === \"app:\" &&",
+  "new": "true &&"
+ },
+ {
+  "name": "origin: port allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "&& u.port === \"\" &&",
+  "new": "&&"
+ },
+ {
+  "name": "origin: username allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "&& u.username === \"\" &&",
+  "new": "&&"
+ },
+ {
+  "name": "origin: password allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "&& u.password === \"\";",
+  "new": "&& true;"
+ },
+ {
+  "name": "isAppUrl: invalid URL throws",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "try {\n    return new URL(url);\n  } catch {\n    return null;\n  }",
+  "new": "return new URL(url);"
+ },
+ {
+  "name": "resolve: origin not checked",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "if (u === null || !onAppOrigin(u)) return null;",
+  "new": "if (u === null) return null;"
+ },
+ {
+  "name": "resolve: malformed escape throws",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "try {\n    path = decodeURIComponent(u.pathname);\n  } catch {\n    return null;\n  }",
+  "new": "path = decodeURIComponent(u.pathname);"
+ },
+ {
+  "name": "resolve: no decoding",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "path = decodeURIComponent(u.pathname);",
+  "new": "path = u.pathname;"
+ },
+ {
+  "name": "resolve: empty path not index",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "if (path === \"\" || path === \"/\") path = \"/index.html\";",
+  "new": "if (path === \"/\") path = \"/index.html\";"
+ },
+ {
+  "name": "resolve: slash not index",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "if (path === \"\" || path === \"/\") path = \"/index.html\";",
+  "new": "if (path === \"\") path = \"/index.html\";"
+ },
+ {
+  "name": "resolve: forbidden chars allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "if (FORBIDDEN.test(path)) return null;",
+  "new": ""
+ },
+ {
+  "name": "forbidden: backslash allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "/[\\u0000-\\u001f\\u007f\\\\]/",
+  "new": "/[\\u0000-\\u001f\\u007f]/"
+ },
+ {
+  "name": "forbidden: NUL allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "/[\\u0000-\\u001f\\u007f\\\\]/",
+  "new": "/[\\u0001-\\u001f\\u007f\\\\]/"
+ },
+ {
+  "name": "forbidden: control chars allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "/[\\u0000-\\u001f\\u007f\\\\]/",
+  "new": "/[\\u0000\\\\]/"
+ },
+ {
+  "name": "forbidden: DEL allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "/[\\u0000-\\u001f\\u007f\\\\]/",
+  "new": "/[\\u0000-\\u001f\\\\]/"
+ },
+ {
+  "name": "segment: empty allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "if (s === \"\" || s === \".\" ||",
+  "new": "if (s === \".\" ||"
+ },
+ {
+  "name": "segment: dot allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "|| s === \".\" ||",
+  "new": "||"
+ },
+ {
+  "name": "(equivalent: the containment check below backs it up) segment: dotdot allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "|| s === \"..\" ||",
+  "new": "||"
+ },
+ {
+  "name": "segment: colon allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "|| s.includes(\":\")) return null;",
+  "new": ") return null;"
+ },
+ {
+  "name": "segment: loop skipped",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "for (const s of segments) {\n    if (s === \"\"",
+  "new": "for (const s of []) {\n    if (s === \"\""
+ },
+ {
+  "name": "file: root ignored",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "const file = join(root, ...segments);",
+  "new": "const file = join(\"/\", ...segments);"
+ },
+ {
+  "name": "file: only first segment",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "const file = join(root, ...segments);",
+  "new": "const file = join(root, segments[0]!);"
+ },
+ {
+  "name": "(equivalent) belt-and-braces check removed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "if (rel === \"\" || rel.startsWith(\"..\") || isAbsolute(rel)) return null;",
+  "new": ""
+ },
+ {
+  "name": "csp: default-src allows self",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "\"default-src 'none'\"",
+  "new": "\"default-src 'self'\""
+ },
+ {
+  "name": "csp: script-src unsafe-inline",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "\"script-src 'self'\"",
+  "new": "\"script-src 'self' 'unsafe-inline'\""
+ },
+ {
+  "name": "csp: style-src unsafe-inline",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "\"style-src 'self'\"",
+  "new": "\"style-src 'self' 'unsafe-inline'\""
+ },
+ {
+  "name": "csp: connect-src open",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "\"connect-src 'none'\"",
+  "new": "\"connect-src *\""
+ },
+ {
+  "name": "csp: frame-ancestors dropped",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "  \"frame-ancestors 'none'\",\n",
+  "new": ""
+ },
+ {
+  "name": "csp: form-action dropped",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "  \"form-action 'none'\",\n",
+  "new": ""
+ },
+ {
+  "name": "csp: object-src dropped",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "  \"object-src 'none'\",\n",
+  "new": ""
+ },
+ {
+  "name": "csp: base-uri dropped",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "  \"base-uri 'none'\",\n",
+  "new": ""
+ },
+ {
+  "name": "csp: frame-src dropped",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "  \"frame-src 'none'\",\n",
+  "new": ""
+ },
+ {
+  "name": "csp: img-src remote",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "\"img-src 'self' data:\"",
+  "new": "\"img-src 'self' data: https:\""
+ },
+ {
+  "name": "csp: font-src dropped",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "  \"font-src 'self'\",\n",
+  "new": ""
+ },
+ {
+  "name": "segment: dotdot allowed AND containment check removed (both layers gone)",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "if (s === \"\" || s === \".\" || s === \"..\" || s.includes(\":\")) return null;\n  }\n\n  const file = join(root, ...segments);\n  // Belt and braces: the checks above already keep `file` inside `root`.\n  const rel = relative(root, file);\n  if (rel === \"\" || rel.startsWith(\"..\") || isAbsolute(rel)) return null;",
+  "new": "if (s === \"\" || s === \".\" || s.includes(\":\")) return null;\n  }\n\n  const file = join(root, ...segments);"
+ }
+]
