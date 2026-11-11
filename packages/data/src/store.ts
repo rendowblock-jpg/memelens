@@ -289,6 +289,26 @@ export class Store {
     return { tokens: one("token"), trades: one("trade"), snapshots: one("holder_snapshot"), rejects: one("ingest_reject") };
   }
 
+  /** Chains that have at least one token, trade or snapshot, sorted. */
+  chains(): string[] {
+    const rows = this.db
+      .prepare("SELECT chain FROM token UNION SELECT chain FROM trade UNION SELECT chain FROM holder_snapshot ORDER BY chain")
+      .all() as Row[];
+    return rows.map((r) => r["chain"] as string);
+  }
+
+  /** Newest of token creation, trade and snapshot time on a chain, or null if the chain has no data. */
+  latestTime(chain: string): number | null {
+    const row = this.stmt(
+      `SELECT MAX(t) AS t FROM (
+         SELECT MAX(created_at) AS t FROM token WHERE chain=?
+         UNION ALL SELECT MAX(time) FROM trade WHERE chain=?
+         UNION ALL SELECT MAX(time) FROM holder_snapshot WHERE chain=?
+       )`,
+    ).get(chain, chain, chain) as Row;
+    return (row["t"] as number | null) ?? null;
+  }
+
   getToken(chain: string, token: string): TokenInfo | null {
     const row = this.stmt("SELECT * FROM token WHERE chain=? AND address=?").get(chain, token) as Row | undefined;
     return row ? rowToToken(row) : null;

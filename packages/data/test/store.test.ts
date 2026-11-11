@@ -288,3 +288,50 @@ describe("Store reads", () => {
     expect(s.listTokens("other")).toEqual([]);
   });
 });
+
+describe("Store.chains and Store.latestTime", () => {
+  it("lists no chains and no latest time for an empty database", () => {
+    const s = mem();
+    expect(s.chains()).toEqual([]);
+    expect(s.latestTime("solana")).toBeNull();
+  });
+
+  it("lists each chain once, sorted, whichever table it appears in", () => {
+    const s = mem();
+    s.upsertToken("zeta", tok("A"));
+    s.insertTrade("alpha", trade("t1"));
+    s.insertTrade("alpha", trade("t2"));
+    s.insertSnapshot("mid", snap("A", 3000, [["h", 1n]]));
+    expect(s.chains()).toEqual(["alpha", "mid", "zeta"]);
+  });
+
+  it("does not list a chain that only has rejects", () => {
+    const s = mem();
+    s.recordReject({ chain: "ghost", kind: "trade", ref: "x", reason: "id-empty", raw: "{}", at: 1 });
+    expect(s.chains()).toEqual([]);
+    expect(s.latestTime("ghost")).toBeNull();
+  });
+
+  it("latestTime is the newest of token creation, trades and snapshots on that chain only", () => {
+    const s = mem();
+    s.upsertToken("c1", tok("A", { createdAt: 500 }));
+    s.insertTrade("c1", trade("t1", { time: 2000 }));
+    s.insertTrade("c1", trade("t2", { time: 2500 }));
+    s.insertSnapshot("c1", snap("A", 2400, [["h", 1n]]));
+    s.insertTrade("c2", trade("t9", { time: 99999 }));
+    expect(s.latestTime("c1")).toBe(2500);
+    expect(s.latestTime("c2")).toBe(99999);
+  });
+
+  it("counts a snapshot or a token creation as latest when no trade is newer", () => {
+    const s = mem();
+    s.upsertToken("c", tok("A", { createdAt: 100 }));
+    s.insertTrade("c", trade("t1", { time: 200 }));
+    s.insertSnapshot("c", snap("A", 900, [["h", 1n]]));
+    expect(s.latestTime("c")).toBe(900);
+    const t = mem();
+    t.upsertToken("c", tok("A", { createdAt: 700 }));
+    t.insertTrade("c", trade("t1", { time: 200 }));
+    expect(t.latestTime("c")).toBe(700);
+  });
+});
