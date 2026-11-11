@@ -104,3 +104,17 @@ Known gaps (not hidden):
 - Mutation runs cover core, replay, store, ingest, analyze, args, and the CLI options and render layer. They do
   not cover CLI error-message branches, the ingest and status text, or `bin.ts`.
 - Not run on Windows. No Electron shell, Solana adapter, agent chat or backtest yet (M3-M6).
+
+## M3 groundwork (measured on the host, nothing built yet)
+
+Probe: a throwaway project in /tmp (not in this repo) with `electron@45.3.0`, run under `xvfb-run -a npx electron --no-sandbox main.js`.
+- Electron 45.3.0 starts headless, opens a hidden BrowserWindow and loads a page (Chrome 156.0.8078.96).
+- Its embedded Node is 24.22.2 (the host runs Node 22.23.3, which the test suite uses). `node:sqlite` works inside Electron
+  (SQLite 3.53.4), so the store needs no native build in either runtime.
+- `npm i electron` does NOT download the binary here (no postinstall in v45). Run `node node_modules/electron/install.js` once.
+- `--no-sandbox` was needed on this root-owned headless host. That is a host quirk, not a setting to ship.
+- Not yet checked: packaging, the Windows build, and running the store from the Electron main process with the TypeScript
+  sources (the probe used plain JS).
+
+Plan for M3: main process owns the Store and calls the analysis functions; the renderer (React) only calls a small
+typed IPC API and gets plain JSON with bigint as decimal strings (same rule as the CLI's `--json`).
