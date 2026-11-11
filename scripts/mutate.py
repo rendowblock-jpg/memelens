@@ -13,6 +13,12 @@ tests = sys.argv[2:]
 scratch = tempfile.mkdtemp(prefix="memelens-mut-")
 try:
     shutil.copytree(root, scratch, symlinks=True, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".git"))
+    # A mutant only counts as "caught" if the tests were green without it. Check that first.
+    base = subprocess.run(["npx", "vitest", "run", *tests], cwd=scratch, capture_output=True, text=True, timeout=120)
+    if base.returncode != 0:
+        print("BASELINE RED: the tests fail without any mutation, so no result below would mean anything.")
+        print("\n".join(base.stdout.splitlines()[-15:]))
+        sys.exit(3)
     caught = survived = invalid = 0
     for m in muts:
         path = os.path.join(scratch, m["file"])
