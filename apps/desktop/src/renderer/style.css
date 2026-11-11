@@ -1,0 +1,5 @@
+:root { color-scheme: dark; }
+body { margin: 0; background: #0b0e13; color: #d7dde8; font: 14px/1.5 ui-monospace, "Cascadia Mono", Menlo, monospace; }
+main { padding: 24px; }
+h1 { font-size: 18px; margin: 0 0 16px; }
+pre { white-space: pre-wrap; word-break: break-word; }

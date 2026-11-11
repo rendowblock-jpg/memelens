@@ -1,0 +1,79 @@
+[
+ {
+  "name": "app: navigation not blocked",
+  "file": "src/main/app.ts",
+  "old": "contents.on(\"will-navigate\", (event, url) => {\n    if (!allowNavigation(url)) event.preventDefault();\n  });",
+  "new": "contents.on(\"will-navigate\", () => {});",
+  "expect": "caught"
+ },
+ {
+  "name": "app: new windows allowed",
+  "file": "src/main/app.ts",
+  "old": "contents.setWindowOpenHandler(() => windowOpenDecision());",
+  "new": "contents.setWindowOpenHandler(() => ({ action: \"allow\" }));",
+  "expect": "caught"
+ },
+ {
+  "name": "app: IPC handlers never registered",
+  "file": "src/main/app.ts",
+  "old": "registerIpc(ipcMain, store, (e) => opts.log(`ipc error: ${describe(e)}`));",
+  "new": "",
+  "expect": "caught"
+ },
+ {
+  "name": "app: every permission granted",
+  "file": "src/main/app.ts",
+  "old": "callback(allowPermission())",
+  "new": "callback(true)",
+  "expect": "caught"
+ },
+ {
+  "name": "app: wrong start page",
+  "file": "src/main/app.ts",
+  "old": "`${APP_ORIGIN}/index.html`",
+  "new": "`${APP_ORIGIN}/missing.html`",
+  "expect": "caught"
+ },
+ {
+  "name": "serve: no CSP header",
+  "file": "src/main/serve.ts",
+  "old": "      \"Content-Security-Policy\": CSP,\n",
+  "new": "",
+  "expect": "caught"
+ },
+ {
+  "name": "serve: every request refused",
+  "file": "src/main/serve.ts",
+  "old": "if (method !== \"GET\" && method !== \"HEAD\") return { status: 405 };",
+  "new": "return { status: 405 };",
+  "expect": "caught"
+ },
+ {
+  "name": "policy: context isolation off",
+  "file": "src/main/window-policy.ts",
+  "old": "    contextIsolation: true,",
+  "new": "    contextIsolation: false,",
+  "expect": "caught"
+ },
+ {
+  "name": "preload: API exposed under another name",
+  "file": "src/preload/preload.ts",
+  "old": "\"memelens\"",
+  "new": "\"other\"",
+  "expect": "caught"
+ },
+ {
+  "name": "policy: sandbox off (smoke cannot see it)",
+  "file": "src/main/window-policy.ts",
+  "old": "    sandbox: true,",
+  "new": "    sandbox: false,",
+  "expect": "survive"
+ },
+ {
+  "name": "ipc: sender never checked (smoke cannot see it)",
+  "file": "src/main/ipc.ts",
+  "old": "trusted(event) ?",
+  "new": "true ?",
+  "expect": "survive"
+ }
+]

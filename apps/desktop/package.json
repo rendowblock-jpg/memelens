@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "main": "dist/main.js",
+  "main": "dist/main.cjs",
   "dependencies": {
     "@memelens/core": "*",
     "@memelens/data": "*",
@@ -18,5 +18,9 @@
     "electron": "^45.3.0",
     "esbuild": "^0.28.2",
     "vite": "^8.3.8"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "start": "electron ."
   }
 }
