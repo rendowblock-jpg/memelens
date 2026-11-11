@@ -1,0 +1,19 @@
+[
+ {"name":"bigint: wrong string base","file":"packages/service/src/wire.ts","old":"return value.toString();","new":"return value.toString(16);"},
+ {"name":"bigint: converted to number","file":"packages/service/src/wire.ts","old":"return value.toString();","new":"return Number(value);"},
+ {"name":"NaN/Infinity allowed","file":"packages/service/src/wire.ts","old":"if (!Number.isFinite(value)) throw","new":"if (false) throw"},
+ {"name":"NaN only caught, Infinity allowed","file":"packages/service/src/wire.ts","old":"if (!Number.isFinite(value)) throw","new":"if (Number.isNaN(value)) throw"},
+ {"name":"undefined allowed (returned)","file":"packages/service/src/wire.ts","old":"throw new Error(`${where}: undefined has no JSON form here`);","new":"return undefined;"},
+ {"name":"function allowed","file":"packages/service/src/wire.ts","old":"throw new Error(`${where}: a function has no JSON form`);","new":"return value;"},
+ {"name":"symbol allowed","file":"packages/service/src/wire.ts","old":"throw new Error(`${where}: a symbol has no JSON form`);","new":"return value;"},
+ {"name":"null becomes undefined","file":"packages/service/src/wire.ts","old":"if (value === null) return null;","new":"if (value === null) return undefined;"},
+ {"name":"cycle check off","file":"packages/service/src/wire.ts","old":"if (ancestors.has(obj)) throw","new":"if (false) throw"},
+ {"name":"shared reference treated as cycle (never removed)","file":"packages/service/src/wire.ts","old":"ancestors.delete(obj);","new":""},
+ {"name":"class instances allowed","file":"packages/service/src/wire.ts","old":"if (proto !== Object.prototype && proto !== null) {","new":"if (false) {"},
+ {"name":"null-prototype objects refused","file":"packages/service/src/wire.ts","old":"if (proto !== Object.prototype && proto !== null) {","new":"if (proto !== Object.prototype) {"},
+ {"name":"undefined property kept as undefined","file":"packages/service/src/wire.ts","old":"if (v === undefined) continue; // JSON omits undefined properties","new":""},
+ {"name":"array index path wrong","file":"packages/service/src/wire.ts","old":"`${path}[${i}]`","new":"`${path}.${i}`"},
+ {"name":"nested key path loses parent","file":"packages/service/src/wire.ts","old":"path === \"\" ? k : `${path}.${k}`","new":"k"},
+ {"name":"arrays mapped but not walked","file":"packages/service/src/wire.ts","old":"obj.map((item, i) => walk(item, `${path}[${i}]`, ancestors))","new":"obj.slice()"},
+ {"name":"object values not walked","file":"packages/service/src/wire.ts","old":"out[k] = walk(v, path === \"\" ? k : `${path}.${k}`, ancestors);","new":"out[k] = v;"}
+]
