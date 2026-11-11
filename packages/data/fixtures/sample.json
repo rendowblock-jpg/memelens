@@ -1,0 +1,384 @@
+{
+ "format": "memelens-fixture",
+ "version": 1,
+ "chain": "synthetic",
+ "note": "SYNTHETIC data made up for tests and demos. Not real chain data. Times are unix ms; amounts are decimal strings.",
+ "tokens": [
+  {
+   "token": "TOK1",
+   "symbol": "SYN1",
+   "decimals": 6,
+   "createdAt": 1700003600000,
+   "creator": "creator1",
+   "mintAuthorityActive": null,
+   "freezeAuthorityActive": null,
+   "excluded": [
+    "POOL"
+   ]
+  },
+  {
+   "token": "TOK2",
+   "symbol": "SYN2",
+   "decimals": 6,
+   "createdAt": 1700007200000,
+   "creator": "creator2",
+   "mintAuthorityActive": false,
+   "freezeAuthorityActive": false,
+   "excluded": [
+    "POOL"
+   ]
+  },
+  {
+   "token": "TOK3",
+   "symbol": "SYN3",
+   "decimals": 6,
+   "createdAt": 1700010800000,
+   "creator": "creator3",
+   "mintAuthorityActive": false,
+   "freezeAuthorityActive": false,
+   "excluded": [
+    "POOL"
+   ]
+  },
+  {
+   "token": "TOK4",
+   "symbol": "SYN4",
+   "decimals": 6,
+   "createdAt": 1700014400000,
+   "creator": "creator4",
+   "mintAuthorityActive": false,
+   "freezeAuthorityActive": false,
+   "excluded": [
+    "POOL"
+   ]
+  },
+  {
+   "token": "TOK5",
+   "symbol": "SYN5",
+   "decimals": 6,
+   "createdAt": 1700018000000,
+   "creator": "creator5",
+   "mintAuthorityActive": true,
+   "freezeAuthorityActive": false,
+   "excluded": [
+    "POOL"
+   ]
+  }
+ ],
+ "trades": [
+  {
+   "id": "a-buy-1",
+   "time": 1700004200000,
+   "wallet": "alice",
+   "token": "TOK1",
+   "side": "buy",
+   "amount": "1000",
+   "quote": "1000000",
+   "fee": "0"
+  },
+  {
+   "id": "b-buy-1",
+   "time": 1700004320000,
+   "wallet": "bob",
+   "token": "TOK1",
+   "side": "buy",
+   "amount": "1000",
+   "quote": "1000000",
+   "fee": "0"
+  },
+  {
+   "id": "c-buy-1",
+   "time": 1700004500000,
+   "wallet": "carol",
+   "token": "TOK1",
+   "side": "buy",
+   "amount": "400",
+   "quote": "400000",
+   "fee": "0"
+  },
+  {
+   "id": "a-sell-1",
+   "time": 1700005400000,
+   "wallet": "alice",
+   "token": "TOK1",
+   "side": "sell",
+   "amount": "1000",
+   "quote": "2000000",
+   "fee": "0"
+  },
+  {
+   "id": "b-sell-1",
+   "time": 1700005700000,
+   "wallet": "bob",
+   "token": "TOK1",
+   "side": "sell",
+   "amount": "1000",
+   "quote": "500000",
+   "fee": "0"
+  },
+  {
+   "id": "c-sell-1",
+   "time": 1700006000000,
+   "wallet": "carol",
+   "token": "TOK1",
+   "side": "sell",
+   "amount": "400",
+   "quote": "500000",
+   "fee": "0"
+  },
+  {
+   "id": "a-buy-2",
+   "time": 1700007800000,
+   "wallet": "alice",
+   "token": "TOK2",
+   "side": "buy",
+   "amount": "1000",
+   "quote": "1000000",
+   "fee": "0"
+  },
+  {
+   "id": "b-buy-2",
+   "time": 1700007920000,
+   "wallet": "bob",
+   "token": "TOK2",
+   "side": "buy",
+   "amount": "1000",
+   "quote": "1000000",
+   "fee": "0"
+  },
+  {
+   "id": "c-buy-2",
+   "time": 1700008100000,
+   "wallet": "carol",
+   "token": "TOK2",
+   "side": "buy",
+   "amount": "400",
+   "quote": "400000",
+   "fee": "0"
+  },
+  {
+   "id": "a-sell-2",
+   "time": 1700009000000,
+   "wallet": "alice",
+   "token": "TOK2",
+   "side": "sell",
+   "amount": "1000",
+   "quote": "2000000",
+   "fee": "0"
+  },
+  {
+   "id": "b-sell-2",
+   "time": 1700009300000,
+   "wallet": "bob",
+   "token": "TOK2",
+   "side": "sell",
+   "amount": "1000",
+   "quote": "500000",
+   "fee": "0"
+  },
+  {
+   "id": "c-sell-2",
+   "time": 1700009600000,
+   "wallet": "carol",
+   "token": "TOK2",
+   "side": "sell",
+   "amount": "400",
+   "quote": "300000",
+   "fee": "0"
+  },
+  {
+   "id": "a-buy-3",
+   "time": 1700011400000,
+   "wallet": "alice",
+   "token": "TOK3",
+   "side": "buy",
+   "amount": "1000",
+   "quote": "1000000",
+   "fee": "0"
+  },
+  {
+   "id": "b-buy-3",
+   "time": 1700011520000,
+   "wallet": "bob",
+   "token": "TOK3",
+   "side": "buy",
+   "amount": "1000",
+   "quote": "1000000",
+   "fee": "0"
+  },
+  {
+   "id": "a-sell-3",
+   "time": 1700012600000,
+   "wallet": "alice",
+   "token": "TOK3",
+   "side": "sell",
+   "amount": "1000",
+   "quote": "2000000",
+   "fee": "0"
+  },
+  {
+   "id": "b-sell-3",
+   "time": 1700012900000,
+   "wallet": "bob",
+   "token": "TOK3",
+   "side": "sell",
+   "amount": "1000",
+   "quote": "500000",
+   "fee": "0"
+  },
+  {
+   "id": "a-buy-4",
+   "time": 1700015000000,
+   "wallet": "alice",
+   "token": "TOK4",
+   "side": "buy",
+   "amount": "1000",
+   "quote": "1000000",
+   "fee": "0"
+  },
+  {
+   "id": "b-buy-4",
+   "time": 1700015120000,
+   "wallet": "bob",
+   "token": "TOK4",
+   "side": "buy",
+   "amount": "1000",
+   "quote": "1000000",
+   "fee": "0"
+  },
+  {
+   "id": "a-sell-4",
+   "time": 1700016200000,
+   "wallet": "alice",
+   "token": "TOK4",
+   "side": "sell",
+   "amount": "1000",
+   "quote": "2000000",
+   "fee": "0"
+  },
+  {
+   "id": "b-sell-4",
+   "time": 1700016500000,
+   "wallet": "bob",
+   "token": "TOK4",
+   "side": "sell",
+   "amount": "1000",
+   "quote": "500000",
+   "fee": "0"
+  },
+  {
+   "id": "a-buy-5",
+   "time": 1700018600000,
+   "wallet": "alice",
+   "token": "TOK5",
+   "side": "buy",
+   "amount": "1000",
+   "quote": "1000000",
+   "fee": "0"
+  },
+  {
+   "id": "b-buy-5",
+   "time": 1700018720000,
+   "wallet": "bob",
+   "token": "TOK5",
+   "side": "buy",
+   "amount": "1000",
+   "quote": "1000000",
+   "fee": "0"
+  },
+  {
+   "id": "d-buy-5",
+   "time": 1700019200000,
+   "wallet": "dave",
+   "token": "TOK5",
+   "side": "buy",
+   "amount": "500",
+   "quote": "500000",
+   "fee": "0"
+  },
+  {
+   "id": "a-sell-5",
+   "time": 1700019800000,
+   "wallet": "alice",
+   "token": "TOK5",
+   "side": "sell",
+   "amount": "1000",
+   "quote": "2000000",
+   "fee": "0"
+  },
+  {
+   "id": "b-sell-5",
+   "time": 1700020100000,
+   "wallet": "bob",
+   "token": "TOK5",
+   "side": "sell",
+   "amount": "1000",
+   "quote": "500000",
+   "fee": "0"
+  }
+ ],
+ "snapshots": [
+  {
+   "token": "TOK1",
+   "time": 1700006300000,
+   "holdings": [
+    {
+     "address": "POOL",
+     "amount": "7000"
+    },
+    {
+     "address": "h1",
+     "amount": "1000"
+    },
+    {
+     "address": "h2",
+     "amount": "1000"
+    },
+    {
+     "address": "h3",
+     "amount": "1000"
+    }
+   ]
+  },
+  {
+   "token": "TOK5",
+   "time": 1700018300000,
+   "holdings": [
+    {
+     "address": "POOL",
+     "amount": "9000"
+    },
+    {
+     "address": "creator5",
+     "amount": "1000"
+    }
+   ]
+  },
+  {
+   "token": "TOK5",
+   "time": 1700020700000,
+   "holdings": [
+    {
+     "address": "POOL",
+     "amount": "8000"
+    },
+    {
+     "address": "creator5",
+     "amount": "1000"
+    },
+    {
+     "address": "dave",
+     "amount": "500"
+    },
+    {
+     "address": "x1",
+     "amount": "300"
+    },
+    {
+     "address": "x2",
+     "amount": "200"
+    }
+   ]
+  }
+ ]
+}
