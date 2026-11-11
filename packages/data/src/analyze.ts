@@ -70,8 +70,9 @@ const NO_SNAPSHOT = "no holder snapshot at or before the as-of time";
 const NO_HOLDERS = "the holder snapshot has no countable holders";
 
 /**
- * Risk score from what is stored. Only five of the ten signals have a data source so far; the rest are
- * reported as unavailable with a reason, so the score's `coverage` says how much of it is known.
+ * Risk score from what is stored. Only six of the ten signals have a data source so far (age, top-10 share,
+ * HHI, creator share, mint authority, freeze authority); the other four (creator dumps, liquidity, clustering,
+ * wash trading) are reported as unavailable with a reason, so the score's `coverage` says how much is known.
  */
 export function tokenRisk(store: Store, chain: string, token: string, asOf: number): RiskResult | null {
   const info = store.getToken(chain, token);

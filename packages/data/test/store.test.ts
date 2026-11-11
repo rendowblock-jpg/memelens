@@ -265,6 +265,18 @@ describe("Store reads", () => {
     expect(s.lastMark("c", "T", 500)).toEqual({ amount: 3n, quote: 10n });
   });
 
+  it("lastMark's tie-break on id comes from its ORDER BY, not from an index that happens to end in id", () => {
+    // With trade_token_time present, a reverse index scan yields larger-id-first by accident. Without it SQLite
+    // scans the (chain, id) primary key ascending and sorts, so a missing `id DESC` would return the smallest id.
+    const s = mem();
+    s.db.exec("DROP INDEX trade_token_time");
+    for (const [id, amount] of [["m3", 3n], ["m1", 1n], ["m2", 2n]] as const) {
+      s.insertTrade("c", trade(id, { time: 500, wallet: "w", token: "T", amount, quote: 10n }));
+    }
+    expect(s.lastMark("c", "T")).toEqual({ amount: 3n, quote: 10n });
+    expect(s.lastMark("c", "T", 500)).toEqual({ amount: 3n, quote: 10n });
+  });
+
   it("holderSnapshot returns the newest snapshot at or before asOf", () => {
     const s = mem();
     s.insertSnapshot("c", snap("A", 10, [["w", 1n]]));
