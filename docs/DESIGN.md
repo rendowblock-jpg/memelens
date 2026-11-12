@@ -202,21 +202,20 @@ less is reported as "built" or "probed", not "done". Installing on the owner's P
   race that only showed on the slower machine; and the "no `--no-sandbox`" step I first wrote ran after the app had
   exited, so it checked nothing. It is now done inside the checker while the app runs.
 
-### What the Windows feed picture shows (opened and looked at on 12 Nov 2026)
-One picture, the feed screen of the installed app on the runner (1008x655), was opened and looked at, not only measured.
-It was carried to the reviewer in four pieces and reduced to 64 colours (sampled mean colour error 0.7 of 255); its
-SHA-256 matched the file on the host.
-- A dark panel with the lens mark and two rail items; the title "Token feed"; a notice line with the yellow SYNTHETIC DATA
-  tag; a table of the five tokens, newest first, the first row selected (accent bar on its left edge, tinted background).
-- The risk column reads "Critical 93" in a red pill with the flag "mintAuthority" and "57% of signals known" for SYN5, and
-  a dashed grey "Unknown" pill with "17% of signals known" for most of the others (45% for SYN1): dashed means not
-  measured is visible.
-- At this width (1008 px, under the 1180 px breakpoint) the detail panel stacks under the table, so the gauge and the risk
-  bar are below the first screen. The two-pane layout (table beside the detail panel) is what a 1366-wide screen gets.
-  **It has not been looked at on Windows,** only measured on the host.
-- Rows are about 66 px tall because the risk cell has three lines. With five tokens that is fine; with hundreds it means a
-  lot of scrolling, so a compact row is a likely later change.
-- Not looked at: the gauge, the risk bar, the smart-money and wallet screens.
+### The Windows feed picture: delivered to the owner, NOT looked at by the reviewer
+The feed screen of the installed app on the runner (1008x655) was reduced to 64 colours (sampled mean colour error 0.7
+of 255) and sent to the owner's chat in four pieces; its SHA-256 matched the file on the host. **The reviewer (the agent
+that wrote this) could not see it:** the image tool returned only "Image: ... (21294 bytes, image/png)", no pixels. So
+nothing in this document describes how that picture looks. What is known about this screen comes from measurement:
+- From the Windows picture's pixels: dominant colours of the rail, page and notice bar equal the stylesheet's values.
+- From the host build of the same renderer (browser audit tools, 1360x860 and 900x600): the accessibility text of the first
+  row reads "critical 93 mintAuthority 57% of signals known"; table rows are 66 px apart (three-line risk cell); no
+  overflow, overlap, cut-off text or covered controls.
+- From the stylesheet: below 1180 px width the detail panel stacks under the table, so in a 1008 px window the gauge and
+  the risk bar are below the first screen. **Not measured on Windows.**
+- A compact row is a likely later change: at 66 px per row, hundreds of tokens mean a lot of scrolling.
+- Not measured at all: the gauge, the risk bar, the smart-money and wallet screens as drawn (only their text and boxes).
+Whether the design is good is for the owner to judge when he installs it.
 
 ### Packaging decisions
 - **`upgradeCode` is `80E58C9E-4267-4FF5-A0F0-65565D71F798` and must never change.** Windows Installer uses it to know
@@ -239,8 +238,8 @@ SHA-256 matched the file on the host.
 
 ### Not done, and not claimed
 - **The owner has not seen it.** Nothing here is at evidence level L3. The MSI is waiting as a CI artifact; installing it
-  on his PC needs his word that turn. One screenshot (the feed) was opened and looked at on 12 Nov (next section); the other two were
-  checked by measurement only.
+  on his PC needs his word that turn. None of the three was looked at by the reviewer, who cannot see pixels here (see the next section); they were
+  checked by measurement.
 - **Start-up time and memory on his PC** (a Celeron N3060 with about 1.8 GB free RAM) are unmeasured and there is no budget yet.
 - **"The sandbox is enforced"** is shown by the switch being absent and the preference being on, not by inspecting the
   renderer's token. A stronger check would read the renderer process's integrity level.
