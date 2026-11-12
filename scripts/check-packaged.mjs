@@ -1,7 +1,9 @@
 // Looks at a PACKAGED MemeLens from outside, the way a person would use it: starts the real executable (the installed
 // MSI on Windows, the unpacked folder on Linux), talks to its window over the Chrome DevTools protocol, clicks
 // through the screens, checks what is on them and saves a screenshot of each.
-// usage: node scripts/check-packaged.mjs --exe PATH --db PATH --out DIR [--rows N] [--no-sandbox]
+// usage: node scripts/check-packaged.mjs --exe PATH --db PATH --out DIR [--rows N] [--no-sandbox] [--axe PATH_TO_axe.min.js]
+// With --axe, every screen that is photographed is also scanned with axe-core (WCAG 2.2 A/AA and best practice) inside the
+// real window, and any violation fails the check.
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -115,6 +117,36 @@ async function shot(name) {
   const file = join(out, `${name}.png`);
   writeFileSync(file, Buffer.from(r.data, "base64"));
   console.log(`SHOT ${file} ${Buffer.from(r.data, "base64").length} bytes`);
+  await axeScan(name);
+  await controlSizeScan(name);
+}
+
+// WCAG 2.5.8 (Target Size, Minimum, AA): a control is at least 24 x 24 CSS px. axe grants an exception for small controls that
+// have room around them; this check does not, so a cramped control cannot hide behind the empty space beside it.
+async function controlSizeScan(name) {
+  const small = JSON.parse(
+    await evaluate(`JSON.stringify([...document.querySelectorAll("a[href], button, input:not([type=hidden]), select, textarea, summary, [role=button]")]
+      .filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(e).visibility !== "hidden" && !e.closest("[hidden]"); })
+      .map((e) => { const r = e.getBoundingClientRect(); return { el: e.tagName.toLowerCase() + (e.classList[0] ? "." + e.classList[0] : ""), text: (e.textContent || e.getAttribute("aria-label") || "").trim().slice(0, 24), w: Math.round(r.width * 10) / 10, h: Math.round(r.height * 10) / 10 }; })
+      .filter((x) => x.w < 24 || x.h < 24).slice(0, 8))`),
+  );
+  check(`every control on ${name} is at least 24 x 24 px (WCAG 2.5.8)`, small.length === 0, small);
+}
+
+// axe-core is a development dependency (Deque, MPL-2.0); it is read from node_modules and never packaged. It runs in the page
+// through DevTools, which the page's no-eval and no-inline-script policy does not apply to, and it needs neither itself.
+const axePath = arg("axe");
+const axeSource = axePath ? readFileSync(axePath, "utf8") : null;
+const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-practice"];
+async function axeScan(name) {
+  if (axeSource === null) return;
+  if ((await evaluate("typeof axe")) !== "object") await evaluate(axeSource, { allowUnsafeEvalBlockedByCSP: true });
+  const raw = await evaluate(
+    `axe.run(document, { runOnly: { type: "tag", values: ${JSON.stringify(AXE_TAGS)} }, resultTypes: ["violations"] }).then((r) => JSON.stringify(r.violations.map((v) => ({ rule: v.id, impact: v.impact, help: v.help, count: v.nodes.length, where: v.nodes.slice(0, 4).map((n) => n.target.join(" ")), why: v.nodes.slice(0, 2).map((n) => (n.any[0] || n.all[0] || n.none[0] || {}).message) }))))`,
+    { allowUnsafeEvalBlockedByCSP: true },
+  );
+  const violations = JSON.parse(raw);
+  check(`accessibility scan (axe, WCAG 2.2 AA and best practice): ${name} has no violations`, violations.length === 0, violations);
 }
 // The command lines of the app's processes while it runs (Chromium puts --type=renderer on the renderer's).
 function appCommandLines() {
@@ -210,9 +242,36 @@ async function standardChecks() {
   if (process.argv.includes("--no-sandbox")) console.log("SKIP  no process runs with --no-sandbox (this host needs the flag for the whole run)");
   else check("no process of the app runs with --no-sandbox", lines.length > 0 && !lines.some((l) => l.includes("no-sandbox")), lines.filter((l) => l.includes("no-sandbox")));
 
+  // What a keyboard or screen-reader user depends on: one main landmark around the notice and the screen (not the navigation),
+  // a skip link as the first stop, and focus that follows the person to the screen they opened.
+  const structure = JSON.parse(
+    await evaluate(`JSON.stringify((() => {
+      const mains = [...document.querySelectorAll("main")];
+      const main = mains[0];
+      const skip = document.querySelector("a[data-testid=skip-link]");
+      const stops = [...document.querySelectorAll("a[href], button, input, select, textarea, summary, [tabindex]")].filter((e) => !e.disabled && e.tabIndex >= 0 && !e.closest("[hidden]"));
+      return {
+        mains: mains.length,
+        noticeInside: Boolean(main && main.querySelector("[data-testid=notice]")),
+        screenInside: Boolean(main && main.querySelector(".content")),
+        navInside: Boolean(main && main.querySelector("nav")),
+        skipText: skip ? skip.textContent.trim() : null,
+        skipIsFirstStop: stops[0] === skip,
+        headerIsBanner: Boolean(document.querySelector("body header.topbar") && !document.querySelector("main header")),
+      };
+    })())`),
+  );
+  check("the page has one main landmark that holds the data notice and the screen, and not the navigation", structure.mains === 1 && structure.noticeInside && structure.screenInside && !structure.navInside && structure.headerIsBanner, structure);
+  check("the first stop for the keyboard is a 'Skip to content' link", structure.skipText === "Skip to content" && structure.skipIsFirstStop, structure);
+  await evaluate(`document.querySelector("a[data-testid=skip-link]").click()`);
+  const skipped = await evaluate(`document.activeElement === document.querySelector("main")`);
+  check("using the skip link puts focus on the main area", skipped === true, skipped);
+
   await shot("1-feed");
   await evaluate(`[...document.querySelectorAll(".rail-item")].find((b) => b.textContent.includes("Smart")).click()`);
   await waitSel("table.smart-ranked");
+  const landed = JSON.parse(await evaluate(`JSON.stringify({ tag: document.activeElement.tagName, text: document.activeElement.textContent })`));
+  check("opening another screen moves focus to its heading, so a screen reader announces where it is", landed.tag === "H1" && landed.text === "Smart money", landed);
   const ranked = await text("table.smart-ranked tbody tr:first-child");
   check("smart money ranks alice first with +0.005 SOL", /alice/.test(ranked) && /\+0\.005 SOL/.test(ranked), ranked);
   await shot("2-smart-money");

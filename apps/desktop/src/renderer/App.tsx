@@ -1,4 +1,4 @@
-import { Component, useEffect, useMemo, useState, type ErrorInfo, type ReactElement, type ReactNode } from "react";
+import { Component, useEffect, useMemo, useRef, useState, type ErrorInfo, type ReactElement, type ReactNode } from "react";
 import type { Api } from "@memelens/service";
 import { loadFeed, loadOverview, loadSmart, loadToken, loadWallet, MIN_CLOSED_TOKENS, pickChain, type Loaded } from "./controller";
 import { formatTime } from "./format";
@@ -7,6 +7,7 @@ import { quoteFor } from "./quote";
 import { BacktestScreen } from "./BacktestScreen";
 import { EmptyDatabaseScreen } from "./EmptyDatabaseScreen";
 import { Rail, SmartTable, WalletPanel, type Screen, type TokenMetaMap } from "./screens";
+import { Skeleton } from "./skeleton";
 import { DataNotice, FeedTable, TokenPanel } from "./views";
 
 // The stateful shell: which screen is open, which token or wallet is selected, and what is loading. The decisions
@@ -57,9 +58,9 @@ class Boundary extends Component<{ children: ReactNode; resetKey: string }, { er
   }
 }
 
-function Status<T>({ value, what, children }: { value: Async<T>; what: string; children: (data: T) => ReactNode }): ReactElement {
+function Status<T>({ value, what, lines, children }: { value: Async<T>; what: string; lines?: number; children: (data: T) => ReactNode }): ReactElement {
   if (value.state === "error") return <p className="error" role="alert">Could not load {what}: {value.message}</p>;
-  if (value.state !== "ok") return <p className="muted" role="status">Loading {what}…</p>;
+  if (value.state !== "ok") return <Skeleton what={what} {...(lines === undefined ? {} : { lines })} />;
   return <>{children(value.data)}</>;
 }
 
@@ -114,8 +115,32 @@ export function App({ api }: { api: Api }): ReactElement {
 
   const title = route.screen === "feed" ? "Token feed" : route.screen === "smart" ? "Smart money" : route.screen === "backtest" ? "Backtest" : "Wallet";
 
+  // Opening another screen (or another wallet) moves focus to its heading, so a keyboard user is not left on a control that
+  // has just disappeared and a screen reader announces where it is. Choosing a token in the feed is not a new screen and
+  // leaves focus alone. The first render is not a navigation.
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
+  const place = route.screen === "wallet" ? `wallet:${route.wallet}` : route.screen;
+  const lastPlace = useRef(place);
+  useEffect(() => {
+    if (lastPlace.current === place) return;
+    lastPlace.current = place;
+    headingRef.current?.focus({ preventScroll: true });
+  }, [place]);
+
   return (
     <div className="app">
+      <a
+        className="skip"
+        href="#main"
+        data-testid="skip-link"
+        onClick={(e) => {
+          e.preventDefault(); // stay on this page: the target is a region of it, and a hash navigation is not wanted in the app window
+          mainRef.current?.focus();
+        }}
+      >
+        Skip to content
+      </a>
       <Rail current={route.screen} onGo={go} />
       <div className="main">
         <header className="topbar">
@@ -125,7 +150,7 @@ export function App({ api }: { api: Api }): ReactElement {
                 ← {route.back === "smart" ? "Smart money" : "Token feed"}
               </button>
             ) : null}
-            <h1>{title}</h1>
+            <h1 ref={headingRef} tabIndex={-1}>{title}</h1>
           </div>
           {chains.length > 1 ? (
             <label className="chain-pick">
@@ -139,6 +164,7 @@ export function App({ api }: { api: Api }): ReactElement {
           ) : null}
         </header>
 
+        <main id="main" ref={mainRef} tabIndex={-1} className="page">
         {chain !== null && latest !== null ? <DataNotice chain={chain} asOf={latest} /> : null}
 
         <div className="content">
@@ -146,13 +172,13 @@ export function App({ api }: { api: Api }): ReactElement {
             {overview.state === "error" ? (
               <p className="error" role="alert">Could not read the database: {overview.message}</p>
             ) : overview.state !== "ok" ? (
-              <p className="muted" role="status">Opening the database…</p>
+              <Skeleton what="the database" lines={4} />
             ) : chain === null ? (
               <EmptyDatabaseScreen api={api} onLoaded={() => setDataVersion((v) => v + 1)} />
             ) : route.screen === "backtest" ? null : route.screen === "feed" ? (
               <div className="split">
                 <div className="pane list">
-                  <Status value={feed} what="the token feed">
+                  <Status value={feed} what="the token feed" lines={9}>
                     {(data) => <FeedTable feed={data} quote={quote} selected={selected} onSelect={openToken} />}
                   </Status>
                 </div>
@@ -209,6 +235,7 @@ export function App({ api }: { api: Api }): ReactElement {
             </div>
           ) : null}
         </div>
+        </main>
       </div>
     </div>
   );
