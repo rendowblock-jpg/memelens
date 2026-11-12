@@ -6,7 +6,7 @@
   "new": ""
  },
  {
-  "name": "layout: empty LOCALAPPDATA accepted",
+  "name": "layout: empty LOCALAPPDATA accepted (EQUIVALENT)",
   "file": "packages/sidecar/src/layout.ts",
   "old": "typeof base !== \"string\" || base === \"\" ||",
   "new": "typeof base !== \"string\" ||"
@@ -258,19 +258,19 @@
   "new": ".sort()"
  },
  {
-  "name": "sig: any signature length",
+  "name": "sig: any signature length (EQUIVALENT)",
   "file": "packages/sidecar/src/signature.ts",
   "old": "signature.length !== 64 || publicKey.length !== 32",
   "new": "false"
  },
  {
-  "name": "sig: key length ignored",
+  "name": "sig: key length ignored (EQUIVALENT)",
   "file": "packages/sidecar/src/signature.ts",
   "old": "|| publicKey.length !== 32",
   "new": ""
  },
  {
-  "name": "sig: signature length ignored",
+  "name": "sig: signature length ignored (EQUIVALENT)",
   "file": "packages/sidecar/src/signature.ts",
   "old": "signature.length !== 64 ||",
   "new": ""
@@ -288,7 +288,7 @@
   "new": "  } catch {\n    return true;"
  },
  {
-  "name": "weak: y >= p accepted",
+  "name": "weak: y >= p accepted (EQUIVALENT)",
   "file": "packages/sidecar/src/signature.ts",
   "old": "if (y >= P) return null;",
   "new": "if (false) return null;"
@@ -306,13 +306,13 @@
   "new": "for (let i = 0; i < 1; i++) q = add(q, q);"
  },
  {
-  "name": "weak: x = 0 with sign bit accepted",
+  "name": "weak: x = 0 with sign bit accepted (EQUIVALENT)",
   "file": "packages/sidecar/src/signature.ts",
   "old": "if (x === 0n && sign === 1) return null;",
   "new": ""
  },
  {
-  "name": "weak: points off the curve accepted",
+  "name": "weak: points off the curve accepted (EQUIVALENT)",
   "file": "packages/sidecar/src/signature.ts",
   "old": "  if (mod(x * x - x2) !== 0n) return null;\n  if (x === 0n",
   "new": "  if (x === 0n"
@@ -324,13 +324,13 @@
   "new": ""
  },
  {
-  "name": "weak: identity not compared on x",
+  "name": "weak: identity not compared on x (EQUIVALENT)",
   "file": "packages/sidecar/src/signature.ts",
   "old": "return q.x === 0n && q.y === 1n;",
   "new": "return q.y === 1n;"
  },
  {
-  "name": "weak: identity not compared on y",
+  "name": "weak: identity not compared on y (EQUIVALENT)",
   "file": "packages/sidecar/src/signature.ts",
   "old": "return q.x === 0n && q.y === 1n;",
   "new": "return q.x === 0n;"

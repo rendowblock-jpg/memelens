@@ -95,3 +95,21 @@ describe("verifyManifestSignature: weak keys", () => {
     }
   });
 });
+
+describe("verifyManifestSignature: fails closed", () => {
+  it("returns false, never true, when something inside the check throws", () => {
+    const { raw, privateKey } = keypair();
+    const good = sign(null, manifest, privateKey);
+    // An object that IS a Uint8Array as far as instanceof can tell, but throws as soon as its length is read.
+    const booby = (bytes: Uint8Array): Uint8Array =>
+      new Proxy(bytes, {
+        get(target, prop) {
+          if (prop === "length") throw new Error("boom");
+          return Reflect.get(target, prop, target);
+        },
+      });
+    expect(verifyManifestSignature(manifest, booby(good), raw)).toBe(false);
+    expect(verifyManifestSignature(manifest, good, booby(raw))).toBe(false);
+    expect(verifyManifestSignature(booby(manifest), good, raw)).toBe(false);
+  });
+});

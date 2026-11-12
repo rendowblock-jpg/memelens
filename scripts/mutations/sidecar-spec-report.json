@@ -12,7 +12,7 @@
   "new": "if (false) throw"
  },
  {
-  "name": "spec: arrays count as objects",
+  "name": "spec: arrays count as objects (EQUIVALENT)",
   "file": "packages/sidecar/src/spec.ts",
   "old": "typeof v === \"object\" && v !== null && !Array.isArray(v) &&",
   "new": "typeof v === \"object\" && v !== null &&"
