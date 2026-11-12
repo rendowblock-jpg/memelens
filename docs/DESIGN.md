@@ -144,8 +144,7 @@ protocol document and the test vectors live in the public repo; the implementati
 
 **Data access.** The sidecar opens the database file itself, read-only, using a path main hands it; the path never
 comes from the agent. Streaming millions of trades through JSON would block main while it serialises. The store
-currently sets no `journal_mode` (SQLite's default rollback journal), so a reader can hit "busy" while main ingests.
-Decide in the sidecar slice: switch to WAL or hand the sidecar a snapshot. Test it with a concurrent ingest.
+sets `journal_mode = WAL` on every file database (checked 12 Nov 2026 in packages/data/src/store.ts; the earlier text here was wrong), so a read-only reader sees a consistent snapshot while the app ingests. The contract test reads a file while the app's writer connection is open and the file's SHA-256 is unchanged afterwards (Linux, local run only).
 
 **Determinism and conformance.** Same spec plus same data gives byte-identical output (seeded, no wall clock). The
 TypeScript core is the reference. Test vectors (inputs and exact expected outputs for FIFO PnL and the no-look-ahead
@@ -322,6 +321,15 @@ Score 30 tokens that rugged against 30 that did not, and report the hit rate for
 |---|---|---|---|---|---|
 | Rugged | 30 | NOT MEASURED | | | |
 | Did not rug | 30 | NOT MEASURED | | | |
+
+## Sidecar: state on 12 Nov 2026
+
+- **Contract:** `docs/SIDECAR-PROTOCOL.md`. **Vectors:** `packages/sidecar/vectors/*.json`, written by `scripts/sidecar-vectors/gen.py`, a Python implementation that shares no code with either side: 27 PnL cases (9 invalid inputs), 19 backtest cases, 57 invalid specs, 10 canonical-JSON cases and 5 refusals. The TypeScript core agrees with every PnL vector.
+- **App side, `packages/sidecar`:** line codec, canonical JSON and spec hash, spec and report checkers (the report's summary must equal the sum of its positions), install layout with atomic pointers, verify-before-launch and rollback, ed25519 manifest check with a small-order-key guard, process client with timeouts, protocol-error limits, cancellation and a minimal environment for the engine. Not wired into the Electron main process, no update downloader, no UI.
+- **Engine, private repo `memelens-sidecar` (Go 1.26.8):** `hello`, `pnl.compute`, `backtest.run`, `backtest.cancel`, `shutdown`; reads the app's SQLite file read-only. It passes the contract test locally on Linux (10 of 10) and its own Go tests on Linux and Windows CI (run 43195099811).
+- **Not yet seen:** the contract test on Windows. Its first run failed because `testdata/vectors.pin` named a commit older than the test file; the pin was moved to `79b0a14` and the result of that run is not known when this is written.
+- **Mutation checks (sidecar logic, 157 mutants):** codec/canonical 38 of 38; spec/report 57 of 58; layout/signature 51 of 61 on the first full run. Ten survivors were then marked "equivalent" by reading the code, not by proof, and one more test (fail closed on an internal error) was added afterwards and **not re-run through the mutants**.
+- **Not built:** a download/update client, the pinned public key, the engine's memory budget (`-32003` is defined, not enforced), operating-system enforcement of "no network", code signing.
 
 ## Toolchain notes
 
