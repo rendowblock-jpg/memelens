@@ -320,8 +320,11 @@ No sidecar repo exists yet.
 
 Measured at the end of M3c-3: `vitest run` 675 tests in 26 files, exit 0; `tsc --noEmit` exit 0 for `packages/core`,
 `packages/data`, `packages/service`, `apps/desktop` and the renderer project; real-app smoke 14/14, exit 0.
-Browser-tool measurements of the built renderer at 1360x860, 1024-wide and 900x600 (the minimum window): no overflow,
-cut-off text, overlap or covered controls; all text 12 px or larger; link targets 24 px; no contrast failures reported.
+Browser-tool measurements of the built renderer (through the preview harness, not the Electron window): 1360x860 for the
+feed, smart money and one wallet, and 900x600 (the app's minimum window) for the feed only. Not measured: the token panel
+at 900x600 beyond the feed's own layout, the other wallets, 1024 wide, and anything in Arabic. Findings: no overflow,
+cut-off text, overlap or covered controls; all text 12 px or larger; link targets 24 px; no contrast failures reported by
+the audit runs I made (feed before the fixes, smart money and one wallet after).
 Two layout bugs were found that way and fixed: the page grew to its content (1475 px in an 860 px window) because the
 grid rows were not fixed, and headings skipped from h1 to h3.
 **Not seen by a person yet.** I opened screenshots through the sandbox relay and received only a file description, not
