@@ -217,6 +217,120 @@ run("the real engine", () => {
 });
 
 // ---------------------------------------------------------------------------------------------------------------------
+// The manager on the real engine: the default start path (verify, launch, hello, version check) that its unit tests replace.
+import { ManagerError, SidecarManager } from "../src/manager";
+
+/** Puts the real engine into a fresh install folder under `folder`, with a manifest that names `claimed` as its version. */
+function installReal(folder: string, claimed: string): { root: string; binary: string } {
+  const root = tmp();
+  const dir = join(root, "versions", folder);
+  mkdirSync(dir, { recursive: true });
+  const platform = currentPlatform();
+  const binary = join(dir, binaryName(platform));
+  copyFileSync(BIN!, binary);
+  writeFileSync(join(dir, "manifest.json"), JSON.stringify({ manifestVersion: 1, engineVersion: claimed, protocol: 1, file: binaryName(platform), size: statSync(binary).size, sha256: sha(readFileSync(binary)) }));
+  activate(root, folder);
+  return { root, binary };
+}
+async function realVersion(): Promise<string> {
+  const c = await engine();
+  try {
+    return c.info.engineVersion;
+  } finally {
+    await c.close();
+  }
+}
+const FOLLOW = {
+  version: 1, from: 1_699_000_000_000, to: 1_700_100_000_000,
+  strategy: { kind: "follow-wallets", wallets: ["alice", "carol"], latencyMs: 0, positionQuote: "1000000", takeProfitBps: 5000, stopLossBps: 2000, maxHoldMs: 3_600_000 },
+  costs: { feeBps: 30, slippageBps: 100 },
+};
+
+run("the manager on the real engine", () => {
+  it("runs a backtest on the app's real database through the installed engine, stops it when idle, and starts a fresh one for the next run", async () => {
+    const version = await realVersion();
+    const { root } = installReal(version, version);
+    const dir = tmp();
+    const path = join(dir, "app.sqlite");
+    const fixture = JSON.parse(readFileSync(fileURLToPath(new URL("../../data/fixtures/sample.json", import.meta.url)), "utf8"));
+    const store = Store.open(path);
+    const manager = new SidecarManager({ root, dbPath: path, chain: fixture.chain, idleMs: 400 });
+    try {
+      await ingest(store, new ReplayAdapter(parseFixture(fixture)));
+      expect(manager.status()).toMatchObject({ installed: version, running: false, busy: false, problem: null });
+      const first = await manager.runBacktest(FOLLOW);
+      expect(first.engineVersion).toBe(version);
+      expect(first.summary.entered).toBeGreaterThan(0); // not an empty comparison
+      expect(manager.status()).toMatchObject({ running: true, busy: false });
+
+      const inline: WireWalletTrade[] = fixture.trades.map((t: any) => ({ id: t.id, time: t.time, token: t.token, side: t.side, amount: t.amount, quote: t.quote, wallet: t.wallet }));
+      const direct = await engine();
+      try {
+        expect(first).toEqual(await direct.backtest(FOLLOW, { source: "inline", trades: inline }));
+      } finally {
+        await direct.close();
+      }
+
+      await new Promise((r) => setTimeout(r, 1200)); // idle for longer than idleMs
+      expect(manager.status().running).toBe(false);
+      expect(await manager.runBacktest(FOLLOW)).toEqual(first);
+      expect(manager.status().running).toBe(true);
+    } finally {
+      await manager.shutdown();
+      store.close();
+    }
+    expect(manager.status().running).toBe(false);
+  });
+
+  it("reports an engine's own refusal as the engine's error and keeps the engine for the next run", async () => {
+    const version = await realVersion();
+    const { root } = installReal(version, version);
+    const manager = new SidecarManager({ root, dbPath: join(tmp(), "missing.sqlite"), chain: "x", idleMs: 5000 });
+    try {
+      const e = await manager.runBacktest(FOLLOW).catch((x) => x);
+      expect(e).toBeInstanceOf(SidecarError);
+      expect((e as SidecarError).kind).toBe("remote");
+      expect((e as SidecarError).code).toBe(-32002);
+      expect(manager.status()).toMatchObject({ running: true, problem: null });
+    } finally {
+      await manager.shutdown();
+    }
+  });
+
+  it("refuses an engine whose verified files promise one version while the program says another, and leaves no process running", async () => {
+    const { root } = installReal("9.9.9", "9.9.9");
+    const manager = new SidecarManager({ root, dbPath: join(tmp(), "x.sqlite"), chain: "x" });
+    const e = await manager.runBacktest(FOLLOW).catch((x) => x);
+    expect(e).toBeInstanceOf(ManagerError);
+    expect((e as ManagerError).kind).toBe("start-failed");
+    expect((e as ManagerError).message).toMatch(/says it is version/);
+    expect(manager.status()).toMatchObject({ running: false });
+    expect(manager.status().problem).toMatch(/says it is version/);
+    await manager.shutdown();
+  });
+
+  it("does not launch a binary that changed after it was installed", async () => {
+    const version = await realVersion();
+    const { root, binary } = installReal(version, version);
+    writeFileSync(binary, Buffer.concat([readFileSync(binary), Buffer.from([0])]));
+    const manager = new SidecarManager({ root, dbPath: join(tmp(), "x.sqlite"), chain: "x" });
+    const e = await manager.runBacktest(FOLLOW).catch((x) => x);
+    expect(e).toBeInstanceOf(ManagerError);
+    expect((e as ManagerError).kind).toBe("damaged");
+    expect(manager.status()).toMatchObject({ installed: null, running: false });
+    await manager.shutdown();
+  });
+
+  it("says plainly that no engine is installed", async () => {
+    const manager = new SidecarManager({ root: tmp(), dbPath: join(tmp(), "x.sqlite"), chain: "x" });
+    const e = await manager.runBacktest(FOLLOW).catch((x) => x);
+    expect(e).toBeInstanceOf(ManagerError);
+    expect((e as ManagerError).kind).toBe("not-installed");
+    expect(manager.status()).toEqual({ installed: null, running: false, busy: false, problem: null });
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------------------------
 // The whole chain on real binaries: the Go release tool signs, a local server serves, the app's updater checks, downloads,
 // verifies, installs and starts the engine. Needs the engine (MEMELENS_SIDECAR_BIN), the release tool
 // (MEMELENS_RELEASE_BIN) and the version the engine was built with (MEMELENS_SIDECAR_VERSION).

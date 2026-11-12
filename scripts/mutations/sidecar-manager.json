@@ -1,0 +1,446 @@
+[
+ {
+  "name": "run: closed manager accepted",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (this.closed) throw new ManagerError(\"closed\", \"the engine manager has been shut down\");",
+  "new": ""
+ },
+ {
+  "name": "run: busy manager accepted",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (this.busy) throw new ManagerError(\"busy\", \"a backtest is already running\");",
+  "new": ""
+ },
+ {
+  "name": "run: busy never set",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "this.busy = true; // set before the first await, so a second call in the same instant is refused",
+  "new": "// busy never set"
+ },
+ {
+  "name": "run: busy set only after an await",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "this.busy = true; // set before the first await, so a second call in the same instant is refused\n    this.clearIdle();\n    try {\n      let spec;",
+  "new": "this.clearIdle();\n    try {\n      await Promise.resolve();\n      this.busy = true;\n      let spec;"
+ },
+ {
+  "name": "run: busy never cleared",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "this.busy = false;\n      if (this.engine !== null && !this.closed) this.armIdle();",
+  "new": "if (this.engine !== null && !this.closed) this.armIdle();"
+ },
+ {
+  "name": "run: idle timer not cleared when a run starts (EXPECTED EQUIVALENT: the timer's own busy check and armIdle's clear cover it)",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "this.busy = true; // set before the first await, so a second call in the same instant is refused\n    this.clearIdle();",
+  "new": "this.busy = true; // set before the first await, so a second call in the same instant is refused"
+ },
+ {
+  "name": "idle: timer does not check busy (EXPECTED EQUIVALENT: clearIdle at the start of a run already removes the timer)",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (!this.busy) void this.stopEngine();",
+  "new": "void this.stopEngine();"
+ },
+ {
+  "name": "run: spec not checked",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "spec = parseBacktestSpec(specInput);",
+  "new": "spec = specInput as never;"
+ },
+ {
+  "name": "run: invalid spec not reported as such",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (e instanceof SpecError) throw new ManagerError(\"invalid-spec\"",
+  "new": "if (false) throw new ManagerError(\"invalid-spec\""
+ },
+ {
+  "name": "run: database path replaced",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "path: this.options.dbPath,",
+  "new": "path: \"/x\","
+ },
+ {
+  "name": "run: chain replaced",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "chain: this.options.chain }",
+  "new": "chain: \"x\" }"
+ },
+ {
+  "name": "run: time limit not passed on",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (options.timeoutMs !== undefined) run.timeoutMs = options.timeoutMs;",
+  "new": ""
+ },
+ {
+  "name": "run: progress callback not passed on",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (options.onProgress !== undefined) run.onProgress = options.onProgress;",
+  "new": ""
+ },
+ {
+  "name": "run: abort signal not passed on",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (options.signal !== undefined) run.signal = options.signal;",
+  "new": ""
+ },
+ {
+  "name": "run: problem kept after a success",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "this.problem = null;\n        return report;",
+  "new": "return report;"
+ },
+ {
+  "name": "run: failure not handled",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "        this.afterFailure(engine, e);\n        throw e;",
+  "new": "        throw e;"
+ },
+ {
+  "name": "install: a running engine is kept when the files no longer verify",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "await this.stopEngine();\n      throw new ManagerError(\"damaged\"",
+  "new": "throw new ManagerError(\"damaged\""
+ },
+ {
+  "name": "install: a running engine is kept when the install is gone",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "await this.stopEngine();\n      throw new ManagerError(\"not-installed\"",
+  "new": "throw new ManagerError(\"not-installed\""
+ },
+ {
+  "name": "install: damaged reported as not installed",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "new ManagerError(\"damaged\", `the installed engine does not verify",
+  "new": "new ManagerError(\"not-installed\", `the installed engine does not verify"
+ },
+ {
+  "name": "install: cause of damage dropped",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "does not verify: ${message(e)}`, { cause: e });",
+  "new": "does not verify: ${message(e)}`);"
+ },
+ {
+  "name": "engine: the old version is kept after an update",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "this.engine.version === info.version",
+  "new": "true"
+ },
+ {
+  "name": "engine: restarted at every run",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "this.engine.version === info.version",
+  "new": "false"
+ },
+ {
+  "name": "engine: the old version is not stopped before the new one starts",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "await this.stopEngine(); // an older version is still running",
+  "new": ""
+ },
+ {
+  "name": "start: problem not recorded",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "      this.problem = `the engine could not be started: ${message(e)}`;\n      throw new ManagerError(",
+  "new": "      throw new ManagerError("
+ },
+ {
+  "name": "start: failure not reported as start-failed",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "throw new ManagerError(\"start-failed\"",
+  "new": "throw new ManagerError(\"damaged\""
+ },
+ {
+  "name": "start: cause of the failure dropped",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "`the engine could not be started: ${message(e)}`, { cause: e });",
+  "new": "`the engine could not be started: ${message(e)}`);"
+ },
+ {
+  "name": "start: an engine that started after shutdown is kept",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (this.closed) {\n      await handle.close()",
+  "new": "if (false) {\n      await handle.close()"
+ },
+ {
+  "name": "start: such an engine is left open",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "await handle.close().catch(() => handle.kill());\n      throw new ManagerError(\"closed\"",
+  "new": "throw new ManagerError(\"closed\""
+ },
+ {
+  "name": "exit: any engine's exit clears the current one",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (this.engine === running) this.engine = null;\n      if (!running.stopping)",
+  "new": "this.engine = null;\n      if (!running.stopping)"
+ },
+ {
+  "name": "exit: an engine's own exit is not noticed",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (this.engine === running) this.engine = null;\n      if (!running.stopping)",
+  "new": "if (!running.stopping)"
+ },
+ {
+  "name": "exit: every exit logged",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (!running.stopping) this.options.onLog?.",
+  "new": "if (true) this.options.onLog?."
+ },
+ {
+  "name": "exit: no exit logged",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (!running.stopping) this.options.onLog?.",
+  "new": "if (false) this.options.onLog?."
+ },
+ {
+  "name": "exit: a new engine starts as already stopping",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "version: info.version, stopping: false }",
+  "new": "version: info.version, stopping: true }"
+ },
+ {
+  "name": "failure: an engine's own error stops the engine (only 'remote' spared)",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "e.kind === \"remote\" || e.kind === \"cancelled\"",
+  "new": "e.kind === \"remote\""
+ },
+ {
+  "name": "failure: a cancelled run stops the engine (only 'cancelled' spared)",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "e.kind === \"remote\" || e.kind === \"cancelled\"",
+  "new": "e.kind === \"cancelled\""
+ },
+ {
+  "name": "failure: a 'closed' error is treated as a timeout",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "e.kind === \"exited\" || e.kind === \"closed\"",
+  "new": "e.kind === \"exited\""
+ },
+ {
+  "name": "failure: an 'exited' error is treated as a timeout",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "e.kind === \"exited\" || e.kind === \"closed\"",
+  "new": "e.kind === \"closed\""
+ },
+ {
+  "name": "failure: a stop we asked for counts as a problem",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (!engine.stopping) this.problem = `the engine stopped during the run",
+  "new": "this.problem = `the engine stopped during the run"
+ },
+ {
+  "name": "failure: a crash is not recorded",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (!engine.stopping) this.problem = `the engine stopped during the run",
+  "new": "if (false) this.problem = `the engine stopped during the run"
+ },
+ {
+  "name": "failure: a dead engine is kept (EXPECTED EQUIVALENT: its exit handler drops it as well)",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "        if (this.engine === engine) this.engine = null;\n        if (!engine.stopping) this.problem",
+  "new": "        if (!engine.stopping) this.problem"
+ },
+ {
+  "name": "failure: a timeout or protocol failure is not recorded",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "      this.problem = `the engine was stopped after a failed run: ${e.message}`;\n    } else {",
+  "new": "    } else {"
+ },
+ {
+  "name": "failure: an unexpected error is not recorded",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "      this.problem = `the engine was stopped after an unexpected error: ${message(e)}`;\n    }",
+  "new": "    }"
+ },
+ {
+  "name": "failure: a failing engine is not stopped",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "    this.killEngine(engine);\n  }\n\n  private killEngine",
+  "new": "  }\n\n  private killEngine"
+ },
+ {
+  "name": "kill: not marked as stopping",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "  private killEngine(engine: Running): void {\n    engine.stopping = true;",
+  "new": "  private killEngine(engine: Running): void {"
+ },
+ {
+  "name": "kill: the process is not killed",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "    engine.handle.kill();\n  }\n\n  private async stopEngine",
+  "new": "  }\n\n  private async stopEngine"
+ },
+ {
+  "name": "kill: the engine is kept",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "    engine.stopping = true;\n    if (this.engine === engine) this.engine = null;\n    engine.handle.kill();",
+  "new": "    engine.stopping = true;\n    engine.handle.kill();"
+ },
+ {
+  "name": "stop: no engine is not handled",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "const engine = this.engine;\n    if (engine === null) return;",
+  "new": "const engine = this.engine;"
+ },
+ {
+  "name": "stop: the engine is kept",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "    this.engine = null;\n    engine.stopping = true;\n    try {",
+  "new": "    engine.stopping = true;\n    try {"
+ },
+ {
+  "name": "stop: not marked as stopping",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "    this.engine = null;\n    engine.stopping = true;\n    try {",
+  "new": "    this.engine = null;\n    try {"
+ },
+ {
+  "name": "stop: an engine that will not close is left alone",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "    } catch {\n      engine.handle.kill();\n    }\n  }\n\n  private armIdle",
+  "new": "    } catch {\n    }\n  }\n\n  private armIdle"
+ },
+ {
+  "name": "idle: a timer that keeps the app alive",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "timer.unref?.(); // an idle timer must not keep the app alive",
+  "new": "// no unref"
+ },
+ {
+  "name": "idle: one millisecond too long",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "}, this.idleMs);",
+  "new": "}, this.idleMs + 1);"
+ },
+ {
+  "name": "idle: one millisecond too short",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "}, this.idleMs);",
+  "new": "}, this.idleMs - 1);"
+ },
+ {
+  "name": "idle: no timer after a run",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (this.engine !== null && !this.closed) this.armIdle();",
+  "new": ""
+ },
+ {
+  "name": "idle: the old timer is not replaced (EXPECTED EQUIVALENT: a run's start already cleared it)",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "  private armIdle(): void {\n    this.clearIdle();",
+  "new": "  private armIdle(): void {"
+ },
+ {
+  "name": "idle: the timer is not cleared",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "    if (this.idleTimer !== undefined) clearTimeout(this.idleTimer);\n    this.idleTimer = undefined;",
+  "new": "    this.idleTimer = undefined;"
+ },
+ {
+  "name": "idle: a timer is armed with no engine or after shutdown (EXPECTED EQUIVALENT: stopEngine on no engine does nothing)",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (this.engine !== null && !this.closed) this.armIdle();",
+  "new": "this.armIdle();"
+ },
+ {
+  "name": "idle: default of 61 seconds",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "const DEFAULT_IDLE_MS = 60_000;",
+  "new": "const DEFAULT_IDLE_MS = 61_000;"
+ },
+ {
+  "name": "idle: default of 59 seconds",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "const DEFAULT_IDLE_MS = 60_000;",
+  "new": "const DEFAULT_IDLE_MS = 59_000;"
+ },
+ {
+  "name": "idle: a time of 0 accepted",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "idleMs < 1)",
+  "new": "idleMs < 0)"
+ },
+ {
+  "name": "idle: a fraction accepted",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "!Number.isSafeInteger(idleMs) || idleMs < 1",
+  "new": "idleMs < 1"
+ },
+ {
+  "name": "idle: infinity accepted",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "!Number.isSafeInteger(idleMs) || idleMs < 1",
+  "new": "Number.isNaN(idleMs) || idleMs < 1"
+ },
+ {
+  "name": "shutdown: manager stays open",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "    this.closed = true;\n    this.clearIdle();\n    if (this.starting",
+  "new": "    this.clearIdle();\n    if (this.starting"
+ },
+ {
+  "name": "shutdown: the idle timer is not cancelled (EXPECTED EQUIVALENT: a late timer finds no engine)",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "    this.closed = true;\n    this.clearIdle();\n    if (this.starting",
+  "new": "    this.closed = true;\n    if (this.starting"
+ },
+ {
+  "name": "shutdown: does not wait for an engine that is starting",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "if (this.starting !== null) await this.starting.catch(() => undefined);",
+  "new": ""
+ },
+ {
+  "name": "shutdown: the engine is not stopped",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "    await this.stopEngine();\n  }\n\n  // ---",
+  "new": "  }\n\n  // ---"
+ },
+ {
+  "name": "starting: not remembered",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "    this.starting = starting;\n",
+  "new": "\n"
+ },
+ {
+  "name": "status: always says running",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "running: this.engine !== null,",
+  "new": "running: true,"
+ },
+ {
+  "name": "status: never says running",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "running: this.engine !== null,",
+  "new": "running: false,"
+ },
+ {
+  "name": "status: never says busy",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "busy: this.busy, problem }",
+  "new": "busy: false, problem }"
+ },
+ {
+  "name": "status: damage not reported",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "      problem = message(e);",
+  "new": "      problem = null;"
+ },
+ {
+  "name": "status: the last problem is not reported",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "let problem = this.problem;",
+  "new": "let problem: string | null = null;"
+ },
+ {
+  "name": "status: the installed version of a damaged install is reported",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "      installed = this.resolve(this.options.root, this.options.platform)?.version ?? null;",
+  "new": "      installed = this.resolve(this.options.root, this.options.platform)?.version ?? \"?\";"
+ },
+ {
+  "name": "log: engine lines not marked",
+  "file": "packages/sidecar/src/manager.ts",
+  "old": "`engine: ${line}`",
+  "new": "line"
+ }
+]

@@ -9,3 +9,4 @@ export * from "./client";
 export * from "./trust";
 export * from "./fetch";
 export * from "./updater";
+export * from "./manager";
