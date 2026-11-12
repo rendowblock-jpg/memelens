@@ -66,7 +66,7 @@
   "new": "report.tokens.rejected"
  },
  {
-  "name": "sample: rejected trades do not count",
+  "name": "sample: rejected trades do not count (EXPECTED EQUIVALENT: each of the 8 rules in validateTrade is also enforced, with the same predicate, by parseFixture, so a parsed trade is never rejected by the validator; by reading)",
   "file": "apps/desktop/src/main/sample.ts",
   "old": "report.tokens.rejected + report.trades.rejected + report.snapshots.rejected",
   "new": "report.tokens.rejected + report.snapshots.rejected"
