@@ -57,6 +57,7 @@ jobs:
       - run: npm ci
       - run: node node_modules/electron/install.js
       - name: Build the MSI
+        timeout-minutes: 15
         working-directory: apps/desktop
         run: node pack.mjs
       - name: Find the MSI
@@ -68,6 +69,7 @@ jobs:
           "{0}  {1:N0} bytes" -f $msi.Name, $msi.Length
           (Get-FileHash $msi.FullName -Algorithm SHA256).Hash + "  sha256"
       - name: Install the MSI (silently, as the runner user)
+        timeout-minutes: 10
         shell: pwsh
         run: |
           $p = Start-Process msiexec.exe -ArgumentList "/i `"$env:MSI`" /qn /norestart /l*v `"$env:RUNNER_TEMP\install.log`"" -Wait -PassThru
@@ -82,13 +84,27 @@ jobs:
       - name: Load the sample data
         run: node --disable-warning=ExperimentalWarning --import tsx packages/data/src/bin.ts ingest packages/data/fixtures/sample.json --db "$env:RUNNER_TEMP\check.sqlite"
       - name: Run the INSTALLED app and look at it (no --no-sandbox)
+        timeout-minutes: 5
         run: node scripts/check-packaged.mjs --exe "$env:EXE" --db "$env:RUNNER_TEMP\check.sqlite" --out "$env:RUNNER_TEMP\shots"
       - name: Uninstall
         if: always()
+        # A step without a limit once sat for 20 minutes in msiexec (run 43218046784). Now it waits at most 3 minutes
+        # itself and says what it saw; the step limit is a second net so the artifact step below always gets to run.
+        timeout-minutes: 8
         shell: pwsh
         run: |
           Get-Process MemeLens -ErrorAction SilentlyContinue | Stop-Process -Force
-          $p = Start-Process msiexec.exe -ArgumentList "/x `"$env:MSI`" /qn /norestart /l*v `"$env:RUNNER_TEMP\uninstall.log`"" -Wait -PassThru
+          $log = "$env:RUNNER_TEMP\uninstall.log"
+          $p = Start-Process msiexec.exe -ArgumentList "/x `"$env:MSI`" /qn /norestart /l*v `"$log`"" -PassThru
+          $null = $p.Handle   # keep the handle so ExitCode can be read after WaitForExit
+          if (-not $p.WaitForExit(180000)) {
+            "msiexec (pid $($p.Id)) did not finish within 3 minutes. Last lines of its log:"
+            if (Test-Path $log) { Get-Content $log -Tail 40 } else { "(no log written)" }
+            "Processes that could be involved:"
+            Get-Process | Where-Object { $_.Name -match 'msiexec|MemeLens|WerFault|TrustedInstaller' } | Select-Object Id, Name, StartTime | Format-Table -AutoSize | Out-String -Width 200
+            Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+            throw "uninstall did not finish within 3 minutes"
+          }
           "msiexec exit code: $($p.ExitCode)"
           if ($p.ExitCode -ne 0) { throw "uninstall failed" }
           if ($env:EXE -and (Test-Path $env:EXE)) { throw "MemeLens.exe is still there after uninstall" }
