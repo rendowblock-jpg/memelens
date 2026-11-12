@@ -31,6 +31,8 @@ const PROBES = `(async () => {
   r.engineCheck = await window.memelens.engineCheck({});
   r.engineInstall = await window.memelens.engineInstall({});
   r.engineCancel = await window.memelens.engineCancel({});
+  r.loadSampleRefused = await window.memelens.loadSample({});
+  r.loadSamplePayload = await window.memelens.loadSample({ path: "C:\\\\x\\\\other.sqlite" });
   r.unknownToken = await window.memelens.token({ chain: "no-such-chain", token: "../../etc/passwd" });
   location.href = "https://example.com/";
   await new Promise((res) => setTimeout(res, 500));
@@ -102,7 +104,9 @@ async function run(): Promise<number> {
     { name: "the notice names the chain and warns that the data is synthetic", ok: /synthetic/i.test(page.notice) && /SYNTHETIC DATA/.test(page.notice), got: page.notice },
     { name: "the first token's panel is open with its risk gauge and a bar of 10 signals", ok: page.panel && page.gauge && page.bar === 10, got: page },
     { name: "page has no require/process/module/Buffer", ok: [probes["require"], probes["process"], probes["module"], probes["buffer"]].every((t) => t === "undefined"), got: [probes["require"], probes["process"], probes["module"], probes["buffer"]] },
-    { name: "window.memelens has exactly the 10 channels", ok: JSON.stringify(probes["api"]) === JSON.stringify(["engineCancel", "engineCheck", "engineInstall", "engineRun", "engineStatus", "feed", "overview", "smart", "token", "wallet"]), got: probes["api"] },
+    { name: "window.memelens has exactly the 11 channels", ok: JSON.stringify(probes["api"]) === JSON.stringify(["engineCancel", "engineCheck", "engineInstall", "engineRun", "engineStatus", "feed", "loadSample", "overview", "smart", "token", "wallet"]), got: probes["api"] },
+    { name: "the sample is never added to a database that already has data", ok: JSON.stringify(probes["loadSampleRefused"]) === JSON.stringify({ ok: false, error: "this database already holds data; the sample is only loaded into an empty one" }), got: probes["loadSampleRefused"] },
+    { name: "the sample channel takes no payload from the window", ok: JSON.stringify(probes["loadSamplePayload"]) === JSON.stringify({ ok: false, error: "loadSample: takes no payload" }), got: probes["loadSamplePayload"] },
     { name: "with no engine installed the status says so, and that this build cannot update", ok: JSON.stringify(probes["engineStatus"]) === JSON.stringify({ ok: true, data: { installed: null, running: false, busy: false, problem: null, canUpdate: false, offered: null } }), got: probes["engineStatus"] },
     { name: "a backtest without an engine says the engine is not installed", ok: JSON.stringify(probes["engineRun"]) === JSON.stringify({ ok: false, error: "the backtest engine is not installed" }), got: probes["engineRun"] },
     { name: "the window cannot choose the database: an extra field is refused", ok: JSON.stringify(probes["engineRunPath"]) === JSON.stringify({ ok: false, error: 'engineRun: unknown field "path"' }), got: probes["engineRunPath"] },

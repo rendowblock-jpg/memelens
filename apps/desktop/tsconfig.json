@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "noEmit": true, "types": ["node"], "lib": ["ES2022"] },
+  "compilerOptions": { "noEmit": true, "types": ["node"], "lib": ["ES2022"], "resolveJsonModule": true },
   "include": ["src/main", "src/preload", "test"]
 }

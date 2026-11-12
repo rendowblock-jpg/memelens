@@ -1,6 +1,7 @@
 import type { Store } from "@memelens/data";
 import { isPlainObject, TEXT } from "./checks";
 import { ENGINE_CHANNELS, type EngineRequests, type EngineResponses } from "./engine-api";
+import { SAMPLE_CHANNELS, type SampleRequests, type SampleResponses } from "./sample-api";
 import {
   feed,
   overview,
@@ -21,10 +22,10 @@ export const STORE_CHANNELS = ["overview", "feed", "token", "wallet", "smart"] a
 export type StoreChannel = (typeof STORE_CHANNELS)[number];
 
 /** Every message the app window can send to the main process: the data channels, then the engine channels. */
-export const CHANNELS = [...STORE_CHANNELS, ...ENGINE_CHANNELS] as const;
+export const CHANNELS = [...STORE_CHANNELS, ...ENGINE_CHANNELS, ...SAMPLE_CHANNELS] as const;
 export type Channel = (typeof CHANNELS)[number];
 
-export interface ApiRequests extends EngineRequests {
+export interface ApiRequests extends EngineRequests, SampleRequests {
   overview: Record<string, never>;
   feed: { chain: string; asOf?: number };
   token: { chain: string; token: string; asOf?: number };
@@ -32,7 +33,7 @@ export interface ApiRequests extends EngineRequests {
   smart: { chain: string; from: number; to: number; minClosed?: number };
 }
 
-export interface ApiResponses extends EngineResponses {
+export interface ApiResponses extends EngineResponses, SampleResponses {
   overview: Wire<Overview>;
   feed: Wire<Feed>;
   /** null when the token is unknown or did not exist yet at the as-of time. */

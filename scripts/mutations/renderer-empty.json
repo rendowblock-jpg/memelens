@@ -1,0 +1,56 @@
+[
+ {
+  "name": "empty: a click while idle does nothing",
+  "file": "apps/desktop/src/renderer/empty.ts",
+  "old": "state.phase === \"idle\" || state.phase === \"failed\" ? { phase: \"loading\" } : state",
+  "new": "state"
+ },
+ {
+  "name": "empty: a click after a failure does nothing",
+  "file": "apps/desktop/src/renderer/empty.ts",
+  "old": "state.phase === \"idle\" || state.phase === \"failed\" ?",
+  "new": "state.phase === \"idle\" ?"
+ },
+ {
+  "name": "empty: a click while loading restarts",
+  "file": "apps/desktop/src/renderer/empty.ts",
+  "old": "state.phase === \"idle\" || state.phase === \"failed\" ? { phase: \"loading\" } : state",
+  "new": "{ phase: \"loading\" }"
+ },
+ {
+  "name": "empty: a click after loading restarts",
+  "file": "apps/desktop/src/renderer/empty.ts",
+  "old": "state.phase === \"idle\" || state.phase === \"failed\" ?",
+  "new": "state.phase !== \"loading\" ?"
+ },
+ {
+  "name": "empty: an answer nobody asked for is taken",
+  "file": "apps/desktop/src/renderer/empty.ts",
+  "old": "      if (state.phase !== \"loading\") return state;\n",
+  "new": ""
+ },
+ {
+  "name": "empty: a good answer is shown as a failure",
+  "file": "apps/desktop/src/renderer/empty.ts",
+  "old": "event.result.state === \"ok\" ? { phase: \"loaded\" }",
+  "new": "event.result.state === \"ok\" ? { phase: \"failed\", message: \"\" }"
+ },
+ {
+  "name": "empty: a good answer goes back to idle",
+  "file": "apps/desktop/src/renderer/empty.ts",
+  "old": "event.result.state === \"ok\" ? { phase: \"loaded\" } :",
+  "new": "event.result.state === \"ok\" ? { phase: \"idle\" } :"
+ },
+ {
+  "name": "empty: the failure loses its reason",
+  "file": "apps/desktop/src/renderer/empty.ts",
+  "old": "{ phase: \"failed\", message: event.result.message }",
+  "new": "{ phase: \"failed\", message: \"failed\" }"
+ },
+ {
+  "name": "empty: a failure is shown as loaded",
+  "file": "apps/desktop/src/renderer/empty.ts",
+  "old": ": { phase: \"failed\", message: event.result.message }",
+  "new": ": { phase: \"loaded\" }"
+ }
+]

@@ -4,7 +4,10 @@ import { app, BrowserWindow, ipcMain, protocol, screen, session } from "electron
 import { Store } from "@memelens/data";
 import { SidecarManager, trustedSidecarKeys } from "@memelens/sidecar";
 import { createEngineService, unavailableEngine, type SidecarSetup } from "./engine";
-import { registerEngineIpc, registerIpc } from "./ipc";
+import { registerEngineIpc, registerIpc, registerSampleIpc } from "./ipc";
+import { createSampleService } from "./sample";
+// The small made-up data set the command line also loads. esbuild bundles it into main.cjs, so the package gains no file.
+import sampleFixture from "../../../../packages/data/fixtures/sample.json";
 import { APP_ORIGIN } from "./security";
 import { planResponse } from "./serve";
 import { allowNavigation, allowPermission, webPreferences, windowOpenDecision, windowSize } from "./window-policy";
@@ -73,6 +76,8 @@ export async function launch(opts: LaunchOptions): Promise<Launched> {
   session.defaultSession.setPermissionCheckHandler(() => allowPermission());
 
   registerIpc(ipcMain, store, (e) => opts.log(`ipc error: ${describe(e)}`));
+  // The one write the window can ask for: fill an EMPTY database with the bundled synthetic sample (first-run button).
+  registerSampleIpc(ipcMain, createSampleService({ store, sample: sampleFixture, log: opts.log }), (e) => opts.log(`sample ipc error: ${describe(e)}`));
 
   let stopEngine = async (): Promise<void> => {};
   if ("root" in opts.sidecar) {

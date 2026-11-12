@@ -1,0 +1,110 @@
+[
+ {
+  "name": "sample-api: channels list is empty",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "[\"loadSample\"] as const",
+  "new": "[] as const"
+ },
+ {
+  "name": "sample-api: a different channel name",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "[\"loadSample\"] as const",
+  "new": "[\"loadSamples\"] as const"
+ },
+ {
+  "name": "sample-api: any channel accepted",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "typeof channel !== \"string\" || !(SAMPLE_CHANNELS as readonly string[]).includes(channel)",
+  "new": "false"
+ },
+ {
+  "name": "sample-api: non-text channels not refused (EXPECTED EQUIVALENT: includes() is false for anything that is not one of the names)",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "typeof channel !== \"string\" || ",
+  "new": ""
+ },
+ {
+  "name": "sample-api: unknown-channel message changed",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "throw new BadRequest(\"unknown channel\")",
+  "new": "throw new BadRequest(\"x\")"
+ },
+ {
+  "name": "sample-api: a payload is accepted",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "if (!(payload === undefined || (isPlainObject(payload) && Object.keys(payload).length === 0))) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "sample-api: undefined payload refused",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "payload === undefined || (isPlainObject",
+  "new": "(isPlainObject"
+ },
+ {
+  "name": "sample-api: a non-empty object accepted",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "isPlainObject(payload) && Object.keys(payload).length === 0",
+  "new": "isPlainObject(payload)"
+ },
+ {
+  "name": "sample-api: non-objects accepted",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "(isPlainObject(payload) && Object.keys(payload).length === 0)",
+  "new": "(Object.keys(Object(payload)).length === 0)"
+ },
+ {
+  "name": "sample-api: the payload message changed",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "`${channel}: takes no payload`",
+  "new": "`${channel}: no`"
+ },
+ {
+  "name": "sample-api: the answer is not converted to plain data",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "data: toWire(await service.load())",
+  "new": "data: (await service.load()) as never"
+ },
+ {
+  "name": "sample-api: the service is not awaited",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "toWire(await service.load())",
+  "new": "toWire(service.load() as never)"
+ },
+ {
+  "name": "sample-api: a user error is shown as internal",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "e instanceof BadRequest || e instanceof SampleUserError",
+  "new": "e instanceof BadRequest"
+ },
+ {
+  "name": "sample-api: a bad request is shown as internal",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "e instanceof BadRequest || e instanceof SampleUserError",
+  "new": "e instanceof SampleUserError"
+ },
+ {
+  "name": "sample-api: the sink is not told",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "      onError?.(e);\n",
+  "new": ""
+ },
+ {
+  "name": "sample-api: a broken sink escapes",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "    try {\n      onError?.(e);\n    } catch {\n      // A broken sink must not turn into a thrown error in the main process.\n    }",
+  "new": "    onError?.(e);"
+ },
+ {
+  "name": "sample-api: the internal message shows the error",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "return { ok: false, error: \"internal error\" };",
+  "new": "return { ok: false, error: String((e as Error)?.message) };"
+ },
+ {
+  "name": "sample-api: the internal message changed",
+  "file": "packages/service/src/sample-api.ts",
+  "old": "return { ok: false, error: \"internal error\" };",
+  "new": "return { ok: false, error: \"oops\" };"
+ }
+]

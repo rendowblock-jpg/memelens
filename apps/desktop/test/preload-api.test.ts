@@ -38,6 +38,7 @@ describe("createApi", () => {
       engineCancel: {},
       engineCheck: {},
       engineInstall: {},
+      loadSample: {},
     };
     for (const name of CHANNELS) {
       const got = await (api[name] as (r: unknown) => Promise<unknown>)(requests[name]);

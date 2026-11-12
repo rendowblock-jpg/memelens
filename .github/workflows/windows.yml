@@ -88,6 +88,11 @@ jobs:
           "version info: " + $exe.VersionInfo.ProductName + " " + $exe.VersionInfo.ProductVersion + " / " + $exe.VersionInfo.CompanyName
       - name: Load the sample data
         run: node --disable-warning=ExperimentalWarning --import tsx packages/data/src/bin.ts ingest packages/data/fixtures/sample.json --db "$env:RUNNER_TEMP\check.sqlite"
+      - name: First run - an empty database offers the sample, and the button fills it
+        # What a person sees right after installing: no database yet, in the app's own user-data folder (no MEMELENS_DB). The
+        # check presses "Load the sample data" and then tries to load it a second time, which must be refused.
+        timeout-minutes: 5
+        run: node scripts/check-packaged.mjs --exe "$env:EXE" --db "$env:RUNNER_TEMP\unused.sqlite" --out "$env:RUNNER_TEMP\shots" --first-run --default-db
       - name: Run the INSTALLED app and look at it (no --no-sandbox)
         timeout-minutes: 12
         env:

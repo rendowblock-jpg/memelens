@@ -2,10 +2,10 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import { ReplayAdapter, Store, ingest, parseFixture } from "@memelens/data";
-import { EngineUserError, handle, handleEngine, STORE_CHANNELS, ENGINE_CHANNELS, type Api, type EngineService } from "@memelens/service";
+import { EngineUserError, handle, handleEngine, handleSample, SampleUserError, STORE_CHANNELS, ENGINE_CHANNELS, type Api, type EngineService, type SampleService } from "@memelens/service";
 import type { BacktestReport } from "@memelens/sidecar";
 import { buildSpec, DEFAULT_FORM } from "./backtest";
-import { cancelEngineBacktest, checkEngineUpdate, installEngineUpdate, loadEngineStatus, loadFeed, loadOverview, loadSmart, loadToken, loadWallet, MIN_CLOSED_TOKENS, pickChain, runEngineBacktest } from "./controller";
+import { cancelEngineBacktest, checkEngineUpdate, installEngineUpdate, loadEngineStatus, loadSampleData, loadFeed, loadOverview, loadSmart, loadToken, loadWallet, MIN_CLOSED_TOKENS, pickChain, runEngineBacktest } from "./controller";
 import { quoteFor } from "./quote";
 
 // The api below is the real handler over the real pipeline (fixture -> store), as the window sees it through the
@@ -214,5 +214,29 @@ describe("the engine channels through the real handler", () => {
     for (const result of [await loadEngineStatus(weird), await runEngineBacktest(weird, built), await cancelEngineBacktest(weird), await checkEngineUpdate(weird), await installEngineUpdate(weird)]) {
       expect(result).toEqual({ state: "error", message: "the app gave an unexpected reply" });
     }
+  });
+});
+
+describe("the sample channel through the real handler", () => {
+  function sampleApi(service: SampleService, seen: { channel: string; request: unknown }[] = []): Api {
+    return { loadSample: async (request: unknown) => (seen.push({ channel: "loadSample", request }), handleSample(service, "loadSample", request)) } as unknown as Api;
+  }
+  it("loads the sample, sending no payload, and returns what was loaded", async () => {
+    const seen: { channel: string; request: unknown }[] = [];
+    const api = sampleApi({ load: async () => ({ chain: "synthetic", tokens: 5, trades: 40 }) }, seen);
+    expect(await loadSampleData(api)).toEqual({ state: "ok", data: { chain: "synthetic", tokens: 5, trades: 40 } });
+    expect(seen).toEqual([{ channel: "loadSample", request: {} }]);
+  });
+  it("hands a readable refusal on as the message", async () => {
+    const api = sampleApi({ load: async () => { throw new SampleUserError("this database already holds data; the sample is only loaded into an empty one"); } });
+    expect(await loadSampleData(api)).toEqual({ state: "error", message: "this database already holds data; the sample is only loaded into an empty one" });
+  });
+  it("hands an unexpected failure on as 'internal error'", async () => {
+    const api = sampleApi({ load: async () => { throw new Error("C:\\secret\\path"); } });
+    expect(await loadSampleData(api)).toEqual({ state: "error", message: "internal error" });
+  });
+  it("turns a failed call into 'request failed' and a malformed reply into an error value, never a throw", async () => {
+    expect(await loadSampleData({ loadSample: async () => { throw new Error("C:\\x"); } } as unknown as Api)).toEqual({ state: "error", message: "request failed" });
+    expect(await loadSampleData({ loadSample: async () => 42 } as unknown as Api)).toEqual({ state: "error", message: "the app gave an unexpected reply" });
   });
 });

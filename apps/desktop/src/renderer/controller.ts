@@ -69,3 +69,8 @@ export const cancelEngineBacktest = (api: Api): Promise<Loaded<ApiResponses["eng
 export const checkEngineUpdate = (api: Api): Promise<Loaded<ApiResponses["engineCheck"]>> => call(api, "engineCheck", {});
 
 export const installEngineUpdate = (api: Api): Promise<Loaded<ApiResponses["engineInstall"]>> => call(api, "engineInstall", {});
+
+// ---------------------------------------------------------------------------------------------------------- the sample
+// The one write the window can ask for: fill an EMPTY database with the bundled, made-up sample (first run).
+
+export const loadSampleData = (api: Api): Promise<Loaded<ApiResponses["loadSample"]>> => call(api, "loadSample", {});

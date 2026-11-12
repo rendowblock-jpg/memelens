@@ -15,6 +15,7 @@ export const PRELOAD_CHANNELS = [
   "engineCancel",
   "engineCheck",
   "engineInstall",
+  "loadSample",
 ] as const satisfies readonly Channel[];
 
 export type Invoke = (channel: string, payload: unknown) => Promise<unknown>;

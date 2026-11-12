@@ -5,6 +5,7 @@ import { formatTime } from "./format";
 import type { SmartSpan } from "./model";
 import { quoteFor } from "./quote";
 import { BacktestScreen } from "./BacktestScreen";
+import { EmptyDatabaseScreen } from "./EmptyDatabaseScreen";
 import { Rail, SmartTable, WalletPanel, type Screen, type TokenMetaMap } from "./screens";
 import { DataNotice, FeedTable, TokenPanel } from "./views";
 
@@ -80,7 +81,9 @@ export function App({ api }: { api: Api }): ReactElement {
   const [chainChoice, setChainChoice] = useState<string | null>(null);
   const [span, setSpan] = useState<SmartSpan>("30d");
 
-  const overview = useAsync(() => loadOverview(api), [api]);
+  // Bumped when the sample has just been loaded, so the overview is asked for again.
+  const [dataVersion, setDataVersion] = useState(0);
+  const overview = useAsync(() => loadOverview(api), [api, dataVersion]);
   const chains = overview.state === "ok" ? overview.data.chains : [];
   const chain = chainChoice ?? pickChain(chains);
   const latest = chains.find((c) => c.chain === chain)?.latestTime ?? null;
@@ -145,11 +148,7 @@ export function App({ api }: { api: Api }): ReactElement {
             ) : overview.state !== "ok" ? (
               <p className="muted" role="status">Opening the database…</p>
             ) : chain === null ? (
-              <div className="empty">
-                <h2>No data yet</h2>
-                <p className="muted">The database is empty. Until live data arrives, load a recorded file with the command line:</p>
-                <pre>npm run memelens -- ingest packages/data/fixtures/sample.json --db &lt;your database&gt;</pre>
-              </div>
+              <EmptyDatabaseScreen api={api} onLoaded={() => setDataVersion((v) => v + 1)} />
             ) : route.screen === "backtest" ? null : route.screen === "feed" ? (
               <div className="split">
                 <div className="pane list">

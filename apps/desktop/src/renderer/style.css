@@ -255,3 +255,10 @@ table.smart-ranked tbody tr:first-child { background: linear-gradient(90deg, var
 .bt-summary { max-width: 620px; }
 .bt-summary th { width: 62%; font-weight: 500; color: var(--muted); }
 .bt-positions th, .bt-positions td { font-size: 12.5px; white-space: nowrap; }
+
+/* ---------- first run: empty database ---------- */
+.empty button.primary { background: var(--accent); border: 1px solid var(--accent); border-radius: 8px; padding: 8px 18px; color: #0b0e13; font-weight: 600; font-size: 13.5px; cursor: pointer; }
+.empty button.primary:disabled { background: var(--surface-2); border-color: var(--line); color: var(--muted); cursor: not-allowed; }
+.empty details { margin-top: 18px; color: var(--muted); }
+.empty summary { cursor: pointer; font-size: 12.5px; }
+.empty .error { margin: 14px 0 0; }

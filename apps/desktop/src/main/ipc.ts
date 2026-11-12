@@ -1,5 +1,5 @@
 import type { Store } from "@memelens/data";
-import { ENGINE_CHANNELS, handle, handleEngine, STORE_CHANNELS, type EngineService, type ErrorSink } from "@memelens/service";
+import { ENGINE_CHANNELS, handle, handleEngine, handleSample, SAMPLE_CHANNELS, STORE_CHANNELS, type EngineService, type ErrorSink, type SampleService } from "@memelens/service";
 import { isAppUrl } from "./security";
 
 /** The part of Electron's IpcMainInvokeEvent this code looks at. */
@@ -36,6 +36,16 @@ export function registerEngineIpc(ipcMain: IpcMainLike, engine: EngineService, o
     // The channel comes from this loop, never from the page.
     ipcMain.handle(channel, (event, payload) =>
       trusted(event) ? handleEngine(engine, channel, payload, onError) : { ok: false, error: UNTRUSTED_SENDER },
+    );
+  }
+}
+
+/** Registers the sample channel, under the same rule: only frames on the app:// origin are answered. It is the one channel that writes. */
+export function registerSampleIpc(ipcMain: IpcMainLike, sample: SampleService, onError?: ErrorSink): void {
+  for (const channel of SAMPLE_CHANNELS) {
+    // The channel comes from this loop, never from the page.
+    ipcMain.handle(channel, (event, payload) =>
+      trusted(event) ? handleSample(sample, channel, payload, onError) : { ok: false, error: UNTRUSTED_SENDER },
     );
   }
 }

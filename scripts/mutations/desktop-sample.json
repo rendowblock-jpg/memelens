@@ -1,0 +1,122 @@
+[
+ {
+  "name": "sample: a database with data is filled anyway",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "if (store.chains().length > 0) throw new SampleUserError(",
+  "new": "if (false) throw new SampleUserError("
+ },
+ {
+  "name": "sample: a database with exactly one chain is called empty",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "store.chains().length > 0",
+  "new": "store.chains().length > 1"
+ },
+ {
+  "name": "sample: the empty database is refused",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "store.chains().length > 0",
+  "new": "store.chains().length >= 0"
+ },
+ {
+  "name": "sample: the refusal message changed",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "this database already holds data; the sample is only loaded into an empty one",
+  "new": "x"
+ },
+ {
+  "name": "sample: the 'already loading' guard removed",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "if (loading) throw new SampleUserError(\"the sample is already loading\");",
+  "new": ""
+ },
+ {
+  "name": "sample: the 'already loading' message changed",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "the sample is already loading",
+  "new": "x"
+ },
+ {
+  "name": "sample: the flag is set after the first await",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "loading = true; // set before the first await, so a second call in the same instant is refused",
+  "new": "await Promise.resolve();\n      loading = true;"
+ },
+ {
+  "name": "sample: the flag is never set",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "loading = true; // set before the first await, so a second call in the same instant is refused",
+  "new": "// loading never set"
+ },
+ {
+  "name": "sample: the flag is never released",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "      } finally {\n        loading = false;\n      }",
+  "new": "      } finally {\n      }"
+ },
+ {
+  "name": "sample: rejected items are not noticed",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "if (rejected > 0) throw new Error(",
+  "new": "if (false) throw new Error("
+ },
+ {
+  "name": "sample: only rejected tokens count",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "report.tokens.rejected + report.trades.rejected + report.snapshots.rejected",
+  "new": "report.tokens.rejected"
+ },
+ {
+  "name": "sample: rejected trades do not count",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "report.tokens.rejected + report.trades.rejected + report.snapshots.rejected",
+  "new": "report.tokens.rejected + report.snapshots.rejected"
+ },
+ {
+  "name": "sample: rejected snapshots do not count",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "report.tokens.rejected + report.trades.rejected + report.snapshots.rejected",
+  "new": "report.tokens.rejected + report.trades.rejected"
+ },
+ {
+  "name": "sample: a rejected sample is called a user error",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "throw new Error(`the bundled sample had",
+  "new": "throw new SampleUserError(`the bundled sample had"
+ },
+ {
+  "name": "sample: the report counts tokens received, not inserted",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "tokens: report.tokens.inserted, trades: report.trades.inserted };",
+  "new": "tokens: report.tokens.received + 1, trades: report.trades.inserted };"
+ },
+ {
+  "name": "sample: the report swaps tokens and trades",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "return { chain: report.chain, tokens: report.tokens.inserted, trades: report.trades.inserted };",
+  "new": "return { chain: report.chain, tokens: report.trades.inserted, trades: report.tokens.inserted };"
+ },
+ {
+  "name": "sample: the chain is not the sample's",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "return { chain: report.chain,",
+  "new": "return { chain: \"x\","
+ },
+ {
+  "name": "sample: nothing is logged",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "        log(`loaded the sample: chain ${report.chain}, ${report.tokens.inserted} tokens, ${report.trades.inserted} trades`);\n",
+  "new": ""
+ },
+ {
+  "name": "sample: the log line leaves out the trade count",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "${report.trades.inserted} trades`);",
+  "new": "`);"
+ },
+ {
+  "name": "sample: the sample is not parsed (raw JSON handed to the adapter)",
+  "file": "apps/desktop/src/main/sample.ts",
+  "old": "new ReplayAdapter(parseFixture(sample))",
+  "new": "new ReplayAdapter(sample as never)"
+ }
+]

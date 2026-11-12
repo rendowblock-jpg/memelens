@@ -3,7 +3,7 @@
 // through the screens, checks what is on them and saves a screenshot of each.
 // usage: node scripts/check-packaged.mjs --exe PATH --db PATH --out DIR [--rows N] [--no-sandbox]
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -61,7 +61,19 @@ if (useDefaultFolder) {
     process.exit(2);
   }
 }
-const appEnv = { ...process.env, MEMELENS_DB: db };
+// --first-run: the app is started on a database that does not exist yet, so it shows the "No data yet" screen, and the check
+// presses "Load the sample data" the way a person who has just installed MemeLens would. --default-db (Windows only) also leaves
+// the database path to the app (its own user-data folder) instead of naming one.
+const firstRun = process.argv.includes("--first-run");
+const useDefaultDb = process.argv.includes("--default-db");
+if (useDefaultDb && (!firstRun || process.platform !== "win32")) {
+  console.error("--default-db needs --first-run and is for Windows only");
+  process.exit(2);
+}
+const dbFile = firstRun ? join(out, "first-run.sqlite") : db;
+if (firstRun) for (const suffix of ["", "-wal", "-shm", "-journal"]) rmSync(dbFile + suffix, { force: true });
+const appEnv = { ...process.env, MEMELENS_DB: dbFile };
+if (useDefaultDb) delete appEnv.MEMELENS_DB;
 if (useDefaultFolder) delete appEnv.MEMELENS_SIDECAR_DIR;
 else appEnv.MEMELENS_SIDECAR_DIR = mkdtempSync(join(tmpdir(), "memelens-sidecar-"));
 const child = spawn(exe, [`--remote-debugging-port=${port}`, ...(process.argv.includes("--no-sandbox") ? ["--no-sandbox"] : [])], {
@@ -116,21 +128,43 @@ function appCommandLines() {
 const text = (sel) => evaluate(`(document.querySelector(${JSON.stringify(sel)}) || {}).textContent || ""`);
 const waitSel = (sel) => until(() => evaluate(`Boolean(document.querySelector(${JSON.stringify(sel)}))`), `selector ${sel}`, 20_000);
 
-let failed = false;
-try {
-  const target = await until(async () => {
-    const r = await fetch(`http://127.0.0.1:${port}/json/list`);
-    return (await r.json()).find((t) => t.type === "page" && t.url.startsWith("app://memelens"));
-  }, "the app window to appear over the DevTools port");
-  ws = new WebSocket(target.webSocketDebuggerUrl);
-  await new Promise((res, rej) => ((ws.onopen = res), (ws.onerror = () => rej(new Error("DevTools websocket failed")))));
-  ws.onmessage = (m) => {
-    const msg = JSON.parse(m.data);
-    const p = pending.get(msg.id);
-    if (p) (pending.delete(msg.id), msg.error ? p.reject(new Error(`${p.method}: ${msg.error.message}`)) : p.resolve(msg.result));
-  };
-  console.log(`window: ${target.url}  title: ${JSON.stringify(target.title)}`);
+async function firstRunChecks() {
+  const state = await until(() => evaluate("document.body.dataset.state"), "the first screen to finish loading");
+  check("a database with no data opens the 'No data yet' screen", state === "empty", state);
+  const empty = JSON.parse(
+    await evaluate(`JSON.stringify({
+      title: (document.querySelector("[data-testid=empty-state] h2") || {}).textContent || "",
+      hasButton: [...document.querySelectorAll("[data-testid=empty-state] button")].some((b) => b.textContent.trim() === "Load the sample data" && !b.disabled),
+      text: (document.querySelector("[data-testid=empty-state]") || {}).textContent || "",
+    })`),
+  );
+  check(
+    "it offers 'Load the sample data' and says the sample is made up and that there is no real-data adapter yet",
+    empty.title === "No data yet" && empty.hasButton && /SYNTHETIC DATA/.test(empty.text) && /real-data adapter is not built yet/.test(empty.text),
+    empty,
+  );
+  await shot("0-first-run-empty");
+  await evaluate(`[...document.querySelectorAll("[data-testid=empty-state] button")].find((b) => b.textContent.trim() === "Load the sample data").click()`);
+  await until(async () => (await evaluate(`document.querySelectorAll("table.feed tbody tr[data-token]").length`)) === expectRows, "the feed to show the sample after the button was pressed", 30_000);
+  const after = JSON.parse(
+    await evaluate(`JSON.stringify({
+      rows: document.querySelectorAll("table.feed tbody tr[data-token]").length,
+      notice: (document.querySelector("[data-testid=notice]") || {}).textContent || "",
+      emptyGone: !document.querySelector("[data-testid=empty-state]"),
+    })`),
+  );
+  check("the feed then shows every token of the sample", after.rows === expectRows && after.emptyGone, after);
+  check("and every screen says it is SYNTHETIC DATA", /SYNTHETIC DATA/.test(after.notice), after.notice);
+  await shot("0-first-run-loaded");
+  const again = await evaluate(`window.memelens.loadSample({}).then((r) => JSON.stringify(r))`);
+  check(
+    "pressing it again is impossible: the app refuses to add the sample to a database that now has data",
+    again === JSON.stringify({ ok: false, error: "this database already holds data; the sample is only loaded into an empty one" }),
+    again,
+  );
+}
 
+async function standardChecks() {
   const state = await until(() => evaluate("document.body.dataset.state"), "the first screen to finish loading");
   check("the first screen finished loading without error", state === "done", state);
 
@@ -152,8 +186,8 @@ try {
   check("the window title is MemeLens", facts.title === "MemeLens", facts.title);
   check("the page has no require/process/module/Buffer", [facts.req, facts.proc, facts.mod, facts.buf].every((t) => t === "undefined"), facts);
   check(
-    "window.memelens has exactly the 10 channels",
-    JSON.stringify(facts.api) === JSON.stringify(["engineCancel", "engineCheck", "engineInstall", "engineRun", "engineStatus", "feed", "overview", "smart", "token", "wallet"]),
+    "window.memelens has exactly the 11 channels",
+    JSON.stringify(facts.api) === JSON.stringify(["engineCancel", "engineCheck", "engineInstall", "engineRun", "engineStatus", "feed", "loadSample", "overview", "smart", "token", "wallet"]),
     facts.api,
   );
 
@@ -271,6 +305,25 @@ try {
       await shot("5-backtest-result");
     }
   }
+}
+
+let failed = false;
+try {
+  const target = await until(async () => {
+    const r = await fetch(`http://127.0.0.1:${port}/json/list`);
+    return (await r.json()).find((t) => t.type === "page" && t.url.startsWith("app://memelens"));
+  }, "the app window to appear over the DevTools port");
+  ws = new WebSocket(target.webSocketDebuggerUrl);
+  await new Promise((res, rej) => ((ws.onopen = res), (ws.onerror = () => rej(new Error("DevTools websocket failed")))));
+  ws.onmessage = (m) => {
+    const msg = JSON.parse(m.data);
+    const p = pending.get(msg.id);
+    if (p) (pending.delete(msg.id), msg.error ? p.reject(new Error(`${p.method}: ${msg.error.message}`)) : p.resolve(msg.result));
+  };
+  console.log(`window: ${target.url}  title: ${JSON.stringify(target.title)}`);
+
+  if (firstRun) await firstRunChecks();
+  else await standardChecks();
 } catch (e) {
   failed = true;
   console.log(`FAIL  the check itself could not finish: ${e.message}`);

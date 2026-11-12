@@ -1,7 +1,7 @@
 import { Store } from "@memelens/data";
-import { CHANNELS, ENGINE_CHANNELS, STORE_CHANNELS, type EngineService } from "@memelens/service";
+import { CHANNELS, ENGINE_CHANNELS, SAMPLE_CHANNELS, STORE_CHANNELS, type EngineService, type SampleService } from "@memelens/service";
 import { afterEach, describe, expect, it } from "vitest";
-import { registerEngineIpc, registerIpc, UNTRUSTED_SENDER, type IpcEventLike } from "../src/main/ipc";
+import { registerEngineIpc, registerIpc, registerSampleIpc, UNTRUSTED_SENDER, type IpcEventLike } from "../src/main/ipc";
 
 type Listener = (event: IpcEventLike, payload: unknown) => unknown;
 
@@ -139,10 +139,11 @@ describe("registerEngineIpc", () => {
     expect([...ipc.order].sort()).toEqual([...ENGINE_CHANNELS].sort());
   });
 
-  it("registers together with the data channels without a clash, and the two make up every channel", () => {
+  it("registers together with the data and sample channels without a clash, and the three make up every channel", () => {
     const ipc = fakeIpcMain();
     registerIpc(ipc, freshStore());
     registerEngineIpc(ipc, fakeEngine().engine);
+    registerSampleIpc(ipc, fakeSample().service);
     expect([...ipc.order].sort()).toEqual([...CHANNELS].sort());
   });
 
@@ -201,3 +202,59 @@ describe("registerEngineIpc", () => {
     expect(await ipc.listeners.get("engineStatus")!(app, {})).toEqual({ ok: false, error: "internal error" });
   });
 });
+
+function fakeSample(): { service: SampleService; touched: () => number } {
+  let touched = 0;
+  return { service: { load: async () => (touched++, { chain: "synthetic", tokens: 5, trades: 40 }) }, touched: () => touched };
+}
+
+describe("registerSampleIpc", () => {
+  it("registers the sample channel exactly once and nothing else", () => {
+    const ipc = fakeIpcMain();
+    registerSampleIpc(ipc, fakeSample().service);
+    expect([...ipc.order]).toEqual([...SAMPLE_CHANNELS]);
+  });
+
+  it("answers a frame on the app origin", async () => {
+    const ipc = fakeIpcMain();
+    const { service, touched } = fakeSample();
+    registerSampleIpc(ipc, service);
+    expect(await ipc.listeners.get("loadSample")!(app, undefined)).toEqual({ ok: true, data: { chain: "synthetic", tokens: 5, trades: 40 } });
+    expect(touched()).toBe(1);
+  });
+
+  it("refuses a payload, and takes the channel from the registration, never from the page", async () => {
+    const ipc = fakeIpcMain();
+    const { service, touched } = fakeSample();
+    registerSampleIpc(ipc, service);
+    expect(await ipc.listeners.get("loadSample")!(app, { channel: "engineInstall", path: "C:\\x" })).toEqual({ ok: false, error: "loadSample: takes no payload" });
+    expect(touched()).toBe(0);
+  });
+
+  it("refuses frames from any other origin without touching the service: this is the one channel that writes", async () => {
+    const errors: unknown[] = [];
+    const { service, touched } = fakeSample();
+    const ipc = fakeIpcMain();
+    registerSampleIpc(ipc, service, (e) => errors.push(e));
+    const senders: unknown[] = [
+      { senderFrame: null }, { senderFrame: { url: "" } }, { senderFrame: { url: "https://evil.example/" } }, { senderFrame: { url: "file:///C:/x.html" } },
+      { senderFrame: { url: "app://memelens.evil.example/" } }, { senderFrame: { url: "app://u:p@memelens/" } }, { senderFrame: { url: "about:blank" } },
+      { senderFrame: {} }, { senderFrame: { url: 42 } }, { senderFrame: { url: new URL("app://memelens/index.html") } }, {}, null, undefined,
+    ];
+    for (const sender of senders) {
+      expect(await ipc.listeners.get("loadSample")!(sender as IpcEventLike, {}), JSON.stringify(sender)).toEqual({ ok: false, error: UNTRUSTED_SENDER });
+    }
+    expect(touched()).toBe(0);
+    expect(errors).toEqual([]);
+  });
+
+  it("never throws: a failure reaches the page only as 'internal error' and reaches the sink in full", async () => {
+    const errors: unknown[] = [];
+    const boom = new Error("C:\\secret\\path");
+    const ipc = fakeIpcMain();
+    registerSampleIpc(ipc, { load: async () => { throw boom; } }, (e) => errors.push(e));
+    expect(await ipc.listeners.get("loadSample")!(app, {})).toEqual({ ok: false, error: "internal error" });
+    expect(errors).toEqual([boom]);
+  });
+});
+
