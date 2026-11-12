@@ -1,0 +1,368 @@
+[
+ {
+  "name": "layout: relative LOCALAPPDATA accepted",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "|| !nodePath.win32.isAbsolute(base)",
+  "new": ""
+ },
+ {
+  "name": "layout: empty LOCALAPPDATA accepted",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "typeof base !== \"string\" || base === \"\" ||",
+  "new": "typeof base !== \"string\" ||"
+ },
+ {
+  "name": "layout: relative XDG accepted",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "typeof xdg === \"string\" && nodePath.posix.isAbsolute(xdg)",
+  "new": "typeof xdg === \"string\" && xdg !== \"\""
+ },
+ {
+  "name": "layout: relative home accepted (mac)",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "case \"darwin\":\n      if (!nodePath.posix.isAbsolute(home)) throw new LayoutError(\"the home folder is not an absolute path\");",
+  "new": "case \"darwin\":"
+ },
+ {
+  "name": "layout: relative home accepted (linux)",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "case \"linux\": {\n      if (!nodePath.posix.isAbsolute(home)) throw new LayoutError(\"the home folder is not an absolute path\");",
+  "new": "case \"linux\": {"
+ },
+ {
+  "name": "layout: exe on Linux",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "platform === \"win32\" ? \"memelens-sidecar.exe\" : \"memelens-sidecar\"",
+  "new": "\"memelens-sidecar.exe\""
+ },
+ {
+  "name": "version: build metadata accepted",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "(?:-(${PRE_ID}(?:\\\\.${PRE_ID})*))?$`",
+  "new": "(?:-(${PRE_ID}(?:\\\\.${PRE_ID})*))?(?:\\\\+.*)?$`"
+ },
+ {
+  "name": "version: length limit 65",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "v.length <= 64",
+  "new": "v.length <= 65"
+ },
+ {
+  "name": "version: no length limit",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "v.length <= 64 &&",
+  "new": ""
+ },
+ {
+  "name": "version: leading zero major",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "const NUM = \"(?:0|[1-9][0-9]*)\";",
+  "new": "const NUM = \"[0-9]+\";"
+ },
+ {
+  "name": "version: numeric pre-release leading zero",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "const PRE_ID = \"(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)\";",
+  "new": "const PRE_ID = \"(?:[0-9]+|[0-9]*[A-Za-z-][0-9A-Za-z-]*)\";"
+ },
+ {
+  "name": "compare: release before pre-release",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "if (pa === undefined) return 1;\n  if (pb === undefined) return -1;",
+  "new": "if (pa === undefined) return -1;\n  if (pb === undefined) return 1;"
+ },
+ {
+  "name": "compare: numbers as text",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "const d = Number(ma[i]) - Number(mb[i]);",
+  "new": "const d = ma[i]! < mb[i]! ? -1 : ma[i]! > mb[i]! ? 1 : 0;"
+ },
+ {
+  "name": "compare: numeric identifier after text",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "return pn ? -1 : 1;",
+  "new": "return pn ? 1 : -1;"
+ },
+ {
+  "name": "compare: longer pre-release first",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "if (p === undefined) return -1;\n    if (q === undefined) return 1;",
+  "new": "if (p === undefined) return 1;\n    if (q === undefined) return -1;"
+ },
+ {
+  "name": "pointer: extra keys accepted",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "keys.length !== 1 || keys[0] !== \"version\" ||",
+  "new": ""
+ },
+ {
+  "name": "pointer: invalid version accepted on read",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "|| !isValidVersion(version)) throw new LayoutError(`${which}.json",
+  "new": "|| false) throw new LayoutError(`${which}.json"
+ },
+ {
+  "name": "pointer: invalid version accepted on write",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "if (!isValidVersion(version)) throw new LayoutError(`not a valid version: ${JSON.stringify(version)}`);\n  mkdirSync",
+  "new": "mkdirSync"
+ },
+ {
+  "name": "pointer: missing file is an error",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "if ((e as NodeJS.ErrnoException).code === \"ENOENT\") return null;",
+  "new": "if (false) return null;"
+ },
+ {
+  "name": "pointer: temp file left behind",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "ops.rmSync(temp, { force: true });",
+  "new": ""
+ },
+ {
+  "name": "pointer: not written through a temp file",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "ops.writeFileSync(temp, JSON.stringify({ version }) + \"\\n\");\n    ops.renameSync(temp, target);",
+  "new": "ops.writeFileSync(target, JSON.stringify({ version }) + \"\\n\");"
+ },
+ {
+  "name": "verify: version not checked",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "if (!isValidVersion(version)) throw new LayoutError(`not a valid version: ${JSON.stringify(version)}`);\n  const dir",
+  "new": "const dir"
+ },
+ {
+  "name": "verify: manifest version 2 accepted",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "m[\"manifestVersion\"] !== 1",
+  "new": "false"
+ },
+ {
+  "name": "verify: manifest for another version accepted",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "m[\"engineVersion\"] !== version",
+  "new": "false"
+ },
+ {
+  "name": "verify: wrong file name accepted",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "m[\"file\"] !== name",
+  "new": "false"
+ },
+ {
+  "name": "verify: size not compared",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "if (stat.size !== size) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "verify: hash not compared",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "if (actual !== hash) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "verify: protocol 0 accepted",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "protocol < 1) throw",
+  "new": "protocol < 0) throw"
+ },
+ {
+  "name": "verify: upper-case hash accepted",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "const HEX64 = /^[0-9a-f]{64}$/;",
+  "new": "const HEX64 = /^[0-9a-fA-F]{64}$/;"
+ },
+ {
+  "name": "verify: folder not required to be a folder",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "if (!lstatSync(dir).isDirectory()) throw new Error(\"not a folder\");",
+  "new": ""
+ },
+ {
+  "name": "verify: symlink accepted",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "if (!stat.isFile()) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "activate: no verification",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "verifyInstalled(root, version, platform);\n  let before",
+  "new": "let before"
+ },
+ {
+  "name": "activate: previous always overwritten",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "if (before !== null && before.version !== version) installPointer(root, \"previous\"",
+  "new": "if (before !== null) installPointer(root, \"previous\""
+ },
+ {
+  "name": "activate: previous never written",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "if (before !== null && before.version !== version) installPointer(root, \"previous\", before.version, ops);",
+  "new": ""
+ },
+ {
+  "name": "activate: damaged pointer blocks",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "    before = null; // a damaged pointer must not block installing a good version",
+  "new": "    throw new LayoutError('blocked');"
+ },
+ {
+  "name": "rollback: no check for missing previous",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "if (prev === null) throw new LayoutError(\"there is no previous version to go back to\");",
+  "new": "if (prev === null) return '';"
+ },
+ {
+  "name": "rollback: no verification",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "verifyInstalled(root, prev.version, platform);\n  let before",
+  "new": "let before"
+ },
+ {
+  "name": "rollback: previous not updated",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "if (before !== null && before.version !== prev.version) installPointer(root, \"previous\", before.version, ops);",
+  "new": ""
+ },
+ {
+  "name": "resolve: no re-verification",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "cur === null ? null : verifyInstalled(root, cur.version, platform)",
+  "new": "cur === null ? null : { version: cur.version, engineVersion: cur.version, protocol: 1, binary: '' }"
+ },
+ {
+  "name": "list: files listed",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "e.isDirectory() && isValidVersion(e.name)",
+  "new": "isValidVersion(e.name)"
+ },
+ {
+  "name": "list: junk listed",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": "e.isDirectory() && isValidVersion(e.name)",
+  "new": "e.isDirectory()"
+ },
+ {
+  "name": "list: not sorted",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": ".sort(compareVersions)",
+  "new": ""
+ },
+ {
+  "name": "list: sorted as text",
+  "file": "packages/sidecar/src/layout.ts",
+  "old": ".sort(compareVersions)",
+  "new": ".sort()"
+ },
+ {
+  "name": "sig: any signature length",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "signature.length !== 64 || publicKey.length !== 32",
+  "new": "false"
+ },
+ {
+  "name": "sig: key length ignored",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "|| publicKey.length !== 32",
+  "new": ""
+ },
+ {
+  "name": "sig: signature length ignored",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "signature.length !== 64 ||",
+  "new": ""
+ },
+ {
+  "name": "sig: always true",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "return verify(null, manifest, key, signature);",
+  "new": "verify(null, manifest, key, signature); return true;"
+ },
+ {
+  "name": "sig: errors become true",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "  } catch {\n    return false;",
+  "new": "  } catch {\n    return true;"
+ },
+ {
+  "name": "weak: y >= p accepted",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "if (y >= P) return null;",
+  "new": "if (false) return null;"
+ },
+ {
+  "name": "weak: only 2 doublings",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "for (let i = 0; i < 3; i++) q = add(q, q);",
+  "new": "for (let i = 0; i < 2; i++) q = add(q, q);"
+ },
+ {
+  "name": "weak: only 1 doubling",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "for (let i = 0; i < 3; i++) q = add(q, q);",
+  "new": "for (let i = 0; i < 1; i++) q = add(q, q);"
+ },
+ {
+  "name": "weak: x = 0 with sign bit accepted",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "if (x === 0n && sign === 1) return null;",
+  "new": ""
+ },
+ {
+  "name": "weak: points off the curve accepted",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "  if (mod(x * x - x2) !== 0n) return null;\n  if (x === 0n",
+  "new": "  if (x === 0n"
+ },
+ {
+  "name": "weak: sqrt(-1) fix-up dropped",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "if (mod(x * x - x2) !== 0n) x = mod(x * SQRT_M1);",
+  "new": ""
+ },
+ {
+  "name": "weak: identity not compared on x",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "return q.x === 0n && q.y === 1n;",
+  "new": "return q.y === 1n;"
+ },
+ {
+  "name": "weak: identity not compared on y",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "return q.x === 0n && q.y === 1n;",
+  "new": "return q.x === 0n;"
+ },
+ {
+  "name": "weak: curve constant sign",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "const D = mod(-121665n * inv(121666n));",
+  "new": "const D = mod(121665n * inv(121666n));"
+ },
+ {
+  "name": "weak: addition formula sign (y)",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "y: mod((a.y * b.y + a.x * b.x) * inv(1n - t))",
+  "new": "y: mod((a.y * b.y - a.x * b.x) * inv(1n - t))"
+ },
+ {
+  "name": "weak: addition formula sign (denominator)",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "x: mod((a.x * b.y + b.x * a.y) * inv(1n + t))",
+  "new": "x: mod((a.x * b.y + b.x * a.y) * inv(1n - t))"
+ },
+ {
+  "name": "weak: guard not called",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "if (isWeak(publicKey)) return false;",
+  "new": ""
+ },
+ {
+  "name": "weak: guard result inverted",
+  "file": "packages/sidecar/src/signature.ts",
+  "old": "if (isWeak(publicKey)) return false;",
+  "new": "if (!isWeak(publicKey)) return false;"
+ }
+]

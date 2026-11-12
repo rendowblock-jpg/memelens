@@ -1,0 +1,350 @@
+[
+ {
+  "name": "spec: unknown fields allowed",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "if (!names.includes(k)) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "spec: missing fields allowed",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "if (!Object.hasOwn(v, k)) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "spec: arrays count as objects",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "typeof v === \"object\" && v !== null && !Array.isArray(v) &&",
+  "new": "typeof v === \"object\" && v !== null &&"
+ },
+ {
+  "name": "spec: class instances count as objects",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "&& [Object.prototype, null].includes(Object.getPrototypeOf(v))",
+  "new": ""
+ },
+ {
+  "name": "spec: fractions allowed",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "typeof v !== \"number\" || !Number.isSafeInteger(v) ||",
+  "new": "typeof v !== \"number\" ||"
+ },
+ {
+  "name": "spec: lower bound ignored",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "|| v < min ||",
+  "new": "|| "
+ },
+ {
+  "name": "spec: upper bound ignored",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "|| v > max)",
+  "new": "|| false)"
+ },
+ {
+  "name": "spec: version 2 accepted",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "top[\"version\"] !== 1",
+  "new": "top[\"version\"] > 2"
+ },
+ {
+  "name": "spec: from after to allowed",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "if (from > to) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "spec: from == to refused",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "if (from > to) throw",
+  "new": "if (from >= to) throw"
+ },
+ {
+  "name": "spec: window limit off by a day",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "const MAX_WINDOW_MS = 5 * 366 * DAY_MS;",
+  "new": "const MAX_WINDOW_MS = 5 * 366 * DAY_MS - DAY_MS;"
+ },
+ {
+  "name": "spec: window limit ignored",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "if (to - from > MAX_WINDOW_MS) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "spec: other kinds accepted",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "s[\"kind\"] !== \"follow-wallets\"",
+  "new": "false"
+ },
+ {
+  "name": "spec: empty wallet list accepted",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "wallets.length < 1 ||",
+  "new": ""
+ },
+ {
+  "name": "spec: 101 wallets accepted",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "wallets.length > 100",
+  "new": "wallets.length > 101"
+ },
+ {
+  "name": "spec: wallet may contain a space",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "/^[\\x21-\\x7e]{1,128}$/",
+  "new": "/^[\\x20-\\x7e]{1,128}$/"
+ },
+ {
+  "name": "spec: wallet may be 129 long",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "{1,128}$/;\nconst POSITION",
+  "new": "{1,129}$/;\nconst POSITION"
+ },
+ {
+  "name": "spec: wallet may be empty",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "/^[\\x21-\\x7e]{1,128}$/",
+  "new": "/^[\\x21-\\x7e]{0,128}$/"
+ },
+ {
+  "name": "spec: duplicates allowed",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "if (seen.has(w)) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "spec: latency bound a day plus",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "int(\"$.strategy.latencyMs\", s[\"latencyMs\"], 0, DAY_MS)",
+  "new": "int(\"$.strategy.latencyMs\", s[\"latencyMs\"], 0, DAY_MS + 1)"
+ },
+ {
+  "name": "spec: quote may start with 0",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "/^[1-9][0-9]{0,38}$/",
+  "new": "/^[0-9]{1,39}$/"
+ },
+ {
+  "name": "spec: quote may be 40 digits",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "{0,38}$/;",
+  "new": "{0,39}$/;"
+ },
+ {
+  "name": "spec: quote may be a number",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "typeof quote !== \"string\" ||",
+  "new": ""
+ },
+ {
+  "name": "spec: take profit may be 0",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "v === null ? null : int(path, v, 1, max)",
+  "new": "v === null ? null : int(path, v, 0, max)"
+ },
+ {
+  "name": "spec: stop loss may be 100%",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "\"$.strategy.stopLossBps\", s[\"stopLossBps\"], 9999)",
+  "new": "\"$.strategy.stopLossBps\", s[\"stopLossBps\"], 10000)"
+ },
+ {
+  "name": "spec: take profit limit",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "s[\"takeProfitBps\"], 1_000_000)",
+  "new": "s[\"takeProfitBps\"], 1_000_001)"
+ },
+ {
+  "name": "spec: hold may be 0",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "s[\"maxHoldMs\"], 1, 2_592_000_000)",
+  "new": "s[\"maxHoldMs\"], 0, 2_592_000_000)"
+ },
+ {
+  "name": "spec: hold limit",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "2_592_000_000)",
+  "new": "2_592_000_001)"
+ },
+ {
+  "name": "spec: fee limit",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "c[\"feeBps\"], 0, 1000)",
+  "new": "c[\"feeBps\"], 0, 1001)"
+ },
+ {
+  "name": "spec: slippage limit",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "c[\"slippageBps\"], 0, 5000)",
+  "new": "c[\"slippageBps\"], 0, 5001)"
+ },
+ {
+  "name": "report: unknown fields allowed",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (!names.includes(k)) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "report: hash may be upper case",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "/^[0-9a-f]{64}$/",
+  "new": "/^[0-9a-fA-F]{64}$/"
+ },
+ {
+  "name": "report: hash may be short",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "{64}$/;\nconst REASONS",
+  "new": "{60,64}$/;\nconst REASONS"
+ },
+ {
+  "name": "report: pnl may have leading zero",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "const SIGNED = /^(0|-?[1-9][0-9]*)$/;",
+  "new": "const SIGNED = /^-?[0-9]+$/;"
+ },
+ {
+  "name": "report: amounts may be negative",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "const UNSIGNED = /^(0|[1-9][0-9]*)$/;",
+  "new": "const UNSIGNED = /^-?(0|[1-9][0-9]*)$/;"
+ },
+ {
+  "name": "report: entry amount may be 0",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (entryAmount < 1n) throw",
+  "new": "if (entryAmount < 0n) throw"
+ },
+ {
+  "name": "report: exit before entry allowed",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (exitTime < entryTime) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "report: cost == buy fee allowed",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (cost <= buyFee) throw",
+  "new": "if (cost < buyFee) throw"
+ },
+ {
+  "name": "report: cost check off",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (cost <= buyFee) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "report: net not checked",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (net !== proceeds - sellFee) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "report: pnl not checked",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (pnl !== net - cost) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "report: unknown exit reason allowed",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (!REASONS.includes(reason as ExitReason)) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "report: entered not compared",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (entered !== positions.length) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "report: signals not summed",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (signals !== ignored + noPrice + tooSmall + entered) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "report: signals ignore skipped",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "ignored + noPrice + tooSmall + entered",
+  "new": "ignored + entered"
+ },
+ {
+  "name": "report: exits not matched",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (exits[r] !== positions.filter((p) => p.exitReason === r).length) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "report: wins not matched",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (wins !== positions.filter((p) => BigInt(p.pnl) > 0n).length) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "report: wins count break-even",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "BigInt(p.pnl) > 0n).length) throw new ReportError(\"$.summary.wins\"",
+  "new": "BigInt(p.pnl) >= 0n).length) throw new ReportError(\"$.summary.wins\""
+ },
+ {
+  "name": "report: losses not matched",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (losses !== positions.filter((p) => BigInt(p.pnl) < 0n).length) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "report: totalCost not summed",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (totalCost !== sumCost) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "report: totalNet not summed",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (totalNet !== sumNet) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "report: realised not checked",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (realised !== sumNet - sumCost) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "report: roi rounds away from zero",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "Number((realised * 10000n) / sumCost)",
+  "new": "Number((realised * 10000n) / sumCost) + (realised < 0n ? -1 : 0)"
+ },
+ {
+  "name": "report: roi not checked",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "if (roi !== expectedRoi) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "report: roi 0 when nothing spent",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "sumCost === 0n ? null :",
+  "new": "sumCost === 0n ? 0 :"
+ },
+ {
+  "name": "report: roi allowed to be a fraction",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "typeof roi !== \"number\" || !Number.isSafeInteger(roi)",
+  "new": "typeof roi !== \"number\""
+ },
+ {
+  "name": "report: dataAsOf may be negative",
+  "file": "packages/sidecar/src/report.ts",
+  "old": "v < 0) throw new ReportError(path, \"must be a whole number, 0 or more\")",
+  "new": "false) throw new ReportError(path, \"must be a whole number, 0 or more\")"
+ },
+ {
+  "name": "spec: result aliases the input list",
+  "file": "packages/sidecar/src/spec.ts",
+  "old": "wallets: copy,",
+  "new": "wallets: wallets as string[],"
+ }
+]

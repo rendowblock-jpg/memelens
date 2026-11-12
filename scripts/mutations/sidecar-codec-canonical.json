@@ -1,0 +1,230 @@
+[
+ {
+  "name": "limit: > becomes >= on encode",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "body.length > maxBytes",
+  "new": "body.length >= maxBytes"
+ },
+ {
+  "name": "limit: encode never refuses",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "body.length > maxBytes",
+  "new": "body.length > maxBytes + 1e9"
+ },
+ {
+  "name": "decoder: limit > becomes >= on partial line",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "this.size > this.max",
+  "new": "this.size >= this.max"
+ },
+ {
+  "name": "decoder: limit > becomes >= on full line",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "lineLength > this.max",
+  "new": "lineLength >= this.max"
+ },
+ {
+  "name": "decoder: no skipping after too-long",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "this.skipping = true;",
+  "new": "this.skipping = false;"
+ },
+ {
+  "name": "decoder: skipping does not end at the newline",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "this.skipping = false;\n        data = data.subarray(end + 1);",
+  "new": "data = data.subarray(end + 1);"
+ },
+ {
+  "name": "decoder: line length forgets what was buffered",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "const lineLength = this.size + end;",
+  "new": "const lineLength = end;"
+ },
+ {
+  "name": "decoder: buffered bytes not counted",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "this.size += data.length;",
+  "new": "this.size += 0;"
+ },
+ {
+  "name": "decoder: buffer not reset after a line",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "      this.reset();\n      data = data.subarray(end + 1);",
+  "new": "      data = data.subarray(end + 1);"
+ },
+ {
+  "name": "decoder: CR kept in the line",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "raw[raw.length - 1] === CR ? raw.subarray(0, raw.length - 1) : raw",
+  "new": "raw"
+ },
+ {
+  "name": "decoder: blank lines reported",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "if (line.length === 0) return null;",
+  "new": "if (line.length === 0) return { kind: \"invalid\", reason: \"blank\", preview: \"\" };"
+ },
+ {
+  "name": "decoder: arrays accepted",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "|| Array.isArray(value)",
+  "new": ""
+ },
+ {
+  "name": "decoder: null accepted",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "typeof value !== \"object\" || value === null ||",
+  "new": "typeof value !== \"object\" ||"
+ },
+ {
+  "name": "decoder: non-UTF-8 accepted",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "fatal: true",
+  "new": "fatal: false"
+ },
+ {
+  "name": "decoder: preview longer",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "const PREVIEW_CHARS = 80;",
+  "new": "const PREVIEW_CHARS = 200;"
+ },
+ {
+  "name": "decoder: default limit 1 MiB",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "16 * 1024 * 1024",
+  "new": "1024 * 1024"
+ },
+ {
+  "name": "decoder: limit zero allowed",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "this.max < 1",
+  "new": "this.max < 0"
+ },
+ {
+  "name": "decoder: parts of a split line dropped",
+  "file": "packages/sidecar/src/codec.ts",
+  "old": "Buffer.concat([...this.parts, data.subarray(0, end)])",
+  "new": "data.subarray(0, end)"
+ },
+ {
+  "name": "canonical: keys sorted by UTF-16 not UTF-8",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "Buffer.compare(Buffer.from(a, \"utf8\"), Buffer.from(b, \"utf8\"))",
+  "new": "(a < b ? -1 : a > b ? 1 : 0)"
+ },
+ {
+  "name": "canonical: keys not sorted",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": ".sort((a, b) => Buffer.compare(Buffer.from(a, \"utf8\"), Buffer.from(b, \"utf8\")))",
+  "new": ""
+ },
+ {
+  "name": "canonical: non-integers allowed",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "!Number.isSafeInteger(value)",
+  "new": "!Number.isFinite(value)"
+ },
+ {
+  "name": "canonical: unsafe integers allowed",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "!Number.isSafeInteger(value)",
+  "new": "!Number.isInteger(value)"
+ },
+ {
+  "name": "canonical: array order sorted",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "obj.map((item, i)",
+  "new": "[...obj].sort().map((item, i)"
+ },
+ {
+  "name": "canonical: backspace not short",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "0x08: \"\\\\b\", ",
+  "new": ""
+ },
+ {
+  "name": "canonical: tab long form",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "0x09: \"\\\\t\", ",
+  "new": ""
+ },
+ {
+  "name": "canonical: \\u uses upper case",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "unit.toString(16).padStart(4, \"0\")",
+  "new": "unit.toString(16).toUpperCase().padStart(4, \"0\")"
+ },
+ {
+  "name": "canonical: \\u not padded",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "unit.toString(16).padStart(4, \"0\")",
+  "new": "unit.toString(16)"
+ },
+ {
+  "name": "canonical: DEL escaped",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "} else if (unit < 0x20) {",
+  "new": "} else if (unit < 0x20 || unit === 0x7f) {"
+ },
+ {
+  "name": "canonical: lone high surrogate accepted",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "if (!(next >= 0xdc00 && next <= 0xdfff)) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "canonical: lone low surrogate accepted",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "} else if (unit >= 0xdc00 && unit <= 0xdfff) {\n      throw",
+  "new": "} else if (false) {\n      throw"
+ },
+ {
+  "name": "canonical: pair split",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "out += text[i]! + text[i + 1]!;\n      i++;",
+  "new": "out += text[i]!;"
+ },
+ {
+  "name": "canonical: quote not escaped",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "} else if (unit === 0x22) {",
+  "new": "} else if (false) {"
+ },
+ {
+  "name": "canonical: backslash not escaped",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "} else if (unit === 0x5c) {",
+  "new": "} else if (false) {"
+ },
+ {
+  "name": "canonical: cycle not detected",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "if (ancestors.has(obj)) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "canonical: shared object counted as a cycle",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "  } finally {\n    ancestors.delete(obj);\n  }",
+  "new": "  } finally {\n  }"
+ },
+ {
+  "name": "canonical: class instances accepted",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "if (proto !== Object.prototype && proto !== null) {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "canonical: undefined becomes null",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": "case \"undefined\":\n      throw new TypeError(`${where}: undefined has no JSON form`);",
+  "new": "case \"undefined\":\n      return \"null\";"
+ },
+ {
+  "name": "hash: not UTF-8",
+  "file": "packages/sidecar/src/canonical.ts",
+  "old": ".update(text, \"utf8\")",
+  "new": ".update(text, \"latin1\")"
+ }
+]
