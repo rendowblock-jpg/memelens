@@ -15,7 +15,8 @@ Words in capitals (MUST, MUST NOT, MAY) are used in their usual sense.
 - One message is one line: a single JSON object, UTF-8, ended by `\n` (a `\r\n` is accepted when reading). Blank lines are
   ignored. A message MUST NOT contain a raw line break; JSON escapes inside strings take care of that.
 - A line (without its `\n`) MUST NOT be longer than 16 MiB (16,777,216 bytes). A reader that meets a longer line stops
-  trusting the stream: the app stops the engine.
+  trusting the stream: the app stops the engine. This holds in both directions: an engine whose reply would be longer MUST
+  NOT send it, and sends the error `-32003` (section 6) with the same `id` instead.
 - Every message is a JSON-RPC 2.0 object (`"jsonrpc": "2.0"`). Batches (JSON arrays) are not used and are refused.
   - Request (app to engine): `id` (a whole number the app chooses, never reused in one session), `method`, optional `params`.
   - Success reply: the same `id` and `result`.
@@ -210,7 +211,7 @@ text). If `PRAGMA user_version` is not `1`, the engine answers an error and does
 | `-32602` | invalid parameters; `data.path` names the first wrong field |
 | `-32001` | cancelled |
 | `-32002` | the data cannot be read (cannot open, wrong schema version) |
-| `-32003` | the engine ran out of its memory budget |
+| `-32003` | the request is too big for the engine: the data it needs does not fit in its memory budget (the engine measures the live heap, loads at most half the budget and lets the run use the rest), or the reply would be longer than a line may be (16 MiB). The caller can retry with a shorter period or fewer wallets; the engine is unharmed and stays up |
 
 The app treats any other reply as a protocol error. A run of 20 invalid lines, a line over the limit, an answer to an id it
 did not ask, a protocol it does not support, or a report that fails its checks makes the app stop the engine and report the

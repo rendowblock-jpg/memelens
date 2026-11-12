@@ -50,7 +50,7 @@
  {
   "name": "sentence: \"the backtest needs more memory than the engine may use; try a shor...\"",
   "file": "apps/desktop/src/main/engine.ts",
-  "old": "return \"the backtest needs more memory than the engine may use; try a shorter period or fewer wallets\"",
+  "old": "return \"the backtest is larger than the engine may handle; try a shorter period or fewer wallets\"",
   "new": "return \"x\""
  },
  {

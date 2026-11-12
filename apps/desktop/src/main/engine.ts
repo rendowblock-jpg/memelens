@@ -59,7 +59,7 @@ export function describeEngineError(e: unknown): string | null {
         return "the backtest took too long and was stopped";
       case "remote":
         if (e.code === -32002) return "the engine could not read the trade database";
-        if (e.code === -32003) return "the backtest needs more memory than the engine may use; try a shorter period or fewer wallets";
+        if (e.code === -32003) return "the backtest is larger than the engine may handle; try a shorter period or fewer wallets";
         if (e.code === -32602) {
           const path = (e.data as { path?: unknown } | null | undefined)?.path;
           return typeof path === "string" && FIELD_PATH.test(path) ? `the engine refused the request at ${path}` : "the engine refused the request";

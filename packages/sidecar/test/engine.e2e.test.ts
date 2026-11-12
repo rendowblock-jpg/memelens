@@ -217,6 +217,79 @@ run("the real engine", () => {
 });
 
 // ---------------------------------------------------------------------------------------------------------------------
+// The limits of the real engine: what it does when a backtest is too big for its memory budget, and when its report would be
+// longer than a line may be. Both used to end with the app stopping a healthy engine.
+import { DatabaseSync } from "node:sqlite";
+
+const LIMIT_SPEC = {
+  version: 1, from: 0, to: 10_000_000,
+  strategy: { kind: "follow-wallets", wallets: ["w"], latencyMs: 0, positionQuote: "1000", takeProfitBps: null, stopLossBps: null, maxHoldMs: 3_600_000 },
+  costs: { feeBps: 0, slippageBps: 0 },
+};
+
+run("the real engine's limits", () => {
+  it("refuses a backtest that does not fit its memory budget with -32003, and goes on working", async () => {
+    // 20,000 trades hold about 9 MB once loaded; the engine is told it may use 1 MiB.
+    const trades: WireWalletTrade[] = Array.from({ length: 20_000 }, (_, i) => ({
+      id: `t${String(i).padStart(6, "0")}`, time: i, token: `TOKEN${i % 50}`, wallet: "x", side: "buy", amount: "1000", quote: "1000",
+    }));
+    const tight = await SidecarClient.start({ command: BIN!, args: ["-memory-mb", "1"], helloTimeoutMs: 20_000, defaultTimeoutMs: 60_000 });
+    try {
+      const refused = await tight.backtest(LIMIT_SPEC, { source: "inline", trades }).catch((e) => e);
+      expect(refused).toBeInstanceOf(SidecarError);
+      expect((refused as SidecarError).kind).toBe("remote");
+      expect((refused as SidecarError).code).toBe(-32003);
+      expect((refused as SidecarError).message).toMatch(/MiB/);
+      // the same engine, the same budget, a request that fits
+      const small = vectors("backtest").cases[0];
+      expect(withoutEngineVersion(await tight.backtest(small.spec, { source: "inline", trades: small.trades }))).toEqual(small.expected);
+    } finally {
+      await tight.close();
+    }
+    // and with the ordinary budget the 20,000 trades are fine: it was the budget that refused them
+    const ordinary = await engine();
+    try {
+      expect((await ordinary.backtest(LIMIT_SPEC, { source: "inline", trades })).summary.entered).toBe(0);
+    } finally {
+      await ordinary.close();
+    }
+  });
+
+  it("answers -32003 instead of a report longer than a line may be, and the app's client sees no protocol error", async () => {
+    // 70,000 tokens, each bought by the followed wallet and then traded once by someone else: 70,000 positions, about 19 MB of
+    // report against a 16 MiB line.
+    const dir = tmp();
+    const path = join(dir, "big.sqlite");
+    Store.open(path).close(); // the app's own schema
+    const db = new DatabaseSync(path);
+    const insert = db.prepare("INSERT INTO trade (chain, id, time, wallet, token, side, amount, quote, fee) VALUES ('c1', ?, ?, ?, ?, 'buy', '1000', '1000', '0')");
+    db.exec("BEGIN");
+    for (let i = 0; i < 70_000; i++) {
+      insert.run(`a${i}`, i, "w", `TOKEN${i}`);
+      insert.run(`b${i}`, i + 1, "x", `TOKEN${i}`);
+    }
+    db.exec("COMMIT");
+    db.close();
+
+    const protocolErrors: string[] = [];
+    const c = await SidecarClient.start({ command: BIN!, helloTimeoutMs: 20_000, defaultTimeoutMs: 60_000, onProtocolError: (r) => protocolErrors.push(r) });
+    try {
+      const refused = await c.backtest(LIMIT_SPEC, { source: "sqlite", path, chain: "c1" }).catch((e) => e);
+      expect(refused).toBeInstanceOf(SidecarError);
+      expect((refused as SidecarError).kind).toBe("remote");
+      expect((refused as SidecarError).code).toBe(-32003);
+      expect((refused as SidecarError).message).toMatch(/reply would be \d+ bytes, more than the 16777216/);
+      expect(protocolErrors).toEqual([]);
+      // the engine was not stopped: a shorter window on the same engine gives a report
+      const shorter = await c.backtest({ ...LIMIT_SPEC, to: 2000 }, { source: "sqlite", path, chain: "c1" });
+      expect(shorter.summary.entered).toBe(2000);
+    } finally {
+      await c.close();
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------------------------
 // The manager on the real engine: the default start path (verify, launch, hello, version check) that its unit tests replace.
 import { ManagerError, SidecarManager } from "../src/manager";
 

@@ -90,7 +90,7 @@ describe("describeEngineError", () => {
     expect(describeEngineError(new SidecarError("cancelled", "the backtest was cancelled before it started"))).toBe("the backtest was cancelled");
     expect(describeEngineError(new SidecarError("timeout", "no answer within 600000 ms"))).toBe("the backtest took too long and was stopped");
     expect(describeEngineError(new SidecarError("remote", "C:\\x\\app.sqlite: unable to open", -32002))).toBe("the engine could not read the trade database");
-    expect(describeEngineError(new SidecarError("remote", "budget", -32003))).toBe("the backtest needs more memory than the engine may use; try a shorter period or fewer wallets");
+    expect(describeEngineError(new SidecarError("remote", "budget", -32003))).toBe("the backtest is larger than the engine may handle; try a shorter period or fewer wallets");
     for (const kind of ["exited", "closed", "protocol", "spawn"] as const) {
       expect(describeEngineError(new SidecarError(kind, "C:\\secret\\engine.exe went away")), kind).toBe("the engine stopped unexpectedly");
     }
