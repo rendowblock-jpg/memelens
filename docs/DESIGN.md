@@ -217,14 +217,16 @@ nothing in this document describes how that picture looks. What is known about t
 Whether the design is good is for the owner to judge when he installs it.
 
 ### Delivery to the owner, and the latest Windows run
-- **Draft release `v0.1.0-preview.1`** (id 442707219) holds `MemeLens-0.1.0-x64.msi` (126,599,168 bytes, SHA-256
-  `E3FABDCBD99A73EEBE3FE4C1E1E6919B88523AB4AFBD41346E4D410D8F62B4F3`), built from commit `8aab0fc` (run 43238467354) and
-  swapped in on 12 Nov 2026, after the Backtest screen existed: the first file, built from `e1c4e4c`, had none of the sidecar
-  work. The new file was uploaded under a temporary name, GitHub's digest and size were compared with the host's own hash
-  (the build log printed the same value), and only then was the old file deleted and the new one renamed. It is a draft and a
-  pre-release: with no credentials the release answers 404, so only repository admins see it. The notes say it is unsigned,
-  synthetic-data only, cannot run a backtest (no release host, so no engine can be fetched) and has not been used on a real PC.
-  Nothing was installed anywhere but on the build runner.
+- **Draft release `v0.1.0-preview.1`** (id 442707219) holds `MemeLens-0.1.0-x64.msi` (126,603,264 bytes, SHA-256
+  `4ACB7D07D1C86F18CE8F3B668B2224C0783D8046B2DE27E41AE5B6A8E490C2BF`), built from commit `40bfcf49915387fd617fac4c20147f659f379866`
+  (run 43258934566, a live-engine run) and swapped in on 12 Nov 2026, after the first-run sample button and the release host
+  existed: the file before it (asset 739882611, the `8aab0fc` build) had neither. The new file was uploaded under a temporary
+  name; GitHub's digest and size were compared with the build log's hash and the host's own hash (all three equal), and only then
+  was the old file deleted and the new one renamed (asset 740226250). It is a draft and a pre-release: with no credentials the
+  release answers 404, so only repository admins see it. The notes say what was seen (a Windows runner only: install, first
+  start with the sample button, engine download and install from the release host, a backtest, uninstall; 5 + 24 checks and 26
+  smoke checks, 1,337 unit tests passed), that it is unsigned, and what is unmeasured (a real PC, speed and memory on Windows,
+  an upgrade over an older version). Nothing was installed anywhere but on the build runner.
 - **Run 43188552598** (commit `b0e23d1`, which adds the mutation-guided tests and `needs: test`): on Windows, 697 of 697
   tests passed and the real-app smoke passed 16 of 16; the package job started only after the test job finished.
 - **Host files:** artifacts are kept in `~/.cache/memelens-artifacts`, not `/tmp`: `/tmp` is a 3.9 GB tmpfs shared with
