@@ -254,7 +254,7 @@ Whether the design is good is for the owner to judge when he installs it.
 - **"The sandbox is enforced"** is shown by the switch being absent and the preference being on, not by inspecting the
   renderer's token. A stronger check would read the renderer process's integrity level.
 - **Upgrade and reinstall** (a second MSI over the first, then the sidecar folder surviving) is not tested: there is only
-  one version and no sidecar yet.
+  one app version, and the app does not install or use a sidecar yet.
 - **The package job waits for the test job** (`needs: test`, added 12 Nov), so a red test cannot produce an MSI.
 - **No code signing**, no auto-update, no macOS or Linux packaging.
 
@@ -263,7 +263,7 @@ Whether the design is good is for the owner to judge when he installs it.
 - **Public app repo** (https://github.com/rendowblock-jpg/memelens, created and pushed 12 Nov 2026): everything in this tree, the protocol document, the test
   vectors, CI, and the *public* key that verifies sidecar releases. Nothing secret, ever. Before the first push the
   tracked tree and the full history are scanned.
-- **Private sidecar repo** (https://github.com/rendowblock-jpg/memelens-sidecar, created 12 Nov 2026, empty): the Go source
+- **Private sidecar repo** (https://github.com/rendowblock-jpg/memelens-sidecar, created 12 Nov 2026): the Go source
   and the engine's private signing key (as a CI secret). Checked: with credentials the API says `private: true`; without
   credentials it answers 404, so a stranger cannot even see that it exists.
 - **Licence: not chosen.** It must be OSI-approved with no commercial dual licensing. Needed before the first release.
@@ -324,12 +324,16 @@ Score 30 tokens that rugged against 30 that did not, and report the hit rate for
 
 ## Sidecar: state on 12 Nov 2026
 
-- **Contract:** `docs/SIDECAR-PROTOCOL.md`. **Vectors:** `packages/sidecar/vectors/*.json`, written by `scripts/sidecar-vectors/gen.py`, a Python implementation that shares no code with either side: 27 PnL cases (9 invalid inputs), 19 backtest cases, 57 invalid specs, 10 canonical-JSON cases and 5 refusals. The TypeScript core agrees with every PnL vector.
-- **App side, `packages/sidecar`:** line codec, canonical JSON and spec hash, spec and report checkers (the report's summary must equal the sum of its positions), install layout with atomic pointers, verify-before-launch and rollback, ed25519 manifest check with a small-order-key guard, process client with timeouts, protocol-error limits, cancellation and a minimal environment for the engine. Not wired into the Electron main process, no update downloader, no UI.
-- **Engine, private repo `memelens-sidecar` (Go 1.26.8):** `hello`, `pnl.compute`, `backtest.run`, `backtest.cancel`, `shutdown`; reads the app's SQLite file read-only. It passes the contract test locally on Linux (10 of 10) and its own Go tests on Linux and Windows CI (run 43195099811).
-- **Not yet seen:** the contract test on Windows. Its first run failed because `testdata/vectors.pin` named a commit older than the test file; the pin was moved to `79b0a14` and the result of that run is not known when this is written.
-- **Mutation checks (sidecar logic, 157 mutants):** codec/canonical 38 of 38; spec/report 57 of 58; layout/signature 51 of 61 on the first full run. Ten survivors were then marked "equivalent" by reading the code, not by proof, and one more test (fail closed on an internal error) was added afterwards and **not re-run through the mutants**.
-- **Not built:** a download/update client, the pinned public key, the engine's memory budget (`-32003` is defined, not enforced), operating-system enforcement of "no network", code signing.
+- **Contract:** `docs/SIDECAR-PROTOCOL.md`. **Vectors:** `packages/sidecar/vectors/*.json`, written by `scripts/sidecar-vectors/gen.py`, a Python implementation that shares no code with either side: 27 PnL cases (9 invalid inputs), 19 backtest cases, 57 invalid specs, 15 canonical-JSON cases. The TypeScript core agrees with every PnL vector.
+- **App side, `packages/sidecar`:** line codec, canonical JSON and spec hash, spec and report checkers (the report's summary must equal the sum of its positions), install layout with atomic pointers, verify-before-launch and rollback, ed25519 manifest check with a small-order-key guard, process client with timeouts, protocol-error limits, cancellation and a minimal environment for the engine.
+- **Update path (new, `trust.ts`, `fetch.ts`, `updater.ts`):** `checkForUpdate` reads the latest signed manifest and offers it; `installUpdate` runs in this order: signature (before the manifest is parsed), parse, no downgrade, download with the signed size as the limit, size and SHA-256, place in `versions/<v>`, verify from disk, run the new engine's `hello` and compare its version with the manifest's, and only then make it current. Any failure removes what it placed. The same version counts as up to date only if the installed copy is intact **and** its manifest is byte-for-byte the signed one; otherwise it is offered again, which repairs it. Downloads go only to listed hosts, over https, with every redirect hop checked, no credentials in addresses, a byte limit, and a deadline that covers the body. The network code is a function of the main process; the renderer's CSP is unchanged.
+- **Engine, private repo `memelens-sidecar` (Go 1.26.8):** `hello`, `pnl.compute`, `backtest.run`, `backtest.cancel`, `shutdown`; reads the app's SQLite file read-only. Release tool `memelens-release` (`keygen`, `publish`) writes the layout the updater reads and checks what it wrote.
+- **Signing key:** the app trusts one **development** key (`trust.ts`, public part only). Its private half is on the build host outside both repositories (mode 600). It must be replaced by a key held by the release pipeline alone before any engine is offered to anyone; the list holds several keys so that can be done without a flag day.
+- **Seen, Linux (this host):** the whole chain on real binaries, 14 of 14 (the Go tool signs, a local server serves, the updater checks, installs and starts the real engine and a vector runs through it; a flipped byte, a wrong key and a manifest that lies about the version are each refused and leave nothing installed). `vitest` 1063 passed, 14 skipped (the skipped ones need the real binaries), `typecheck:all` exit 0, desktop smoke 15 of 15.
+- **Seen, Windows CI:** the contract test against the real engine, 10 of 10 (private repo run 43195999636). The chain test (14 of 14) on Windows: see the run noted in the status section below.
+- **Mutation checks:** codec/canonical 38 of 38. Spec/report 57 of 58. Layout/signature **52 of 61** (re-run after the fail-closed test; was 51; the 9 survivors are marked equivalent by reading the code, not by proof). Update path: fetch 25 of 26, updater 34 of 37, trust 3 of 4; every survivor is marked equivalent with its reason in the list file. Go release tool 36 of 39 (survivors: a folder given as the binary still fails later; two read-back checks that only a fault-injection test could trip). Equivalent-by-reading is a claim, not a result.
+- **Found by running them:** my own "endless body" test used a stream that never ended, so with the size check removed it grew to 4.4 GB and the kernel killed the job. Test streams are now bounded and the mutation runs execute inside a memory-capped scope.
+- **Not built:** the Electron main-process wiring (manager and update flow behind an IPC channel), the backtest screen and the "engine not installed" state, a release host and a pipeline-held key, the engine's memory budget (`-32003` is defined, not enforced), operating-system enforcement of "no network", code signing.
 
 ## Toolchain notes
 
@@ -360,7 +364,7 @@ Score 30 tokens that rugged against 30 that did not, and report the hit rate for
 
 1. **M3c** screens: feed, token panel with risk lens, smart-money ranking, wallet panel - **done on the host** (see "The screens"); not yet seen on Windows
 2. **W** Windows packaging: MSI from CI - **built, installed, run and uninstalled on a Windows runner (run 43185415658)**; still open: the owner installs it and sees it (L3)
-3. **S** sidecar: the slot (manager, protocol, versioned folder, update check) and the Go backtest engine, with conformance vectors - **toolchain ready (Go 1.26.8 on the host, private repo created); nothing else started**
+3. **S** sidecar: the slot (manager, protocol, versioned folder, update check) and the Go backtest engine, with conformance vectors - **engine, contract test, signed update path and release tool built and tested; not yet wired into the Electron main process, no UI**
 4. **C** calibration gate: 30 rugged vs 30 not, numbers into the weights table above
 5. **M4** Solana adapter (needs a user-supplied RPC or data API key)
 6. **M5** agent chat and tools (with the red-team suite above)
@@ -406,7 +410,7 @@ Public repo: https://github.com/rendowblock-jpg/memelens, `main` pushed at b4b58
 `private: false`. Before the push the full history was scanned: no keys, tokens, key files or Solana-key-shaped strings.
 One old commit (5adebe4) contains a test-run output file with absolute build-host paths (not secrets); it was left in
 place rather than rewrite history. No licence file yet, so by default nobody may reuse the code (see Open questions).
-No sidecar repo exists yet.
+The private sidecar repo now exists (see "Sidecar: state").
 
 Measured on the host after the Windows packaging work: `vitest run` 697 tests in 26 files, exit 0; `tsc --noEmit` exit 0 for `packages/core`,
 `packages/data`, `packages/service`, `apps/desktop` and the renderer project; real-app smoke 14/14, exit 0.
@@ -427,7 +431,7 @@ Run the CLI: `npm run memelens -- ingest packages/data/fixtures/sample.json --db
 Known gaps (not hidden):
 - Everything is verified on synthetic data. Nothing has touched real chain data.
 - Risk weights and thresholds are provisional (see calibration). Only 6 of 10 signals have a data source.
-- Run on Windows only by CI (see "Windows first"); the owner has not seen it. No sidecar, no Solana adapter, no agent chat.
+- Run on Windows only by CI (see "Windows first"); the owner has not seen it. The sidecar engine exists but is not wired into the app yet; no Solana adapter, no agent chat.
 - The app has no way to load data yet: a user with an empty database sees instructions to run the command line. The live
   adapter (M4) is what fixes that.
 - No keyboard navigation inside the feed beyond tabbing to each row's button.
