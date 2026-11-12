@@ -211,6 +211,7 @@ try {
     }, "the update check to answer", 180_000);
     const version = /Version (\S+) is available\./.exec(found)?.[1];
     check("the update check finds the published engine", version !== undefined, found.slice(0, 300));
+    if (version !== undefined) console.log(`INFO  the update check offered engine ${version}`);
     if (version !== undefined) {
       await until(() => clickButton(`Install version ${version}`), "the Install button to be pressable", 30_000);
       const installed = await until(async () => {
@@ -223,6 +224,7 @@ try {
         return t.startsWith("Engine ") ? t : false;
       }, "the engine state to show the installed version", 30_000);
       check("the screen then shows the installed version", state.startsWith(`Engine ${version} is installed`), state);
+      console.log(`INFO  the screen says: ${state}`);
 
       await setField("bt-wallets", "alice carol", "HTMLTextAreaElement");
       await setField("bt-positionSize", "0.001", "HTMLInputElement");
@@ -235,6 +237,7 @@ try {
       }, "the backtest to finish", 180_000);
       const entered = /Entered\s*(\d+)/.exec(outcome.result ?? "")?.[1];
       check("a backtest runs on the app's own database and enters positions", entered !== undefined && Number(entered) > 0, outcome.alerts ?? (outcome.result ?? "").slice(0, 300));
+      console.log(`INFO  the backtest entered ${entered ?? "no"} positions; the result says: ${(outcome.result ?? outcome.alerts ?? "").replace(/\s+/g, " ").slice(0, 160)}`);
       check("the result names the engine that produced it", new RegExp(`Engine ${version.replace(/\./g, "\\.")}`).test(outcome.result ?? ""), (outcome.result ?? "").slice(0, 200));
       await shot("5-backtest-result");
     }
