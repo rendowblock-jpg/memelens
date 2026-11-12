@@ -42,6 +42,23 @@ export function isAppUrl(url: string): boolean {
 // A backslash is a path separator on Windows; control characters (NUL included) have no place in a file name.
 const FORBIDDEN = /[\u0000-\u001f\u007f\\]/;
 
+// Windows reads CON, PRN, AUX, NUL, COM0-9 and LPT0-9 as devices whatever the extension is ("nul.js", "NUL .txt"),
+// including the superscript digits; CONIN$ and CONOUT$ are devices too.
+const DEVICE = /^(?:con|prn|aux|nul|(?:com|lpt)[0-9\u00b9\u00b2\u00b3]|conin\$|conout\$)$/i;
+
+/**
+ * True for a path segment that Windows would not read as the name it says: surrounding spaces and trailing dots are
+ * dropped, device names open the device, 8.3 short names (NAME~1.EXT) stand for a longer name, names starting with $
+ * are file-system metadata, and < > " | ? * are not allowed in a name. Checked by name on every platform, so the
+ * answer does not depend on where the app runs.
+ */
+function meansSomethingElseOnWindows(segment: string): boolean {
+  if (segment !== segment.trim() || segment.endsWith(".")) return true;
+  if (/[<>"|?*]/.test(segment) || /~[0-9]/.test(segment) || segment.startsWith("$")) return true;
+  const base = (segment.split(".")[0] ?? "").trimEnd();
+  return DEVICE.test(base);
+}
+
 /**
  * Maps a request URL to a file inside `root`, or null if the request must be refused. Does not check that the
  * file exists. The query string and fragment are ignored; `/` means index.html. The URL parser has already
@@ -64,6 +81,7 @@ export function resolveAppFile(root: string, url: string): string | null {
   const segments = path.split("/").slice(1);
   for (const s of segments) {
     if (s === "" || s === "." || s === ".." || s.includes(":")) return null;
+    if (meansSomethingElseOnWindows(s)) return null;
   }
 
   const file = join(root, ...segments);

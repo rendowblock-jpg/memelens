@@ -63,6 +63,9 @@ async function run(): Promise<number> {
   ) as { rows: number; notice: string; panel: boolean; gauge: boolean; bar: number };
   const probes = JSON.parse((await contents.executeJavaScript(PROBES)) as string) as Record<string, any>;
 
+  // Present at run time in Electron 45 but missing from its typings; if it ever goes away this throws and the smoke fails.
+  const effective = (contents as unknown as { getLastWebPreferences(): { sandbox?: boolean } }).getLastWebPreferences();
+
   const checks: Check[] = [
     { name: "page script finished without error", ok: state === "done", got: state },
     { name: "the feed shows the expected number of tokens", ok: page.rows === expectRows, got: page.rows },
@@ -77,6 +80,10 @@ async function run(): Promise<number> {
     { name: "notification permission is not granted", ok: probes["notification"] !== "granted", got: probes["notification"] },
     { name: "a bad request gets a readable error, not a crash", ok: JSON.stringify(probes["badRequest"]) === JSON.stringify({ ok: false, error: 'overview: unknown field "chain"' }), got: probes["badRequest"] },
     { name: "an unknown chain gets an error reply with no path or stack", ok: probes["unknownToken"]?.ok === false && typeof probes["unknownToken"]?.error === "string" && !/\n|\bat |\/root\//.test(probes["unknownToken"].error), got: probes["unknownToken"] },
+    { name: "the window's sandbox preference is on", ok: effective.sandbox === true, got: effective.sandbox },
+    ...(process.env["MEMELENS_EXPECT_SANDBOX"] === "1"
+      ? [{ name: "the app was started without --no-sandbox", ok: !app.commandLine.hasSwitch("no-sandbox"), got: app.commandLine.hasSwitch("no-sandbox") }]
+      : []),
     { name: "navigating away is blocked: still on app://memelens", ok: probes["origin"] === "app://memelens", got: probes["origin"] },
   ];
 

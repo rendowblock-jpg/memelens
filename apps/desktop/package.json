@@ -1,7 +1,7 @@
 {
   "name": "@memelens/desktop",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "main": "dist/main.cjs",
   "dependencies": {
@@ -16,11 +16,14 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
     "electron": "^45.3.0",
+    "electron-builder": "^26.18.0",
     "esbuild": "^0.28.2",
     "vite": "^8.3.8"
   },
   "scripts": {
     "build": "node build.mjs",
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "node pack.mjs",
+    "pack:dir": "node pack.mjs --dir"
   }
 }

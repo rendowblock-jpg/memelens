@@ -7,3 +7,5 @@ out/
 .env.*
 .vitest/
 __pycache__/
+apps/desktop/stage/
+apps/desktop/release/

@@ -174,3 +174,67 @@ describe("values that are not strings", () => {
     for (const v of notStrings) expect(resolveAppFile(ROOT, v as string), String(v)).toBeNull();
   });
 });
+
+describe("resolveAppFile: names that mean something else on Windows", () => {
+  // Windows drops trailing dots and spaces, reads NUL, CON, COM1... as devices even with an extension, expands
+  // 8.3 short names and has files whose names start with $. None of that exists on Linux, so the checks are
+  // by name and run on every platform: a request must never reach a file the name does not say it reaches.
+  const refused = (urls: string[]): void => {
+    for (const u of urls) expect(resolveAppFile(ROOT, u), u).toBeNull();
+  };
+
+  it("refuses a trailing dot or space, which Windows removes (index.html. is index.html)", () => {
+    refused([
+      "app://memelens/index.html.",
+      "app://memelens/index.html%20",
+      "app://memelens/index.html%20.",
+      "app://memelens/index.html.%20",
+      "app://memelens/a/b%20/c.js",
+      "app://memelens/a./c.js",
+      "app://memelens/%20index.html",
+      "app://memelens/a/%20/c.js",
+    ]);
+  });
+
+  it("refuses the device names, with any extension, in any case and with spaces before the dot", () => {
+    refused([
+      "app://memelens/nul",
+      "app://memelens/NUL",
+      "app://memelens/nul.js",
+      "app://memelens/NUL.txt",
+      "app://memelens/nul%20.js",
+      "app://memelens/con.css",
+      "app://memelens/PRN",
+      "app://memelens/aux.js",
+      "app://memelens/com1",
+      "app://memelens/COM9.js",
+      "app://memelens/com0.js",
+      "app://memelens/lpt1.html",
+      "app://memelens/a/lpt3.js",
+      "app://memelens/com%C2%B9.js",
+      "app://memelens/LPT%C2%B2",
+      "app://memelens/conin$",
+      "app://memelens/CONOUT$.js",
+    ]);
+  });
+
+  it("still serves names that only look similar to a device name", () => {
+    for (const name of ["console.js", "control.css", "aux-ui.js", "nullable.js", "com10.js", "lpt.js", "company.css", "a.nul.js", "prn-x.js", "communication.js"]) {
+      expect(resolveAppFile(ROOT, `app://memelens/${name}`), name).toBe(join(ROOT, name));
+    }
+  });
+
+  it("refuses characters Windows does not allow in a name: < > \" | ? *", () => {
+    refused(["app://memelens/a%3cb", "app://memelens/a%3eb", "app://memelens/a%22b", "app://memelens/a%7cb", "app://memelens/a%3fb", "app://memelens/a%2ab", "app://memelens/*.js"]);
+  });
+
+  it("refuses 8.3 short names (INDEXH~1.HTM), which Windows maps to a longer file name", () => {
+    refused(["app://memelens/INDEXH~1.HTM", "app://memelens/PROGRA~1/x.js", "app://memelens/a~1.js", "app://memelens/a/b~12.css"]);
+    expect(resolveAppFile(ROOT, "app://memelens/a~b.js")).toBe(join(ROOT, "a~b.js"));
+  });
+
+  it("refuses names that start with $ (NTFS metadata such as $MFT, $Extend)", () => {
+    refused(["app://memelens/$MFT", "app://memelens/%24mft", "app://memelens/$Extend/x.js", "app://memelens/a/$x.js"]);
+    expect(resolveAppFile(ROOT, "app://memelens/a$b.js")).toBe(join(ROOT, "a$b.js"));
+  });
+});
