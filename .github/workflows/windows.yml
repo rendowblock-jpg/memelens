@@ -91,8 +91,12 @@ jobs:
       - name: Run the INSTALLED app and look at it (no --no-sandbox)
         timeout-minutes: 12
         env:
-          LIVE_ENGINE: ${{ inputs.live_engine && '--live-engine' || '' }}
-        run: node scripts/check-packaged.mjs --exe "$env:EXE" --db "$env:RUNNER_TEMP\check.sqlite" --out "$env:RUNNER_TEMP\shots" $env:LIVE_ENGINE
+          LIVE_ENGINE: ${{ inputs.live_engine }}
+        run: |
+          # An array, not one string: PowerShell hands a string with a space in it to node as a single argument.
+          $extra = @()
+          if ($env:LIVE_ENGINE -eq 'true') { $extra = @('--live-engine', '--default-engine-folder') }
+          node scripts/check-packaged.mjs --exe "$env:EXE" --db "$env:RUNNER_TEMP\check.sqlite" --out "$env:RUNNER_TEMP\shots" @extra
       # The next four steps were one step. Runs 43218046784 and 43222454513 sat in it for 20+ minutes and ignored both a
       # cancel and the step's own time limit, with nothing in the log we could read. Four small steps, each with a limit
       # and timestamps, tell us which command stalls.
@@ -147,6 +151,21 @@ jobs:
         run: |
           if ($env:EXE -and (Test-Path $env:EXE)) { throw "MemeLens.exe is still there after uninstall: $env:EXE" }
           "uninstalled: $env:EXE is gone"
+      - name: The engine survives the uninstall (live runs only)
+        # The design: removing the app leaves the engine and the database. The live run put the engine in the app's own per-user
+        # folder; here it must still be there after the uninstall, with the bytes its manifest names.
+        if: ${{ success() && inputs.live_engine == true }}
+        timeout-minutes: 2
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:LOCALAPPDATA 'MemeLens\sidecar'
+          if (-not (Test-Path $root)) { throw "the engine folder is gone after the uninstall: $root" }
+          $cur = Get-Content (Join-Path $root 'current.json') -Raw | ConvertFrom-Json
+          $dir = Join-Path $root "versions\$($cur.version)"
+          $manifest = Get-Content (Join-Path $dir 'manifest.json') -Raw | ConvertFrom-Json
+          $actual = (Get-FileHash (Join-Path $dir 'memelens-sidecar.exe') -Algorithm SHA256).Hash
+          if ($actual -ne $manifest.sha256) { throw "the engine's bytes changed: $actual, the manifest says $($manifest.sha256)" }
+          "engine $($cur.version) is still in $root after the uninstall, sha256 $actual"
       - name: Keep the MSI, the pictures and the logs
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0

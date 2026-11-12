@@ -3,7 +3,7 @@
 // through the screens, checks what is on them and saves a screenshot of each.
 // usage: node scripts/check-packaged.mjs --exe PATH --db PATH --out DIR [--rows N] [--no-sandbox]
 import { spawn, spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -44,10 +44,28 @@ const check = (name, ok, got) => {
   console.log(`${ok ? "PASS" : "FAIL"}  ${name}${ok ? "" : `  (got ${JSON.stringify(got)})`}`);
 };
 
-// The app gets its own empty engine folder, so what the Backtest screen says does not depend on the machine running this.
-const sidecarDir = mkdtempSync(join(tmpdir(), "memelens-sidecar-"));
+// By default the app gets its own empty engine folder, so what the Backtest screen says does not depend on the machine running
+// this. With --default-engine-folder the app is left to choose its own per-user folder (%LOCALAPPDATA%\MemeLens\sidecar), the
+// way a real install does. That is for a clean Windows runner only: it refuses to run if the folder already exists, so it can
+// never touch an engine somebody already has.
+const useDefaultFolder = process.argv.includes("--default-engine-folder");
+let engineRoot;
+if (useDefaultFolder) {
+  if (process.platform !== "win32" || !process.env.LOCALAPPDATA) {
+    console.error("--default-engine-folder is for Windows only (it needs %LOCALAPPDATA%)");
+    process.exit(2);
+  }
+  engineRoot = join(process.env.LOCALAPPDATA, "MemeLens", "sidecar");
+  if (existsSync(engineRoot)) {
+    console.error(`${engineRoot} already exists: refusing to run against an existing engine folder`);
+    process.exit(2);
+  }
+}
+const appEnv = { ...process.env, MEMELENS_DB: db };
+if (useDefaultFolder) delete appEnv.MEMELENS_SIDECAR_DIR;
+else appEnv.MEMELENS_SIDECAR_DIR = mkdtempSync(join(tmpdir(), "memelens-sidecar-"));
 const child = spawn(exe, [`--remote-debugging-port=${port}`, ...(process.argv.includes("--no-sandbox") ? ["--no-sandbox"] : [])], {
-  env: { ...process.env, MEMELENS_DB: db, MEMELENS_SIDECAR_DIR: sidecarDir },
+  env: appEnv,
   stdio: ["ignore", "pipe", "pipe"],
 });
 let log = "";
@@ -225,6 +243,17 @@ try {
       }, "the engine state to show the installed version", 30_000);
       check("the screen then shows the installed version", state.startsWith(`Engine ${version} is installed`), state);
       console.log(`INFO  the screen says: ${state}`);
+      if (engineRoot !== undefined) {
+        const dir = join(engineRoot, "versions", version);
+        const present = existsSync(join(dir, "memelens-sidecar.exe")) && existsSync(join(dir, "manifest.json"));
+        check("the engine is in the app's own per-user folder (%LOCALAPPDATA%\\MemeLens\\sidecar), not a folder chosen for the test", present, dir);
+        let current = null;
+        try {
+          current = JSON.parse(readFileSync(join(engineRoot, "current.json"), "utf8"));
+        } catch {}
+        check("current.json in that folder names the installed version", current?.version === version, current);
+        console.log(`INFO  engine folder: ${engineRoot}`);
+      }
 
       await setField("bt-wallets", "alice carol", "HTMLTextAreaElement");
       await setField("bt-positionSize", "0.001", "HTMLInputElement");
