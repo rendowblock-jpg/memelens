@@ -45,7 +45,7 @@ function add(a: Point, b: Point): Point {
 }
 
 /** True if the key is not a valid point, or if 8 times the point is the identity (its order divides 8). */
-function isWeak(key: Uint8Array): boolean {
+export function isWeak(key: Uint8Array): boolean {
   const p = decode(key);
   if (p === null) return true;
   let q = p;

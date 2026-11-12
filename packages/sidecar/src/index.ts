@@ -6,3 +6,6 @@ export * from "./report";
 export * from "./layout";
 export * from "./signature";
 export * from "./client";
+export * from "./trust";
+export * from "./fetch";
+export * from "./updater";

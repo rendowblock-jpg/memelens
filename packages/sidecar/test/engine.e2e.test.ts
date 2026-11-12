@@ -215,3 +215,140 @@ run("the real engine", () => {
     expect(() => resolveCurrent(root)).toThrow(/size/);
   });
 });
+
+// ---------------------------------------------------------------------------------------------------------------------
+// The whole chain on real binaries: the Go release tool signs, a local server serves, the app's updater checks, downloads,
+// verifies, installs and starts the engine. Needs the engine (MEMELENS_SIDECAR_BIN), the release tool
+// (MEMELENS_RELEASE_BIN) and the version the engine was built with (MEMELENS_SIDECAR_VERSION).
+import { execFileSync } from "node:child_process";
+import { createServer, type Server } from "node:http";
+import type { AddressInfo } from "node:net";
+import { readFile } from "node:fs/promises";
+import { checkForUpdate, installUpdate, type UpdateConfig } from "../src/updater";
+import { readPointer, listInstalled } from "../src/layout";
+
+const RELEASE_BIN = process.env["MEMELENS_RELEASE_BIN"];
+const chain = BIN === undefined || RELEASE_BIN === undefined || EXPECTED_VERSION === undefined ? describe.skip : describe;
+
+function goTarget(): { goos: string; goarch: string } {
+  const goos = { win32: "windows", linux: "linux", darwin: "darwin" }[process.platform as string];
+  const goarch = { x64: "amd64", arm64: "arm64" }[process.arch as string];
+  if (goos === undefined || goarch === undefined) throw new Error(`no Go target for ${process.platform}/${process.arch}`);
+  return { goos, goarch };
+}
+
+/** Makes a key and a signed release of the real engine under `version`. Returns the release folder and the public key. */
+function publish(version: string, keyFile?: string): { out: string; keyFile: string; pub: Uint8Array } {
+  const out = tmp();
+  const key = keyFile ?? join(tmp(), "key.pem");
+  let pubText: string;
+  if (keyFile === undefined) {
+    const said = execFileSync(RELEASE_BIN!, ["keygen", "-out", key], { encoding: "utf8" });
+    pubText = /public-key: (\S+)/.exec(said)![1]!;
+  } else {
+    pubText = "";
+  }
+  const { goos, goarch } = goTarget();
+  execFileSync(RELEASE_BIN!, ["publish", "-binary", BIN!, "-version", version, "-key", key, "-out", out, "-goos", goos, "-goarch", goarch], { encoding: "utf8" });
+  return { out, keyFile: key, pub: new Uint8Array(Buffer.from(pubText, "base64url")) };
+}
+
+async function serve(dir: string, tamper?: (path: string, bytes: Buffer) => Buffer): Promise<{ base: string; close(): Promise<void> }> {
+  const server: Server = createServer(async (req, res) => {
+    try {
+      const path = decodeURIComponent(new URL(req.url ?? "/", "http://x").pathname);
+      if (path.includes("..")) throw new Error("no");
+      let bytes: Buffer = await readFile(join(dir, path.replace(/^\/releases\//, "")));
+      if (tamper) bytes = tamper(path, bytes);
+      res.writeHead(200, { "content-length": bytes.length });
+      res.end(bytes);
+    } catch {
+      res.writeHead(404);
+      res.end();
+    }
+  });
+  await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
+  return { base: `http://127.0.0.1:${(server.address() as AddressInfo).port}/releases`, close: () => new Promise<void>((r) => (server.closeAllConnections(), server.close(() => r()))) };
+}
+
+function updaterConfig(root: string, base: string, pub: Uint8Array): UpdateConfig {
+  return { root, baseUrl: base, publicKeys: [pub], allowedHosts: ["127.0.0.1"], allowInsecureLoopback: true, timeoutMs: 60_000 };
+}
+
+chain("an engine release signed by the Go tool, installed by the app's updater", () => {
+  it("is found, downloaded, verified, installed, started, and then reported up to date", async () => {
+    const rel = publish(EXPECTED_VERSION!);
+    const srv = await serve(rel.out);
+    try {
+      const root = tmp();
+      const cfg = updaterConfig(root, srv.base, rel.pub);
+      const found = await checkForUpdate(cfg);
+      expect(found.kind).toBe("available");
+      if (found.kind !== "available") return;
+      expect(found.offer.manifest.engineVersion).toBe(EXPECTED_VERSION);
+      const info = await installUpdate(cfg, found.offer); // runs the real engine's hello as the self-test
+      expect(info.version).toBe(EXPECTED_VERSION);
+      expect(readPointer(root, "current")).toEqual({ version: EXPECTED_VERSION });
+      expect(listInstalled(root)).toEqual([EXPECTED_VERSION]);
+      // the installed copy really is the engine: start it from the layout and run a vector through it
+      const c = await engine(resolveCurrent(root)!.binary);
+      try {
+        const v = vectors("backtest").cases[0];
+        expect(withoutEngineVersion(await c.backtest(v.spec, { source: "inline", trades: v.trades }))).toEqual(v.expected);
+      } finally {
+        await c.close();
+      }
+      expect(await checkForUpdate(cfg)).toEqual({ kind: "up-to-date", version: EXPECTED_VERSION });
+    } finally {
+      await srv.close();
+    }
+  });
+
+  it("refuses a binary changed on its way (one flipped byte), and installs nothing", async () => {
+    const rel = publish(EXPECTED_VERSION!);
+    const srv = await serve(rel.out, (path, bytes) => {
+      if (!/memelens-sidecar(\.exe)?$/.test(path)) return bytes;
+      const copy = Buffer.from(bytes);
+      copy[copy.length >> 1] = copy[copy.length >> 1]! ^ 1;
+      return copy;
+    });
+    try {
+      const root = tmp();
+      const cfg = updaterConfig(root, srv.base, rel.pub);
+      const found = await checkForUpdate(cfg);
+      if (found.kind !== "available") throw new Error("expected an update");
+      await expect(installUpdate(cfg, found.offer)).rejects.toMatchObject({ kind: "download" });
+      expect(listInstalled(root)).toEqual([]);
+      expect(readPointer(root, "current")).toBeNull();
+    } finally {
+      await srv.close();
+    }
+  });
+
+  it("refuses a release signed by a key the app does not trust", async () => {
+    const rel = publish(EXPECTED_VERSION!);
+    const stranger = publish(EXPECTED_VERSION!);
+    const srv = await serve(rel.out);
+    try {
+      await expect(checkForUpdate(updaterConfig(tmp(), srv.base, stranger.pub))).rejects.toMatchObject({ kind: "signature" });
+    } finally {
+      await srv.close();
+    }
+  });
+
+  it("refuses a release whose manifest promises a version the binary does not report (the self-test catches it), and removes it", async () => {
+    const rel = publish("9.9.9"); // the engine inside says EXPECTED_VERSION
+    const srv = await serve(rel.out);
+    try {
+      const root = tmp();
+      const cfg = updaterConfig(root, srv.base, rel.pub);
+      const found = await checkForUpdate(cfg);
+      if (found.kind !== "available") throw new Error("expected an update");
+      await expect(installUpdate(cfg, found.offer)).rejects.toMatchObject({ kind: "self-test" });
+      expect(listInstalled(root)).toEqual([]);
+      expect(readPointer(root, "current")).toBeNull();
+    } finally {
+      await srv.close();
+    }
+  });
+});

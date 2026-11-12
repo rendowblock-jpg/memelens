@@ -1,0 +1,26 @@
+[
+ {
+  "name": "trust: key length 42",
+  "file": "packages/sidecar/src/trust.ts",
+  "old": "{43}$/.test(text)",
+  "new": "{42}$/.test(text)"
+ },
+ {
+  "name": "trust: any characters",
+  "file": "packages/sidecar/src/trust.ts",
+  "old": "/^[A-Za-z0-9_-]{43}$/.test(text)",
+  "new": "/^.{43}$/.test(text)"
+ },
+ {
+  "name": "trust: non-canonical spelling accepted",
+  "file": "packages/sidecar/src/trust.ts",
+  "old": " || raw.toString(\"base64url\") !== text",
+  "new": ""
+ },
+ {
+  "name": "trust: wrong length accepted (EXPECTED EQUIVALENT: 43 canonical characters are always 32 bytes)",
+  "file": "packages/sidecar/src/trust.ts",
+  "old": "raw.length !== 32 ||",
+  "new": ""
+ }
+]

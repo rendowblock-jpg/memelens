@@ -1,0 +1,224 @@
+[
+ {
+  "name": "update: one trusted key must not be enough (every)",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "keys.some((k) => verifyManifestSignature",
+  "new": "keys.every((k) => verifyManifestSignature"
+ },
+ {
+  "name": "update: signature read limit raised",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "const MAX_SIGNATURE_BYTES = 128;",
+  "new": "const MAX_SIGNATURE_BYTES = 1048576;"
+ },
+ {
+  "name": "update: equal version called older",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (order < 0) return",
+  "new": "if (order <= 0) return"
+ },
+ {
+  "name": "update: newer version called up to date (EXPECTED EQUIVALENT: the byte comparison with the signed manifest, which contains the version, fails for any other version)",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (order === 0 && installedAsSigned",
+  "new": "if (order >= 0 && installedAsSigned"
+ },
+ {
+  "name": "update: installed copy not verified at check",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (order === 0 && installedAsSigned(r.root, current, r.platform, manifestBytes) !== null)",
+  "new": "if (order === 0)"
+ },
+ {
+  "name": "update: installed manifest not compared (helper)",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "return Buffer.from(onDisk).equals(Buffer.from(signedManifest)) ? info : null;",
+  "new": "return info;"
+ },
+ {
+  "name": "update: installed copy not verified (helper)",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "    const info = verifyInstalled(root, version, platform);\n    const onDisk",
+  "new": "    const info = { version, engineVersion: version, protocol: 1, binary: '' };\n    const onDisk"
+ },
+ {
+  "name": "update: downgrade allowed",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "compareVersions(version, current) < 0) throw fail(\"downgrade\"",
+  "new": "false) throw fail(\"downgrade\""
+ },
+ {
+  "name": "update: same version called a downgrade",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "compareVersions(version, current) < 0) throw fail(\"downgrade\"",
+  "new": "compareVersions(version, current) <= 0) throw fail(\"downgrade\""
+ },
+ {
+  "name": "update: offer signature not re-checked",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (!signedBy(r.keys, offer.manifestBytes, offer.signature))",
+  "new": "if (false)"
+ },
+ {
+  "name": "update: download limit is not the manifest size",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "/${manifest.file}`, manifest.size);",
+  "new": "/${manifest.file}`, r.maxBinaryBytes);"
+ },
+ {
+  "name": "update: binary size not compared (EXPECTED EQUIVALENT: the hash covers it)",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (binary.length !== manifest.size) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "update: binary hash not compared",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (sha256(binary) !== manifest.sha256) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "update: execute permission not set",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (process.platform !== \"win32\") chmodSync(file, 0o755);",
+  "new": ""
+ },
+ {
+  "name": "update: damaged earlier copy not removed",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "    rmSync(target, { recursive: true, force: true }); // a damaged earlier copy",
+  "new": ""
+ },
+ {
+  "name": "update: self-test not run",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "await r.selfTest(info.binary, version);",
+  "new": ""
+ },
+ {
+  "name": "update: failed install not undone",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (placed) rmSync(target, { recursive: true, force: true });",
+  "new": ""
+ },
+ {
+  "name": "update: version not made current",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "    activate(r.root, version, r.platform);\n  } catch (e) {\n    undo();",
+  "new": "  } catch (e) {\n    undo();"
+ },
+ {
+  "name": "update: weak trusted key accepted",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (isWeak(k)) throw fail(",
+  "new": "if (false) throw fail("
+ },
+ {
+  "name": "update: credentials in base address accepted",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "url.username !== \"\" || url.password !== \"\"",
+  "new": "false"
+ },
+ {
+  "name": "update: base address host not checked",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (!config.allowedHosts.some((h) => h.toLowerCase() === url.hostname.toLowerCase()))",
+  "new": "if (false)"
+ },
+ {
+  "name": "update: base address host is case-sensitive",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "h.toLowerCase() === url.hostname.toLowerCase()",
+  "new": "h === url.hostname"
+ },
+ {
+  "name": "update: trailing slashes kept",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "config.baseUrl.replace(/\\/+$/, \"\")",
+  "new": "config.baseUrl"
+ },
+ {
+  "name": "update: damaged current.json blocks updates",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "  } catch {\n    return null;\n  }\n}\n\n/** The installed engine of",
+  "new": "  } catch (e) {\n    throw e;\n  }\n}\n\n/** The installed engine of"
+ },
+ {
+  "name": "manifest: manifestVersion not checked",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (o[\"manifestVersion\"] !== 1)",
+  "new": "if (false)"
+ },
+ {
+  "name": "manifest: size 0 allowed",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "size < 1 || size > maxBinaryBytes",
+  "new": "size < 0 || size > maxBinaryBytes"
+ },
+ {
+  "name": "manifest: size over the limit by one allowed",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "size < 1 || size > maxBinaryBytes",
+  "new": "size < 1 || size > maxBinaryBytes + 1"
+ },
+ {
+  "name": "manifest: protocol 0 allowed",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "protocol < 1) throw fail(\"manifest\"",
+  "new": "protocol < 0) throw fail(\"manifest\""
+ },
+ {
+  "name": "manifest: platform not checked",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (o[\"platform\"] !== platform)",
+  "new": "if (false)"
+ },
+ {
+  "name": "manifest: arch not checked",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (o[\"arch\"] !== arch)",
+  "new": "if (false)"
+ },
+ {
+  "name": "manifest: file name not checked",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (o[\"file\"] !== file)",
+  "new": "if (false)"
+ },
+ {
+  "name": "manifest: unknown fields allowed",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (!(FIELDS as readonly string[]).includes(k)) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "manifest: missing fields allowed",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (!Object.hasOwn(o, k)) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "manifest: hash form not checked",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": " || !SHA256.test(hash)",
+  "new": ""
+ },
+ {
+  "name": "manifest: upper-case hash accepted",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "const SHA256 = /^[0-9a-f]{64}$/;",
+  "new": "const SHA256 = /^[0-9a-fA-F]{64}$/;"
+ },
+ {
+  "name": "manifest: version not checked",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "if (!isValidVersion(version))",
+  "new": "if (false)"
+ },
+ {
+  "name": "manifest: invalid UTF-8 tolerated (EXPECTED EQUIVALENT: JSON.parse then fails with the same error kind)",
+  "file": "packages/sidecar/src/updater.ts",
+  "old": "{ fatal: true }",
+  "new": "{ fatal: false }"
+ }
+]

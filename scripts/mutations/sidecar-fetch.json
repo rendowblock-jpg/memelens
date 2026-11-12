@@ -1,0 +1,158 @@
+[
+ {
+  "name": "fetch: credentials check removed",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "url.username !== \"\" || url.password !== \"\"",
+  "new": "false"
+ },
+ {
+  "name": "fetch: password-only address allowed",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": " || url.password !== \"\"",
+  "new": ""
+ },
+ {
+  "name": "fetch: loopback flag ignored",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "options.allowInsecureLoopback === true && LOOPBACK.has(url.hostname)",
+  "new": "LOOPBACK.has(url.hostname)"
+ },
+ {
+  "name": "fetch: loopback flag lets any host use http",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "options.allowInsecureLoopback === true && LOOPBACK.has(url.hostname)",
+  "new": "options.allowInsecureLoopback === true"
+ },
+ {
+  "name": "fetch: http always allowed",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "url.protocol !== \"https:\" && !(loopback && url.protocol === \"http:\")",
+  "new": "false"
+ },
+ {
+  "name": "fetch: any scheme on the loopback",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "!(loopback && url.protocol === \"http:\")",
+  "new": "!loopback"
+ },
+ {
+  "name": "fetch: host list not checked",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "if (!options.allowedHosts.some((h) => h.toLowerCase() === host)) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "fetch: host list is case-sensitive",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "h.toLowerCase() === host",
+  "new": "h === host"
+ },
+ {
+  "name": "fetch: host matched by suffix",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "h.toLowerCase() === host",
+  "new": "host.endsWith(h.toLowerCase())"
+ },
+ {
+  "name": "fetch: redirects followed by the library",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "redirect: \"manual\"",
+  "new": "redirect: \"follow\""
+ },
+ {
+  "name": "fetch: one redirect too many allowed",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "if (hop >= maxRedirects)",
+  "new": "if (hop > maxRedirects)"
+ },
+ {
+  "name": "fetch: 301 not a redirect",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "new Set([301, 302, 303, 307, 308])",
+  "new": "new Set([302, 303, 307, 308])"
+ },
+ {
+  "name": "fetch: 308 not a redirect",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "new Set([301, 302, 303, 307, 308])",
+  "new": "new Set([301, 302, 303, 307])"
+ },
+ {
+  "name": "fetch: any 2xx accepted",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "if (res.status !== 200) {",
+  "new": "if (res.status < 200 || res.status >= 300) {"
+ },
+ {
+  "name": "fetch: declared length at the limit refused",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "Number(declared) > options.maxBytes",
+  "new": "Number(declared) >= options.maxBytes"
+ },
+ {
+  "name": "fetch: declared length ignored",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "if (declared !== null && Number(declared) > options.maxBytes) {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "fetch: body at the limit refused",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "if (total > options.maxBytes) {",
+  "new": "if (total >= options.maxBytes) {"
+ },
+ {
+  "name": "fetch: body size never checked",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "if (total > options.maxBytes) {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "fetch: limit 0 allowed",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "if (!Number.isSafeInteger(v) || v < 1)",
+  "new": "if (!Number.isSafeInteger(v) || v < 0)"
+ },
+ {
+  "name": "fetch: fractional limit allowed",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "if (!Number.isSafeInteger(v) || v < 1) throw",
+  "new": "if (v < 1) throw"
+ },
+ {
+  "name": "fetch: redirect count 0 refused",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "maxRedirects < 0",
+  "new": "maxRedirects < 1"
+ },
+ {
+  "name": "fetch: empty Location followed",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "location === null || location === \"\"",
+  "new": "location === null"
+ },
+ {
+  "name": "fetch: empty answer is an error",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "if (res.body === null) return new Uint8Array(0);",
+  "new": "if (res.body === null) throw new FetchError(\"network\", \"no body\");"
+ },
+ {
+  "name": "fetch: chunks dropped",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "chunks.push(step.value);",
+  "new": ""
+ },
+ {
+  "name": "fetch: only the first address is checked",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "      checkUrl(url, options);\n      let res: Response;",
+  "new": "      if (hop === 0) checkUrl(url, options);\n      let res: Response;"
+ },
+ {
+  "name": "fetch: timeout reported as network (EXPECTED EQUIVALENT: the deadline race decides first)",
+  "file": "packages/sidecar/src/fetch.ts",
+  "old": "throw new FetchError(timedOut ? \"timeout\" : \"network\", timedOut ? `no complete answer within ${timeoutMs} ms` : `cannot reach",
+  "new": "throw new FetchError(\"network\", `cannot reach"
+ }
+]
