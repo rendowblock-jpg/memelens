@@ -86,28 +86,59 @@ jobs:
       - name: Run the INSTALLED app and look at it (no --no-sandbox)
         timeout-minutes: 5
         run: node scripts/check-packaged.mjs --exe "$env:EXE" --db "$env:RUNNER_TEMP\check.sqlite" --out "$env:RUNNER_TEMP\shots"
-      - name: Uninstall
+      # The next four steps were one step. Runs 43218046784 and 43222454513 sat in it for 20+ minutes and ignored both a
+      # cancel and the step's own time limit, with nothing in the log we could read. Four small steps, each with a limit
+      # and timestamps, tell us which command stalls.
+      - name: Before uninstall - what is running
         if: always()
-        # A step without a limit once sat for 20 minutes in msiexec (run 43218046784). Now it waits at most 3 minutes
-        # itself and says what it saw; the step limit is a second net so the artifact step below always gets to run.
-        timeout-minutes: 8
+        timeout-minutes: 2
         shell: pwsh
         run: |
-          Get-Process MemeLens -ErrorAction SilentlyContinue | Stop-Process -Force
+          function Say($m) { "{0:HH:mm:ss.fff} {1}" -f (Get-Date), $m }
+          Say "image $env:ImageOS $env:ImageVersion"
+          Say ("free memory (MB): " + [int]((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1024))
+          Say ("Windows Installer service: " + (Get-Service msiserver).Status)
+          Say ("pending reboot flag: " + (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending'))
+          Get-Process | Where-Object { $_.Name -match 'MemeLens|msiexec|crashpad|WerFault|TrustedInstaller' } | Select-Object Id, Name, StartTime | Format-Table -AutoSize | Out-String -Width 200
+          Say "done"
+      - name: Stop the app
+        if: always()
+        timeout-minutes: 2
+        shell: pwsh
+        run: |
+          function Say($m) { "{0:HH:mm:ss.fff} {1}" -f (Get-Date), $m }
+          $k = Start-Process taskkill.exe -ArgumentList '/F', '/T', '/IM', 'MemeLens.exe' -PassThru -NoNewWindow
+          if (-not $k.WaitForExit(30000)) { Say "taskkill did not return within 30 s"; Stop-Process -Id $k.Id -Force -ErrorAction SilentlyContinue; throw "taskkill stalled" }
+          Say "taskkill exit code $($k.ExitCode) (128 = no such process, which is fine)"
+          Start-Sleep -Seconds 2
+          $left = @(Get-Process MemeLens -ErrorAction SilentlyContinue)
+          Say "MemeLens processes left: $($left.Count)"
+          if ($left.Count -gt 0) { $left | Select-Object Id, StartTime | Format-Table -AutoSize | Out-String -Width 200; throw "the app is still running" }
+      - name: Uninstall
+        if: always()
+        timeout-minutes: 6
+        shell: pwsh
+        run: |
+          function Say($m) { "{0:HH:mm:ss.fff} {1}" -f (Get-Date), $m }
           $log = "$env:RUNNER_TEMP\uninstall.log"
+          Say "msiexec /x starts"
           $p = Start-Process msiexec.exe -ArgumentList "/x `"$env:MSI`" /qn /norestart /l*v `"$log`"" -PassThru
           $null = $p.Handle   # keep the handle so ExitCode can be read after WaitForExit
           if (-not $p.WaitForExit(180000)) {
-            "msiexec (pid $($p.Id)) did not finish within 3 minutes. Last lines of its log:"
+            Say "msiexec (pid $($p.Id)) did not finish within 3 minutes. Last lines of its log:"
             if (Test-Path $log) { Get-Content $log -Tail 40 } else { "(no log written)" }
-            "Processes that could be involved:"
             Get-Process | Where-Object { $_.Name -match 'msiexec|MemeLens|WerFault|TrustedInstaller' } | Select-Object Id, Name, StartTime | Format-Table -AutoSize | Out-String -Width 200
             Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
             throw "uninstall did not finish within 3 minutes"
           }
-          "msiexec exit code: $($p.ExitCode)"
-          if ($p.ExitCode -ne 0) { throw "uninstall failed" }
-          if ($env:EXE -and (Test-Path $env:EXE)) { throw "MemeLens.exe is still there after uninstall" }
+          Say "msiexec exit code: $($p.ExitCode)"
+          if ($p.ExitCode -ne 0) { Get-Content $log -Tail 40; throw "uninstall failed" }
+      - name: After uninstall - it is gone
+        if: always()
+        timeout-minutes: 2
+        shell: pwsh
+        run: |
+          if ($env:EXE -and (Test-Path $env:EXE)) { throw "MemeLens.exe is still there after uninstall: $env:EXE" }
           "uninstalled: $env:EXE is gone"
       - name: Keep the MSI, the pictures and the logs
         if: always()
