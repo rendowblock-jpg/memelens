@@ -176,6 +176,17 @@ is chosen by trying it on the runner, not by reading about it.
 shows the feed built from the sample fixture; the security smoke checks pass there; the owner has seen it. Anything
 less is reported as "built" or "probed", not "done". Installing on the owner's PC needs his word that turn.
 
+Packaging facts read on 12 Nov 2026 (from the npm registry and the package's own schema; nothing has been built yet):
+- electron-builder `latest` is 26.18.0 (a `v26` tag points at 26.18.1). Its schema has an `msi` target. Its options include
+  `oneClick` (default true), `perMachine` (default false, so a per-user install), `upgradeCode` (optional), shortcut
+  switches, and `additionalWixArgs` / `additionalLightArgs`, so it drives WiX. **Not verified:** that the `windows-latest`
+  runner has WiX, or that the target works with this repo's esbuild output. That is the first thing the runner must prove.
+- Pin an explicit `upgradeCode` before the first MSI is ever built. Without a stable one, a reinstall or upgrade may not
+  replace the previous version, and the "survives reinstall" test for the sidecar cannot be trusted.
+- A per-user install matches the sidecar folder under `%LOCALAPPDATA%\MemeLens`; a per-machine install would need a
+  decision about who owns that folder.
+- Nothing is written yet: no electron-builder config, no workflow file, no icon.
+
 Things only a Windows run can settle (none measured yet):
 - `resolveAppFile` was tested with POSIX paths. Add Windows cases: `..\`, drive letters, UNC paths, alternate data
   streams (`name::$DATA`), reserved names (`CON`, `NUL`), trailing dots and spaces, 8.3 short names.
