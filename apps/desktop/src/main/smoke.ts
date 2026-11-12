@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import { app } from "electron";
 import { launch } from "./app";
+import { sidecarSetup } from "./engine";
 
 // A smoke test entry: starts the real app against a real database, then looks at the page from the inside.
 // It is a separate entry point (bundled to dist/smoke.cjs) so nothing test-only sits in the shipped main.cjs.
@@ -23,6 +24,13 @@ const PROBES = `(async () => {
   r.inline = window.__inline === true ? "ran" : "blocked";
   r.notification = await Notification.requestPermission();
   r.badRequest = await window.memelens.overview({ chain: "x" });
+  const spec = { version: 1, from: 0, to: 10000000, strategy: { kind: "follow-wallets", wallets: ["alice"], latencyMs: 0, positionQuote: "1000000", takeProfitBps: 5000, stopLossBps: 2000, maxHoldMs: 3600000 }, costs: { feeBps: 30, slippageBps: 100 } };
+  r.engineStatus = await window.memelens.engineStatus({});
+  r.engineRun = await window.memelens.engineRun({ spec });
+  r.engineRunPath = await window.memelens.engineRun({ spec, path: "C:\\\\x\\\\other.sqlite" });
+  r.engineCheck = await window.memelens.engineCheck({});
+  r.engineInstall = await window.memelens.engineInstall({});
+  r.engineCancel = await window.memelens.engineCancel({});
   r.unknownToken = await window.memelens.token({ chain: "no-such-chain", token: "../../etc/passwd" });
   location.href = "https://example.com/";
   await new Promise((res) => setTimeout(res, 500));
@@ -43,6 +51,7 @@ async function run(): Promise<number> {
 
   const { window } = await launch({
     dbPath,
+    sidecar: sidecarSetup(process.env, app.getPath("home")),
     rendererRoot: join(__dirname, "renderer"),
     preloadPath: join(__dirname, "preload.cjs"),
     devTools: false,
@@ -72,7 +81,12 @@ async function run(): Promise<number> {
     { name: "the notice names the chain and warns that the data is synthetic", ok: /synthetic/i.test(page.notice) && /SYNTHETIC DATA/.test(page.notice), got: page.notice },
     { name: "the first token's panel is open with its risk gauge and a bar of 10 signals", ok: page.panel && page.gauge && page.bar === 10, got: page },
     { name: "page has no require/process/module/Buffer", ok: [probes["require"], probes["process"], probes["module"], probes["buffer"]].every((t) => t === "undefined"), got: [probes["require"], probes["process"], probes["module"], probes["buffer"]] },
-    { name: "window.memelens has exactly the 5 channels", ok: JSON.stringify(probes["api"]) === JSON.stringify(["feed", "overview", "smart", "token", "wallet"]), got: probes["api"] },
+    { name: "window.memelens has exactly the 10 channels", ok: JSON.stringify(probes["api"]) === JSON.stringify(["engineCancel", "engineCheck", "engineInstall", "engineRun", "engineStatus", "feed", "overview", "smart", "token", "wallet"]), got: probes["api"] },
+    { name: "with no engine installed the status says so, and that this build cannot update", ok: JSON.stringify(probes["engineStatus"]) === JSON.stringify({ ok: true, data: { installed: null, running: false, busy: false, problem: null, canUpdate: false, offered: null } }), got: probes["engineStatus"] },
+    { name: "a backtest without an engine says the engine is not installed", ok: JSON.stringify(probes["engineRun"]) === JSON.stringify({ ok: false, error: "the backtest engine is not installed" }), got: probes["engineRun"] },
+    { name: "the window cannot choose the database: an extra field is refused", ok: JSON.stringify(probes["engineRunPath"]) === JSON.stringify({ ok: false, error: 'engineRun: unknown field "path"' }), got: probes["engineRunPath"] },
+    { name: "update check and install say this build has no release source", ok: probes["engineCheck"]?.error === "this build is not set up to fetch engine releases" && probes["engineInstall"]?.error === "this build is not set up to fetch engine releases", got: [probes["engineCheck"], probes["engineInstall"]] },
+    { name: "cancel with nothing running is a plain no", ok: JSON.stringify(probes["engineCancel"]) === JSON.stringify({ ok: true, data: { cancelled: false } }), got: probes["engineCancel"] },
     { name: "window.open is denied", ok: probes["windowOpenDenied"] === true, got: probes["windowOpenDenied"] },
     { name: "network fetch is blocked", ok: probes["fetch"] === "blocked", got: probes["fetch"] },
     { name: "eval is blocked", ok: probes["eval"] === "blocked", got: probes["eval"] },

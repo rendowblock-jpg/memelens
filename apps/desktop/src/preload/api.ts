@@ -4,7 +4,18 @@ import type { Api, Channel } from "@memelens/service";
  * The preload script runs sandboxed and can load almost nothing, so it cannot import the channel list from the
  * service package (which pulls in the database). The list is repeated here; a test keeps the two equal.
  */
-export const PRELOAD_CHANNELS = ["overview", "feed", "token", "wallet", "smart"] as const satisfies readonly Channel[];
+export const PRELOAD_CHANNELS = [
+  "overview",
+  "feed",
+  "token",
+  "wallet",
+  "smart",
+  "engineStatus",
+  "engineRun",
+  "engineCancel",
+  "engineCheck",
+  "engineInstall",
+] as const satisfies readonly Channel[];
 
 export type Invoke = (channel: string, payload: unknown) => Promise<unknown>;
 

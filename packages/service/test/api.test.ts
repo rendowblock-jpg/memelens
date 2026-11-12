@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Store } from "@memelens/data";
-import { CHANNELS, handle } from "../src/api";
+import { CHANNELS, handle, STORE_CHANNELS } from "../src/api";
+import { ENGINE_CHANNELS } from "../src/engine-api";
 import { feed, overview, smartDetail, tokenDetail, walletDetail } from "../src/service";
 import { toWire } from "../src/wire";
 import { C, closeAll, load, scenario } from "./scenario";
@@ -24,8 +25,18 @@ function err(r: ReturnType<typeof handle>): string {
 }
 
 describe("handle: the five channels", () => {
-  it("lists exactly these channels", () => {
-    expect([...CHANNELS]).toEqual(["overview", "feed", "token", "wallet", "smart"]);
+  it("lists exactly these data channels", () => {
+    expect([...STORE_CHANNELS]).toEqual(["overview", "feed", "token", "wallet", "smart"]);
+  });
+
+  it("lists every channel the window can use: the data channels, then the engine channels, each once", () => {
+    expect([...CHANNELS]).toEqual([...STORE_CHANNELS, ...ENGINE_CHANNELS]);
+    expect(new Set(CHANNELS).size).toBe(CHANNELS.length);
+  });
+
+  it("does not answer an engine channel: those go through handleEngine", async () => {
+    const store = await load(scenario());
+    for (const channel of ENGINE_CHANNELS) expect(handle(store, channel, {}), channel).toEqual({ ok: false, error: "unknown channel" });
   });
 
   it("answers each one with the service result converted to JSON-safe data", async () => {

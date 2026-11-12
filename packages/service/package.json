@@ -5,5 +5,5 @@
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
-  "dependencies": { "@memelens/core": "*", "@memelens/data": "*" }
+  "dependencies": { "@memelens/core": "*", "@memelens/data": "*", "@memelens/sidecar": "*" }
 }

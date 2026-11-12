@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { app } from "electron";
 import { launch } from "./app";
+import { sidecarSetup } from "./engine";
 
 // Takes pictures of the real app (the real window, the real database) for looking at. A separate entry point,
 // bundled to dist/shots.cjs, so nothing here sits in the shipped main.cjs. Output: SHOTS_DIR/NN-name.png.
@@ -17,6 +18,7 @@ async function run(): Promise<number> {
   mkdirSync(DIR, { recursive: true });
   const { window } = await launch({
     dbPath,
+    sidecar: sidecarSetup(process.env, app.getPath("home")),
     rendererRoot: join(__dirname, "renderer"),
     preloadPath: join(__dirname, "preload.cjs"),
     devTools: false,

@@ -13,6 +13,10 @@ const work = process.env.SMOKE_DIR ?? join(homedir(), ".cache", "memelens-smoke"
 mkdirSync(work, { recursive: true });
 const db = join(work, "smoke.sqlite");
 for (const suffix of ["", "-wal", "-shm", "-journal"]) rmSync(db + suffix, { force: true });
+// An empty engine folder of our own, so the run does not depend on (or touch) an engine installed on this machine.
+const sidecarDir = join(work, "sidecar");
+rmSync(sidecarDir, { recursive: true, force: true });
+mkdirSync(sidecarDir, { recursive: true });
 
 execFileSync(process.execPath, [join(app, "build.mjs")], { cwd: app, stdio: "ignore" });
 execFileSync(
@@ -30,7 +34,7 @@ const [cmd, argv] = linux ? ["xvfb-run", ["-a", exe, "--no-sandbox", entry]] : [
 const result = spawnSync(cmd, argv, {
   encoding: "utf8",
   timeout: 90_000,
-  env: { ...process.env, MEMELENS_DB: db, MEMELENS_EXPECT_ROWS: String(rows), MEMELENS_EXPECT_SANDBOX: linux ? "0" : "1" },
+  env: { ...process.env, MEMELENS_DB: db, MEMELENS_SIDECAR_DIR: sidecarDir, MEMELENS_EXPECT_ROWS: String(rows), MEMELENS_EXPECT_SANDBOX: linux ? "0" : "1" },
 });
 const out = `${result.stdout ?? ""}\n${result.stderr ?? ""}`;
 const lines = out.split(/\r?\n/).filter((l) => /^(PASS|FAIL|SMOKE)/.test(l));

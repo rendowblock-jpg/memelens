@@ -640,6 +640,69 @@ describe("stopping an engine", () => {
   });
 });
 
+describe("the chain", () => {
+  it("is the manager's own unless the run names another", async () => {
+    const h = harness();
+    await h.manager.runBacktest(SPEC);
+    await h.manager.runBacktest(SPEC, { chain: "base" });
+    await h.manager.runBacktest(SPEC, {});
+    expect(h.engines[0]!.calls.map((c) => (c.data as { chain: string }).chain)).toEqual(["solana", "base", "solana"]);
+  });
+});
+
+describe("stopIfIdle", () => {
+  it("says the files are free when no engine was ever started, and starts nothing", async () => {
+    const h = harness();
+    expect(await h.manager.stopIfIdle()).toBe(true);
+    expect(h.started).toEqual([]);
+  });
+  it("stops an idle engine, says the files are free, and the next run starts a fresh one", async () => {
+    const h = harness();
+    await h.manager.runBacktest(SPEC);
+    expect(await h.manager.stopIfIdle()).toBe(true);
+    expect(h.engines[0]!.closed).toBe(1);
+    expect(h.manager.status().running).toBe(false);
+    await h.manager.runBacktest(SPEC);
+    expect(h.started).toHaveLength(2);
+  });
+  it("leaves a running backtest alone and says the files are not free", async () => {
+    const h = harness();
+    await h.manager.runBacktest(SPEC);
+    const held = h.engines[0]!.hold();
+    const run = h.manager.runBacktest(SPEC);
+    await tick();
+    expect(await h.manager.stopIfIdle()).toBe(false);
+    expect(h.engines[0]!.closed).toBe(0);
+    expect(h.engines[0]!.killed).toBe(0);
+    expect(h.manager.status()).toMatchObject({ running: true, busy: true });
+    held.resolve(REPORT);
+    expect(await run).toBe(REPORT);
+  });
+  it("kills an idle engine that will not close, and still says the files are free", async () => {
+    const h = harness();
+    await h.manager.runBacktest(SPEC);
+    h.engines[0]!.close = async () => {
+      throw new Error("stuck");
+    };
+    expect(await h.manager.stopIfIdle()).toBe(true);
+    expect(h.engines[0]!.killed).toBe(1);
+  });
+  it("cancels the idle timer, so the engine is not stopped a second time", async () => {
+    const h = harness();
+    await h.manager.runBacktest(SPEC);
+    await h.manager.stopIfIdle();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(h.engines[0]!.closed).toBe(1);
+  });
+  it("is safe after shutdown", async () => {
+    const h = harness();
+    await h.manager.runBacktest(SPEC);
+    await h.manager.shutdown();
+    expect(await h.manager.stopIfIdle()).toBe(true);
+    expect(h.engines[0]!.closed).toBe(1);
+  });
+});
+
 describe("the engine's log", () => {
   it("is passed to the app's log, marked as coming from the engine", async () => {
     const h = harness();

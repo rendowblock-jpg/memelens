@@ -8,6 +8,7 @@
     "@memelens/core": "*",
     "@memelens/data": "*",
     "@memelens/service": "*",
+    "@memelens/sidecar": "*",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  activate, binaryName, currentPlatform, installPointer, isValidVersion, LayoutError, listInstalled, readPointer, resolveCurrent, rollback, sidecarRoot, verifyInstalled,
+  activate, binaryName, currentPlatform, installPointer, isValidVersion, LayoutError, listInstalled, readPointer, resolveCurrent, resolveSidecarRoot, rollback, SIDECAR_DIR_ENV, sidecarRoot, verifyInstalled,
   type PointerOps, type Platform,
 } from "../src/layout";
 
@@ -345,5 +345,42 @@ describe("more layout rules", () => {
     const root = tmp();
     for (const v of ["2.0.0", "1.10.0", "1.9.0", "1.0.0-rc.1", "1.0.0", "0.10.0", "0.9.0", "10.0.0"]) install(root, v);
     expect(listInstalled(root)).toEqual(["0.9.0", "0.10.0", "1.0.0-rc.1", "1.0.0", "1.9.0", "1.10.0", "2.0.0", "10.0.0"]);
+  });
+});
+
+describe("resolveSidecarRoot", () => {
+  const WIN = { LOCALAPPDATA: "C:\\Users\\DMR\\AppData\\Local" };
+  it("is the ordinary folder when the override is not set, or empty", () => {
+    expect(SIDECAR_DIR_ENV).toBe("MEMELENS_SIDECAR_DIR");
+    expect(resolveSidecarRoot("win32", WIN, "C:\\Users\\DMR")).toBe(sidecarRoot("win32", WIN, "C:\\Users\\DMR"));
+    expect(resolveSidecarRoot("win32", { ...WIN, MEMELENS_SIDECAR_DIR: "" }, "C:\\Users\\DMR")).toBe(sidecarRoot("win32", WIN, "C:\\Users\\DMR"));
+    expect(resolveSidecarRoot("linux", {}, "/home/d")).toBe(sidecarRoot("linux", {}, "/home/d"));
+  });
+  it("uses the override, unchanged, when it is an absolute path", () => {
+    expect(resolveSidecarRoot("win32", { ...WIN, MEMELENS_SIDECAR_DIR: "D:\\engines\\memelens" }, "C:\\Users\\DMR")).toBe("D:\\engines\\memelens");
+    expect(resolveSidecarRoot("win32", { MEMELENS_SIDECAR_DIR: "D:/engines/x" }, "C:\\Users\\DMR")).toBe("D:/engines/x"); // no LOCALAPPDATA needed
+    expect(resolveSidecarRoot("win32", { MEMELENS_SIDECAR_DIR: "\\\\server\\share\\engines" }, "C:\\Users\\DMR")).toBe("\\\\server\\share\\engines");
+    expect(resolveSidecarRoot("linux", { MEMELENS_SIDECAR_DIR: "/opt/engines" }, "/home/d")).toBe("/opt/engines");
+    expect(resolveSidecarRoot("darwin", { MEMELENS_SIDECAR_DIR: "/opt/engines" }, "/Users/d")).toBe("/opt/engines");
+  });
+  it("refuses an override that is not absolute, instead of ignoring it", () => {
+    for (const bad of ["engines", "./engines", "..\\engines", "~/engines", "C:engines", "\\engines", "/engines", " D:\\x"]) {
+      expect(() => resolveSidecarRoot("win32", { ...WIN, MEMELENS_SIDECAR_DIR: bad }, "C:\\Users\\DMR"), bad).toThrow(LayoutError);
+    }
+    for (const bad of ["engines", "./engines", "../engines", "~/engines", "C:\\engines", " /opt/x"]) {
+      expect(() => resolveSidecarRoot("linux", { MEMELENS_SIDECAR_DIR: bad }, "/home/d"), bad).toThrow(LayoutError);
+    }
+  });
+  it("refuses '..' segments and NUL characters in an override", () => {
+    for (const bad of ["D:\\a\\..\\b", "D:/a/../b", "D:\\a\\..", "D:\\a\u0000b"]) {
+      expect(() => resolveSidecarRoot("win32", { MEMELENS_SIDECAR_DIR: bad }, "C:\\Users\\DMR"), JSON.stringify(bad)).toThrow(LayoutError);
+    }
+    for (const bad of ["/a/../b", "/a/..", "/a\u0000b"]) {
+      expect(() => resolveSidecarRoot("linux", { MEMELENS_SIDECAR_DIR: bad }, "/home/d"), JSON.stringify(bad)).toThrow(LayoutError);
+    }
+    expect(resolveSidecarRoot("linux", { MEMELENS_SIDECAR_DIR: "/a/..b/c.." }, "/home/d")).toBe("/a/..b/c.."); // dots inside a name are fine
+  });
+  it("names the variable in the error", () => {
+    expect(() => resolveSidecarRoot("linux", { MEMELENS_SIDECAR_DIR: "x" }, "/home/d")).toThrow(/MEMELENS_SIDECAR_DIR/);
   });
 });

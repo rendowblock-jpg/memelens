@@ -2,7 +2,9 @@ import { statSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { app, BrowserWindow, ipcMain, protocol, screen, session } from "electron";
 import { Store } from "@memelens/data";
-import { registerIpc } from "./ipc";
+import { SidecarManager, trustedSidecarKeys } from "@memelens/sidecar";
+import { createEngineService, unavailableEngine, type SidecarSetup } from "./engine";
+import { registerEngineIpc, registerIpc } from "./ipc";
 import { APP_ORIGIN } from "./security";
 import { planResponse } from "./serve";
 import { allowNavigation, allowPermission, webPreferences, windowOpenDecision, windowSize } from "./window-policy";
@@ -16,12 +18,21 @@ export interface LaunchOptions {
   preloadPath: string;
   devTools: boolean;
   log: (line: string) => void;
+  /** Where the backtest engine lives, or why it cannot be used. The app works without an engine either way. */
+  sidecar: SidecarSetup;
+  /** Where engine releases are published. Absent until a release host exists; then the window says so instead of guessing. */
+  engineRelease?: { baseUrl: string; allowedHosts: string[] };
 }
 
 export interface Launched {
   window: BrowserWindow;
   store: Store;
+  /** Stops the engine process, if one is running. Called on quit. */
+  stopEngine(): Promise<void>;
 }
+
+// Solana first (docs/DESIGN.md); the window can name another chain per run.
+const DEFAULT_CHAIN = "solana";
 
 function describe(e: unknown): string {
   return e instanceof Error ? (e.stack ?? e.message) : String(e);
@@ -63,6 +74,38 @@ export async function launch(opts: LaunchOptions): Promise<Launched> {
 
   registerIpc(ipcMain, store, (e) => opts.log(`ipc error: ${describe(e)}`));
 
+  let stopEngine = async (): Promise<void> => {};
+  if ("root" in opts.sidecar) {
+    const root = opts.sidecar.root;
+    const manager = new SidecarManager({ root, dbPath: opts.dbPath, chain: DEFAULT_CHAIN, onLog: opts.log });
+    stopEngine = () => manager.shutdown();
+    registerEngineIpc(
+      ipcMain,
+      createEngineService({
+        manager,
+        ...(opts.engineRelease === undefined
+          ? {}
+          : { update: { config: { root, baseUrl: opts.engineRelease.baseUrl, allowedHosts: opts.engineRelease.allowedHosts, publicKeys: trustedSidecarKeys() } } }),
+        log: opts.log,
+      }),
+      (e) => opts.log(`engine ipc error: ${describe(e)}`),
+    );
+  } else {
+    opts.log(`engine unavailable: ${opts.sidecar.unavailable}`);
+    registerEngineIpc(ipcMain, unavailableEngine(opts.sidecar.unavailable), (e) => opts.log(`engine ipc error: ${describe(e)}`));
+  }
+
+  // The engine is a separate process: it must not outlive the app, and the app must not wait for it for long.
+  let quitting = false;
+  app.on("before-quit", (event) => {
+    if (quitting) return;
+    quitting = true;
+    event.preventDefault();
+    void stopEngine()
+      .catch((e: unknown) => opts.log(`engine stop failed: ${describe(e)}`))
+      .finally(() => app.quit());
+  });
+
   // Fit the usable screen (a 1366x768 laptop has about 728 rows once the taskbar is counted).
   const size = windowSize(screen.getPrimaryDisplay().workAreaSize);
   const window = new BrowserWindow({
@@ -87,5 +130,5 @@ export async function launch(opts: LaunchOptions): Promise<Launched> {
   window.once("closed", () => store.close());
 
   await window.loadURL(`${APP_ORIGIN}/index.html`);
-  return { window, store };
+  return { window, store, stopEngine: () => stopEngine() };
 }

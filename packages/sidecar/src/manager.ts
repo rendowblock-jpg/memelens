@@ -60,6 +60,8 @@ export interface EngineStatus {
 }
 
 export interface RunOptions {
+  /** Which chain's trades to read. Default: the manager's own. */
+  chain?: string;
   signal?: AbortSignal;
   onProgress?: (p: { done: number; total: number }) => void;
   timeoutMs?: number;
@@ -130,7 +132,7 @@ export class SidecarManager {
       }
       const info = await this.currentOrStop();
       const engine = await this.engineFor(info);
-      const data: BacktestData = { source: "sqlite", path: this.options.dbPath, chain: this.options.chain };
+      const data: BacktestData = { source: "sqlite", path: this.options.dbPath, chain: options.chain ?? this.options.chain };
       const run: Parameters<EngineHandle["backtest"]>[2] = {};
       if (options.timeoutMs !== undefined) run.timeoutMs = options.timeoutMs;
       if (options.onProgress !== undefined) run.onProgress = options.onProgress;
@@ -147,6 +149,17 @@ export class SidecarManager {
       this.busy = false;
       if (this.engine !== null && !this.closed) this.armIdle();
     }
+  }
+
+  /**
+   * Stops the engine if no backtest is running, and says whether the engine's files are now free to replace: true when
+   * nothing was running or an idle engine was stopped, false (and nothing stopped) while a backtest runs.
+   */
+  async stopIfIdle(): Promise<boolean> {
+    if (this.busy) return false;
+    this.clearIdle();
+    await this.stopEngine();
+    return true;
   }
 
   /** Stops the engine, including one that is still starting. Safe to call twice. */

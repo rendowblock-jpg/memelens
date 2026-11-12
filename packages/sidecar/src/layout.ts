@@ -60,6 +60,21 @@ export function sidecarRoot(platform: Platform, env: Record<string, string | und
   }
 }
 
+/** The name of the environment variable that moves the sidecar folder (for tests and for people who keep apps elsewhere). */
+export const SIDECAR_DIR_ENV = "MEMELENS_SIDECAR_DIR";
+
+/** `sidecarRoot`, unless MEMELENS_SIDECAR_DIR names another folder. That must be an absolute path without '..'; anything else is an error, never ignored. */
+export function resolveSidecarRoot(platform: Platform, env: Record<string, string | undefined>, home: string): string {
+  const override = env[SIDECAR_DIR_ENV];
+  if (override === undefined || override === "") return sidecarRoot(platform, env, home);
+  // A drive letter or a share on Windows ("\\rooted" and "C:relative" are not absolute enough); a slash elsewhere.
+  const absolute = platform === "win32" ? /^([A-Za-z]:[\\/]|\\\\)/.test(override) : override.startsWith("/");
+  if (!absolute || override.includes("\0") || override.split(/[\\/]+/).includes("..")) {
+    throw new LayoutError(`${SIDECAR_DIR_ENV} must be an absolute path without '..' segments`);
+  }
+  return override;
+}
+
 // Semantic version without build metadata. Because a version names a folder, nothing else may pass: no path
 // separators, no dots in odd places, no spaces, and a length limit.
 const NUM = "(?:0|[1-9][0-9]*)";

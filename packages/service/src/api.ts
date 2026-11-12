@@ -1,4 +1,6 @@
 import type { Store } from "@memelens/data";
+import { isPlainObject, TEXT } from "./checks";
+import { ENGINE_CHANNELS, type EngineRequests, type EngineResponses } from "./engine-api";
 import {
   feed,
   overview,
@@ -14,11 +16,15 @@ import {
 } from "./service";
 import { toWire, type Wire } from "./wire";
 
-/** Every message the app window can send to the main process. */
-export const CHANNELS = ["overview", "feed", "token", "wallet", "smart"] as const;
+/** The messages answered from the database. */
+export const STORE_CHANNELS = ["overview", "feed", "token", "wallet", "smart"] as const;
+export type StoreChannel = (typeof STORE_CHANNELS)[number];
+
+/** Every message the app window can send to the main process: the data channels, then the engine channels. */
+export const CHANNELS = [...STORE_CHANNELS, ...ENGINE_CHANNELS] as const;
 export type Channel = (typeof CHANNELS)[number];
 
-export interface ApiRequests {
+export interface ApiRequests extends EngineRequests {
   overview: Record<string, never>;
   feed: { chain: string; asOf?: number };
   token: { chain: string; token: string; asOf?: number };
@@ -26,7 +32,7 @@ export interface ApiRequests {
   smart: { chain: string; from: number; to: number; minClosed?: number };
 }
 
-export interface ApiResponses {
+export interface ApiResponses extends EngineResponses {
   overview: Wire<Overview>;
   feed: Wire<Feed>;
   /** null when the token is unknown or did not exist yet at the as-of time. */
@@ -43,16 +49,16 @@ export type Api = { [C in Channel]: (request: ApiRequests[C]) => Promise<Reply<C
 export type ErrorSink = (error: unknown) => void;
 
 /**
- * Handles one message from the window. The window is not trusted: the channel and payload are checked, and this
+ * Handles one data message from the window (the engine's messages go through `handleEngine`). The window is not trusted: the channel and payload are checked, and this
  * function never throws. Expected problems come back as `{ ok: false, error }` with a readable message;
  * anything unexpected comes back as "internal error" (the details go to `onError`, not to the window).
  */
-export function handle(store: Store, channel: unknown, payload: unknown, onError?: ErrorSink): Reply {
+export function handle(store: Store, channel: unknown, payload: unknown, onError?: ErrorSink): Reply<StoreChannel> {
   try {
-    if (typeof channel !== "string" || !(CHANNELS as readonly string[]).includes(channel)) {
+    if (typeof channel !== "string" || !(STORE_CHANNELS as readonly string[]).includes(channel)) {
       throw new BadRequest("unknown channel");
     }
-    const ch = channel as Channel;
+    const ch = channel as StoreChannel;
     const v = check(ch, payload);
     const text = (name: string): string => v[name] as string;
     const time = (name: string): number | undefined => v[name] as number | undefined;
@@ -81,7 +87,7 @@ export function handle(store: Store, channel: unknown, payload: unknown, onError
         break;
       }
     }
-    return { ok: true, data: toWire(data) as ApiResponses[Channel] };
+    return { ok: true, data: toWire(data) as ApiResponses[StoreChannel] };
   } catch (e) {
     if (e instanceof BadRequest || e instanceof ServiceError) return { ok: false, error: e.message };
     try {
@@ -106,16 +112,13 @@ interface Field {
 const text = (required = true): Field => ({ kind: "text", required });
 const time = (required = false): Field => ({ kind: "time", required });
 
-const FIELDS: Record<Channel, Record<string, Field>> = {
+const FIELDS: Record<StoreChannel, Record<string, Field>> = {
   overview: {},
   feed: { chain: text(), asOf: time() },
   token: { chain: text(), token: text(), asOf: time() },
   wallet: { chain: text(), wallet: text(), asOf: time() },
   smart: { chain: text(), from: time(true), to: time(true), minClosed: { kind: "count", required: false } },
 };
-
-// Addresses and chain ids never contain spaces or control characters.
-const TEXT = /^[^\s\u0000-\u001f\u007f]{1,200}$/u;
 
 const MESSAGE: Record<Kind, string> = {
   text: "must be text of 1 to 200 characters with no spaces",
@@ -129,14 +132,8 @@ function valid(kind: Kind, value: unknown): boolean {
   return kind === "time" ? value >= 0 : value >= 1;
 }
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
-  const proto = Object.getPrototypeOf(value);
-  return proto === Object.prototype || proto === null;
-}
-
 /** Returns the checked fields of the payload; throws BadRequest naming the first problem. */
-function check(channel: Channel, payload: unknown): Record<string, unknown> {
+function check(channel: StoreChannel, payload: unknown): Record<string, unknown> {
   const spec = FIELDS[channel];
   if (channel === "overview" && payload === undefined) return {};
   if (!isPlainObject(payload)) {

@@ -33,6 +33,11 @@ describe("createApi", () => {
       token: { chain: "c", token: "t" },
       wallet: { chain: "c", wallet: "w" },
       smart: { chain: "c", from: 1, to: 2 },
+      engineStatus: {},
+      engineRun: { spec: { version: 1 }, chain: "c" },
+      engineCancel: {},
+      engineCheck: {},
+      engineInstall: {},
     };
     for (const name of CHANNELS) {
       const got = await (api[name] as (r: unknown) => Promise<unknown>)(requests[name]);
