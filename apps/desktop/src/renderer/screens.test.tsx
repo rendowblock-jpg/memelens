@@ -61,6 +61,10 @@ describe("SmartTable", () => {
     ]);
   });
 
+  it("uses level-2 headings under the page's level-1 title, so the outline has no gap", () => {
+    expect([...html.matchAll(/<h([1-6])[^>]*>([^<]*)<\/h\1>/g)].map((m) => `h${m[1]} ${m[2]}`)).toEqual(["h2 Ranked", "h2 Not ranked"]);
+  });
+
   it("makes each wallet a button that opens it", () => {
     expect([...html.matchAll(/<button[^>]*class="link wallet"[^>]*>([^<]*)<\/button>/g)].map((m) => m[1])).toEqual(["alice", "bob", "carol", "dave"]);
   });
@@ -108,6 +112,12 @@ describe("WalletPanel", () => {
   it("shows raw units and the address when a token is not in the feed", () => {
     const html = renderToStaticMarkup(<WalletPanel detail={wallet("dave")} quote={SOL} tokens={{}} onOpenToken={noop} />);
     expect(tableRows(html, "Positions by token")[0]!.slice(0, 5)).toEqual(["TOK5 TOK5", "500", "0", "0", "500"]);
+  });
+
+  it("says '1 trade', not '1 trades'", () => {
+    const html = renderToStaticMarkup(<WalletPanel detail={wallet("dave")} quote={SOL} tokens={META} onOpenToken={noop} />);
+    expect(plain(html)).toContain("1 trade ·");
+    expect(plain(html)).not.toContain("1 trades");
   });
 
   it("makes each token a button that opens it", () => {

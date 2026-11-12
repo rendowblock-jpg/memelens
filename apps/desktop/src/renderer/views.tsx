@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import type { ApiResponses } from "@memelens/service";
-import { formatAge, formatPercent, formatPrice, formatSignalValue, formatTime, formatUnits, shortAddress } from "./format";
+import { countOf, formatAge, formatPercent, formatPrice, formatSignalValue, formatTime, formatUnits, shortAddress } from "./format";
 import type { Quote } from "./quote";
 import { RiskBar, RiskGauge } from "./lens";
 
@@ -131,7 +131,7 @@ export function TokenPanel({ detail, quote, onOpenWallet }: { detail: TokenData;
         {info.symbol ?? shortAddress(info.token)} <code className="addr">{info.token}</code>
       </h2>
       <p className="muted">
-        Created <time>{formatTime(info.createdAt)}</time> · {formatAge(detail.asOf - info.createdAt)} old · {detail.trades} trades
+        Created <time>{formatTime(info.createdAt)}</time> · {formatAge(detail.asOf - info.createdAt)} old · {countOf(detail.trades, "trade")}{" "}
         · creator {info.creator === null ? "unknown" : <code title={info.creator}>{shortAddress(info.creator)}</code>} · mint authority{" "}
         {formatSignalValue(info.mintAuthorityActive)} · freeze authority {formatSignalValue(info.freezeAuthorityActive)}
       </p>
@@ -178,7 +178,7 @@ export function TokenPanel({ detail, quote, onOpenWallet }: { detail: TokenData;
       ) : (
         <>
           <p>
-            {concentration.value.holders} holders · snapshot {formatAge(concentration.snapshotAgeMs)} old · top 1{" "}
+            {countOf(concentration.value.holders, "holder")} · snapshot {formatAge(concentration.snapshotAgeMs)} old · top 1{" "}
             {formatPercent(concentration.value.topShare[1] ?? null)} · top 5 {formatPercent(concentration.value.topShare[5] ?? null)} · top
             10 {formatPercent(concentration.value.topShare[10] ?? null)} · top 20 {formatPercent(concentration.value.topShare[20] ?? null)} ·
             HHI {formatSignalValue(concentration.value.hhi)} · Gini {formatSignalValue(concentration.value.gini)}

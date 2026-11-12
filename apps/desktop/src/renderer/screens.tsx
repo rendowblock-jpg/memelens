@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import type { ApiResponses } from "@memelens/service";
-import { formatPercent, formatSigned, formatSignedPercent, formatTime, formatUnits, shortAddress } from "./format";
+import { countOf, formatPercent, formatSigned, formatSignedPercent, formatTime, formatUnits, shortAddress } from "./format";
 import type { Quote } from "./quote";
 
 // Presentational screens: data in, markup out. Same rule as views.tsx: a malformed number throws FormatError.
@@ -49,7 +49,7 @@ export function SmartTable({
 }): ReactElement {
   return (
     <div className="smart">
-      <h3>Ranked</h3>
+      <h2>Ranked</h2>
       {report.ranked.length === 0 ? (
         <p className="muted">Nobody is ranked in this window.</p>
       ) : (
@@ -94,7 +94,7 @@ export function SmartTable({
 
       {report.unranked.length === 0 ? null : (
         <>
-          <h3>Not ranked</h3>
+          <h2>Not ranked</h2>
           <table className="smart-unranked" aria-label="Not ranked">
             <thead>
               <tr>
@@ -143,7 +143,7 @@ export function WalletPanel({
   return (
     <section className="wallet-panel" aria-label="Wallet detail" data-wallet={detail.wallet}>
       <h2><code className="addr">{detail.wallet}</code></h2>
-      <p className="muted">{detail.trades} trades · as of <time>{formatTime(detail.asOf)}</time></p>
+      <p className="muted">{countOf(detail.trades, "trade")} · as of <time>{formatTime(detail.asOf)}</time></p>
 
       {detail.pnl.tokens.length === 0 ? (
         <p className="muted">No trades at or before this time.</p>

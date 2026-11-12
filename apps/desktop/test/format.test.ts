@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FormatError, formatAge, formatPercent, formatPrice, formatSignalValue, formatTime, formatUnits, shortAddress, formatSigned, formatSignedPercent } from "../src/renderer/format";
+import { FormatError, formatAge, formatPercent, formatPrice, formatSignalValue, formatTime, formatUnits, shortAddress, formatSigned, formatSignedPercent, countOf } from "../src/renderer/format";
 
 // Expected values were worked out by hand and cross-checked with Python's decimal module (round half up),
 // not with the code under test.
@@ -273,5 +273,24 @@ describe("formatSignedPercent", () => {
     expect(formatSignedPercent(null)).toBe("—");
     expect(() => formatSignedPercent(Number.NaN)).toThrow(FormatError);
     expect(() => formatSignedPercent(Number.POSITIVE_INFINITY)).toThrow(FormatError);
+  });
+});
+
+describe("countOf", () => {
+  it("uses the singular for exactly one and the plural for everything else, zero included", () => {
+    expect(countOf(1, "trade")).toBe("1 trade");
+    expect(countOf(0, "trade")).toBe("0 trades");
+    expect(countOf(2, "trade")).toBe("2 trades");
+    expect(countOf(1234, "trade")).toBe("1,234 trades");
+  });
+  it("takes an irregular plural", () => {
+    expect(countOf(1, "holder")).toBe("1 holder");
+    expect(countOf(3, "person", "people")).toBe("3 people");
+    expect(countOf(1, "person", "people")).toBe("1 person");
+  });
+  it("refuses a count that is not a whole number, 0 or more", () => {
+    expect(() => countOf(-1, "trade")).toThrow(FormatError);
+    expect(() => countOf(1.5, "trade")).toThrow(FormatError);
+    expect(() => countOf(Number.NaN, "trade")).toThrow(FormatError);
   });
 });

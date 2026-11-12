@@ -112,14 +112,14 @@ export function App({ api }: { api: Api }): ReactElement {
       <Rail current={route.screen} onGo={go} />
       <div className="main">
         <header className="topbar">
-          <h1>
+          <div className="crumbs">
             {route.screen === "wallet" ? (
               <button type="button" className="back" onClick={() => go(route.back)}>
                 ← {route.back === "smart" ? "Smart money" : "Token feed"}
               </button>
             ) : null}
-            {title}
-          </h1>
+            <h1>{title}</h1>
+          </div>
           {chains.length > 1 ? (
             <label className="chain-pick">
               Chain

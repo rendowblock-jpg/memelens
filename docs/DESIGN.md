@@ -257,7 +257,7 @@ Score 30 tokens that rugged against 30 that did not, and report the hit rate for
 
 ## Milestones (order set 12 Nov 2026)
 
-1. **M3c** screens: feed, token page, risk panel, wallet page (M3a service and M3b Electron shell are done)
+1. **M3c** screens: feed, token panel with risk lens, smart-money ranking, wallet panel - **done on the host** (see "The screens"); not yet seen on Windows
 2. **W** Windows packaging: MSI from CI, run on Windows, seen by the owner (L3)
 3. **S** sidecar: the slot (manager, protocol, versioned folder, update check) and the Go backtest engine, with conformance vectors
 4. **C** calibration gate: 30 rugged vs 30 not, numbers into the weights table above
@@ -266,7 +266,8 @@ Score 30 tokens that rugged against 30 that did not, and report the hit rate for
 7. **M6** backtest report UI
 
 Done earlier: M0 design and concentration, M1a PnL, M1b risk, M1c smart money, M2 storage, ReplayAdapter, ingest, CLI,
-M3a service layer, M3b Electron main, preload and security, M3c-1 formatting, M3c-2 first presentational components.
+M3a service layer, M3b Electron main, preload and security, M3c-1 formatting, M3c-2 first presentational components,
+M3c-3 the screens.
 
 ## Open questions
 
@@ -279,7 +280,26 @@ M3a service layer, M3b Electron main, preload and security, M3c-1 formatting, M3
 - Chain: Solana first. EVM later, through another adapter.
 - LLM: any OpenAI-compatible endpoint; the user configures it.
 
-## Status (12 Nov 2026, repo HEAD b71a4b9 before this change)
+## The screens (M3c)
+
+Three screens behind a left rail: **Feed** (token table plus a detail panel for the selected token), **Smart money**
+(ranked wallets with a window choice of 24 hours, 7 days, 30 days or all data) and **Wallet** (opened by clicking any
+wallet address; totals plus a positions table). The look is a dark instrument panel. Rules the design follows:
+- **Dashed means "not measured".** An unmeasured risk signal is drawn as an empty dashed bar, the "unknown" level badge is
+  dashed, and the score gauge draws no score at all when the level is unknown. Missing data is never drawn as a safe zero.
+- **Two rings on the gauge:** the thick ring is the score, the thin outer ring is how much of the total weight was measured.
+- **The risk bar** has one bar per signal: width is its weight, height is how worrying it is.
+- **Colour is never the only signal.** Every level is also a word, gains and losses carry + and -.
+- **Everything on screen is text the user can select;** nothing in the SVG is text. No inline style and no script, so it
+  runs under the strict CSP.
+- Structure: `controller.ts` (what to ask for; every outcome becomes a value, nothing throws), `model.ts` (bar geometry,
+  gauge arc, smart-money window), `views.tsx`, `lens.tsx`, `screens.tsx` (presentational, tested with hand-computed
+  values), `App.tsx` (state only, glue, not unit tested).
+- Tooling for looking at it, none of it shipped: `scripts/smoke-desktop.sh` (real app, 14 checks), `scripts/shots-desktop.sh`
+  (real app, one PNG per screen listed in `scripts/shots-steps.json`), `scripts/preview-build.ts` (the built renderer with
+  the real handler's answers, for browser inspection tools).
+
+## Status (12 Nov 2026, repo HEAD 6ed69dc before the follow-up fixes)
 
 Public repo: https://github.com/rendowblock-jpg/memelens, `main` pushed at b4b58a8; an unauthenticated API call returned
 `private: false`. Before the push the full history was scanned: no keys, tokens, key files or Solana-key-shaped strings.
@@ -287,8 +307,14 @@ One old commit (5adebe4) contains a test-run output file with absolute build-hos
 place rather than rewrite history. No licence file yet, so by default nobody may reuse the code (see Open questions).
 No sidecar repo exists yet.
 
-Measured this turn: `vitest run` 607 tests in 23 files, exit 0; `tsc --noEmit` exit 0 for `packages/core`,
-`packages/data`, `packages/service` and `apps/desktop`.
+Measured at the end of M3c-3: `vitest run` 675 tests in 26 files, exit 0; `tsc --noEmit` exit 0 for `packages/core`,
+`packages/data`, `packages/service`, `apps/desktop` and the renderer project; real-app smoke 14/14, exit 0.
+Browser-tool measurements of the built renderer at 1360x860, 1024-wide and 900x600 (the minimum window): no overflow,
+cut-off text, overlap or covered controls; all text 12 px or larger; link targets 24 px; no contrast failures reported.
+Two layout bugs were found that way and fixed: the page grew to its content (1475 px in an 860 px window) because the
+grid rows were not fixed, and headings skipped from h1 to h3.
+**Not seen by a person yet.** I opened screenshots through the sandbox relay and received only a file description, not
+pixels, so no statement here is about how the design *looks*; it is about measured numbers. The owner has not seen it.
 
 Run the CLI: `npm run memelens -- ingest packages/data/fixtures/sample.json --db demo.sqlite`, then
 `npm run memelens -- smart --db demo.sqlite`. Exit codes: 0 done, 1 could not be done, 2 command written wrongly,
@@ -298,6 +324,9 @@ Known gaps (not hidden):
 - Everything is verified on synthetic data. Nothing has touched real chain data.
 - Risk weights and thresholds are provisional (see calibration). Only 6 of 10 signals have a data source.
 - Not run on Windows. The Electron sandbox has not run for real. No MSI, no sidecar, no Solana adapter, no agent chat.
+- The app has no way to load data yet: a user with an empty database sees instructions to run the command line. The live
+  adapter (M4) is what fixes that.
+- No keyboard navigation inside the feed beyond tabbing to each row's button.
 - `feed` runs several queries per token; the cost with thousands of tokens is unmeasured.
 - Two store mutation survivors are accepted: dropping `, id` from the ascending `ORDER BY time, id` in
   `Store.tradesForWallet` and `Store.tradesForToken`. They looked equivalent on this SQLite build (primary-key scan

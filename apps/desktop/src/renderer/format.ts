@@ -63,6 +63,12 @@ export function formatSigned(raw: string, decimals: number, maxFraction = 4): st
   return text === "0" || text.startsWith("-") ? text : `+${text}`;
 }
 
+/** "1 trade", "0 trades", "12 trades": the count with its noun in the right number. */
+export function countOf(n: number, singular: string, plural: string = `${singular}s`): string {
+  if (!Number.isSafeInteger(n) || n < 0) throw new FormatError("a count must be a whole number, 0 or more");
+  return `${group(String(n))} ${n === 1 ? singular : plural}`;
+}
+
 /** A ratio that can be negative or above 1 (a return on cost) as a signed percentage. null prints a dash. */
 export function formatSignedPercent(ratio: number | null, digits = 1): string {
   if (ratio === null) return "—";
