@@ -4,6 +4,7 @@ import { loadFeed, loadOverview, loadSmart, loadToken, loadWallet, MIN_CLOSED_TO
 import { formatTime } from "./format";
 import type { SmartSpan } from "./model";
 import { quoteFor } from "./quote";
+import { BacktestScreen } from "./BacktestScreen";
 import { Rail, SmartTable, WalletPanel, type Screen, type TokenMetaMap } from "./screens";
 import { DataNotice, FeedTable, TokenPanel } from "./views";
 
@@ -64,6 +65,7 @@ function Status<T>({ value, what, children }: { value: Async<T>; what: string; c
 type Route =
   | { screen: "feed"; token: string | null }
   | { screen: "smart" }
+  | { screen: "backtest" }
   | { screen: "wallet"; wallet: string; back: "feed" | "smart" };
 
 const SPANS: readonly { span: SmartSpan; label: string }[] = [
@@ -105,9 +107,9 @@ export function App({ api }: { api: Api }): ReactElement {
 
   const openWallet = (address: string): void => setRoute({ screen: "wallet", wallet: address, back: route.screen === "smart" ? "smart" : "feed" });
   const openToken = (t: string): void => setRoute({ screen: "feed", token: t });
-  const go = (screen: Exclude<Screen, "wallet">): void => setRoute(screen === "feed" ? { screen: "feed", token: null } : { screen: "smart" });
+  const go = (screen: Exclude<Screen, "wallet">): void => setRoute(screen === "feed" ? { screen: "feed", token: null } : screen === "smart" ? { screen: "smart" } : { screen: "backtest" });
 
-  const title = route.screen === "feed" ? "Token feed" : route.screen === "smart" ? "Smart money" : "Wallet";
+  const title = route.screen === "feed" ? "Token feed" : route.screen === "smart" ? "Smart money" : route.screen === "backtest" ? "Backtest" : "Wallet";
 
   return (
     <div className="app">
@@ -148,7 +150,7 @@ export function App({ api }: { api: Api }): ReactElement {
                 <p className="muted">The database is empty. Until live data arrives, load a recorded file with the command line:</p>
                 <pre>npm run memelens -- ingest packages/data/fixtures/sample.json --db &lt;your database&gt;</pre>
               </div>
-            ) : route.screen === "feed" ? (
+            ) : route.screen === "backtest" ? null : route.screen === "feed" ? (
               <div className="split">
                 <div className="pane list">
                   <Status value={feed} what="the token feed">
@@ -199,6 +201,14 @@ export function App({ api }: { api: Api }): ReactElement {
               </div>
             )}
           </Boundary>
+          {/* Always mounted once there is data, only hidden elsewhere: a backtest can take a while, and leaving the tab must not lose it. */}
+          {chain !== null && latest !== null ? (
+            <div className="single" hidden={route.screen !== "backtest"}>
+              <Boundary resetKey={chain}>
+                <BacktestScreen key={chain} api={api} chain={chain} latest={latest} quote={quote} />
+              </Boundary>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

@@ -12,12 +12,12 @@ export interface TokenMeta {
   decimals: number;
 }
 export type TokenMetaMap = Readonly<Record<string, TokenMeta>>;
-export type Screen = "feed" | "smart" | "wallet";
+export type Screen = "feed" | "smart" | "backtest" | "wallet";
 
 const DASH = "—";
 
 /** A signed money amount with its unit, with a class so gains and losses can be coloured (the sign is the real signal). */
-function Money({ raw, quote }: { raw: string; quote: Quote }): ReactElement {
+export function Money({ raw, quote }: { raw: string; quote: Quote }): ReactElement {
   const text = formatSigned(raw, quote.decimals);
   const tone = text.startsWith("+") ? "gain" : text.startsWith("-") ? "loss" : "flat";
   return <span className={`money ${tone}`}>{`${text} ${quote.symbol}`}</span>;
@@ -221,12 +221,14 @@ export function Brand(): ReactElement {
 const ICONS: Record<Screen, ReactElement> = {
   feed: <path d="M4 6h16M4 12h16M4 18h10" />,
   smart: <path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z" />,
+  backtest: <path d="M4 4v16h16M7 15l4-5 3 3 5-7" />,
   wallet: <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H19v4H6.5M4 7.5V17a2 2 0 0 0 2 2h13V9H6.5M16 14h1" />,
 };
 
 const ITEMS: readonly { screen: Screen; label: string }[] = [
   { screen: "feed", label: "Feed" },
   { screen: "smart", label: "Smart money" },
+  { screen: "backtest", label: "Backtest" },
   { screen: "wallet", label: "Wallet" },
 ];
 

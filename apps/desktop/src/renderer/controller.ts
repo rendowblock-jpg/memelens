@@ -1,4 +1,5 @@
 import type { Api, ApiRequests, ApiResponses, Channel } from "@memelens/service";
+import type { BacktestSpec } from "@memelens/sidecar";
 import { FormatError } from "./format";
 import { smartWindow, type SmartSpan } from "./model";
 
@@ -54,3 +55,17 @@ export async function loadSmart(api: Api, chain: string, latest: number, span: S
   }
   return call(api, "smart", { chain, ...window, minClosed: MIN_CLOSED_TOKENS });
 }
+
+// ---------------------------------------------------------------------------------------------------------- the engine
+// The window can name a strategy (and a chain); it cannot name a file. The same call() turns every outcome into a value.
+
+export const loadEngineStatus = (api: Api): Promise<Loaded<ApiResponses["engineStatus"]>> => call(api, "engineStatus", {});
+
+export const runEngineBacktest = (api: Api, spec: BacktestSpec, chain?: string): Promise<Loaded<ApiResponses["engineRun"]>> =>
+  call(api, "engineRun", chain === undefined ? { spec } : { spec, chain });
+
+export const cancelEngineBacktest = (api: Api): Promise<Loaded<ApiResponses["engineCancel"]>> => call(api, "engineCancel", {});
+
+export const checkEngineUpdate = (api: Api): Promise<Loaded<ApiResponses["engineCheck"]>> => call(api, "engineCheck", {});
+
+export const installEngineUpdate = (api: Api): Promise<Loaded<ApiResponses["engineInstall"]>> => call(api, "engineInstall", {});

@@ -98,7 +98,7 @@ describe("describeEngineError", () => {
   it("names the field the engine refused, but only when it looks like a field path", () => {
     expect(describeEngineError(new SidecarError("remote", "invalid", -32602, { path: "$.strategy.stopLossBps" }))).toBe("the engine refused the request at $.strategy.stopLossBps");
     expect(describeEngineError(new SidecarError("remote", "invalid", -32602, { path: "$.strategy.wallets[1]" }))).toBe("the engine refused the request at $.strategy.wallets[1]");
-    for (const data of [undefined, null, {}, { path: 5 }, { path: "" }, { path: "C:\\Users\\DMR\\x" }, { path: "a b" }, { path: "x".repeat(101) }, { path: "$.a\nb" }]) {
+    for (const data of [undefined, null, {}, { path: 5 }, { path: "" }, { path: "C:\\Users\\DMR\\x" }, { path: "a/b" }, { path: "a\\b" }, { path: "a:b" }, { path: "a-b" }, { path: "a b" }, { path: "x".repeat(101) }, { path: "$.a\nb" }]) {
       expect(describeEngineError(new SidecarError("remote", "invalid", -32602, data)), JSON.stringify(data)).toBe("the engine refused the request");
     }
   });

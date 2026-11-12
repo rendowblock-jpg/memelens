@@ -142,15 +142,21 @@ describe("WalletPanel", () => {
 
 describe("Rail", () => {
   const items = (html: string): string[] => [...html.matchAll(/<button[^>]*>.*?<span class="rail-label">([^<]*)<\/span>/gs)].map((m) => m[1]!);
-  it("shows the two places, and marks the current one for assistive technology", () => {
+  it("shows the three places, and marks the current one for assistive technology", () => {
     const html = renderToStaticMarkup(<Rail current="feed" onGo={noop} />);
-    expect(items(html)).toEqual(["Feed", "Smart money"]);
+    expect(items(html)).toEqual(["Feed", "Smart money", "Backtest"]);
     expect([...html.matchAll(/aria-current="page"/g)]).toHaveLength(1);
     expect(/<button[^>]*aria-current="page"[^>]*>.*?Feed/s.test(html)).toBe(true);
   });
+  it("marks the Backtest item when that screen is open", () => {
+    const html = renderToStaticMarkup(<Rail current="backtest" onGo={noop} />);
+    expect([...html.matchAll(/aria-current="page"/g)]).toHaveLength(1);
+    expect(/<button[^>]*aria-current="page"[^>]*>.*?Backtest/s.test(html)).toBe(true);
+    expect(items(html)).toEqual(["Feed", "Smart money", "Backtest"]);
+  });
   it("adds a Wallet item only while a wallet is open", () => {
     const html = renderToStaticMarkup(<Rail current="wallet" onGo={noop} />);
-    expect(items(html)).toEqual(["Feed", "Smart money", "Wallet"]);
+    expect(items(html)).toEqual(["Feed", "Smart money", "Backtest", "Wallet"]);
     expect(/<[a-z]+[^>]*aria-current="page"[^>]*>.*?Wallet/s.test(html)).toBe(true);
     expect([...html.matchAll(/aria-current="page"/g)]).toHaveLength(1);
   });

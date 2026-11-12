@@ -38,6 +38,25 @@ const PROBES = `(async () => {
   return JSON.stringify(r);
 })()`;
 
+// Presses the Backtest rail button and reads what the screen says. Runs before PROBES, which ends by navigating away.
+const OPEN_BACKTEST = `(async () => {
+  const rail = [...document.querySelectorAll("nav.rail button")].find((b) => b.textContent.trim() === "Backtest");
+  if (!rail) return JSON.stringify({ railButton: false });
+  rail.click();
+  // The screen is mounted (hidden) from the start, so wait for the click's effect, not for the element: the title changes.
+  for (let i = 0; i < 100 && (document.querySelector("h1") || {}).textContent !== "Backtest"; i++) await new Promise((r) => setTimeout(r, 50));
+  const screen = document.querySelector(".bt");
+  const run = [...document.querySelectorAll("form.bt-form button")].find((b) => b.textContent.trim() === "Run backtest");
+  return JSON.stringify({
+    railButton: true,
+    title: (document.querySelector("h1") || {}).textContent || "",
+    visible: Boolean(screen) && !screen.closest("[hidden]"),
+    state: (document.querySelector("[data-testid=engine-state]") || {}).textContent || null,
+    runDisabled: run ? run.disabled : null,
+    text: screen ? screen.textContent : "",
+  });
+})()`;
+
 interface Check {
   name: string;
   ok: boolean;
@@ -70,6 +89,8 @@ async function run(): Promise<number> {
       bar: document.querySelectorAll("section.token-panel svg[aria-label^='Risk by signal'] .seg-track").length,
     })`)) as string,
   ) as { rows: number; notice: string; panel: boolean; gauge: boolean; bar: number };
+  // The Backtest screen, opened by pressing its rail button, with no engine installed (the smoke script gives the app an empty engine folder).
+  const backtest = JSON.parse((await contents.executeJavaScript(OPEN_BACKTEST)) as string) as Record<string, any>;
   const probes = JSON.parse((await contents.executeJavaScript(PROBES)) as string) as Record<string, any>;
 
   // Present at run time in Electron 45 but missing from its typings; if it ever goes away this throws and the smoke fails.
@@ -98,6 +119,9 @@ async function run(): Promise<number> {
     ...(process.env["MEMELENS_EXPECT_SANDBOX"] === "1"
       ? [{ name: "the app was started without --no-sandbox", ok: !app.commandLine.hasSwitch("no-sandbox"), got: app.commandLine.hasSwitch("no-sandbox") }]
       : []),
+    { name: "the Backtest rail button opens a screen titled Backtest", ok: backtest["railButton"] === true && backtest["title"] === "Backtest" && backtest["visible"] === true, got: backtest },
+    { name: "the Backtest screen says no engine is installed and cannot update", ok: backtest["state"] === "No engine is installed" && /This build has no source for engine updates yet/.test(backtest["text"]), got: backtest["state"] },
+    { name: "the Run backtest button is off and says why", ok: backtest["runDisabled"] === true && /No engine is installed, so a backtest cannot run\./.test(backtest["text"]), got: backtest["runDisabled"] },
     { name: "navigating away is blocked: still on app://memelens", ok: probes["origin"] === "app://memelens", got: probes["origin"] },
   ];
 

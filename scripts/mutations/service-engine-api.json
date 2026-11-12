@@ -1,0 +1,248 @@
+[
+ {
+  "name": "channels: engineInstall missing",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "\"engineCheck\", \"engineInstall\"] as const",
+  "new": "\"engineCheck\"] as const"
+ },
+ {
+  "name": "channels: order changed",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "[\"engineStatus\", \"engineRun\", \"engineCancel\",",
+  "new": "[\"engineRun\", \"engineStatus\", \"engineCancel\","
+ },
+ {
+  "name": "channel: membership not checked (EXPECTED EQUIVALENT: the no-payload list below also refuses an unknown name)",
+  "file": "packages/service/src/engine-api.ts",
+  "old": " || !(ENGINE_CHANNELS as readonly string[]).includes(channel)",
+  "new": ""
+ },
+ {
+  "name": "channel: non-text not refused first (EXPECTED EQUIVALENT: includes() is false for anything that is not one of the names)",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "typeof channel !== \"string\" || ",
+  "new": ""
+ },
+ {
+  "name": "channel: unknown channel message changed",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "throw new BadRequest(\"unknown channel\");\n    const ch",
+  "new": "throw new BadRequest(\"nope\");\n    const ch"
+ },
+ {
+  "name": "run: engineRun treated like the others",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "if (ch === \"engineRun\") {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "payload: undefined refused",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "payload === undefined || (isPlainObject",
+  "new": "(isPlainObject"
+ },
+ {
+  "name": "payload: non-objects accepted",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "(isPlainObject(payload) && Object.keys(payload).length === 0)",
+  "new": "(Object.keys(Object(payload)).length === 0)"
+ },
+ {
+  "name": "payload: a non-empty object accepted",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "isPlainObject(payload) && Object.keys(payload).length === 0",
+  "new": "isPlainObject(payload)"
+ },
+ {
+  "name": "payload: refusal message changed",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "`${ch}: takes no payload`",
+  "new": "`${ch}: no`"
+ },
+ {
+  "name": "payload: the list of no-payload channels is not checked (EXPECTED EQUIVALENT: the membership check above already refuses a stranger)",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "if (!NO_PAYLOAD.includes(ch)) throw new BadRequest(\"unknown channel\");",
+  "new": ""
+ },
+ {
+  "name": "payload: list of no-payload channels loses engineCancel",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "[\"engineStatus\", \"engineCancel\", \"engineCheck\", \"engineInstall\"];",
+  "new": "[\"engineStatus\", \"engineCheck\", \"engineInstall\"];"
+ },
+ {
+  "name": "run: payload shape not checked",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "if (!isPlainObject(payload)) throw new BadRequest(\"engineRun: payload must be an object\");",
+  "new": ""
+ },
+ {
+  "name": "run: unknown fields allowed",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "const unknown = Object.keys(payload).filter((k) => !RUN_FIELDS.includes(k));",
+  "new": "const unknown: string[] = [];"
+ },
+ {
+  "name": "run: chain not a known field",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "const RUN_FIELDS = [\"spec\", \"chain\"];",
+  "new": "const RUN_FIELDS = [\"spec\"];"
+ },
+ {
+  "name": "run: spec not a known field",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "const RUN_FIELDS = [\"spec\", \"chain\"];",
+  "new": "const RUN_FIELDS = [\"chain\"];"
+ },
+ {
+  "name": "run: one unknown field called plural",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "unknown.length > 1 ?",
+  "new": "true ?"
+ },
+ {
+  "name": "run: two unknown fields called singular",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "unknown.length > 1 ?",
+  "new": "false ?"
+ },
+ {
+  "name": "run: names of the unknown fields not listed",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "unknown.map((k) => JSON.stringify(k)).join(\", \")",
+  "new": "unknown.join(\", \")"
+ },
+ {
+  "name": "run: missing spec accepted",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "if (spec === undefined) throw new BadRequest(\"engineRun: spec is required\");",
+  "new": ""
+ },
+ {
+  "name": "run: spec of the wrong kind accepted",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "if (!isPlainObject(spec)) throw new BadRequest(\"engineRun: spec must be an object\");",
+  "new": ""
+ },
+ {
+  "name": "run: no chain refused",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "if (chain === undefined) return { spec };",
+  "new": ""
+ },
+ {
+  "name": "run: chain that is not text accepted",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "typeof chain !== \"string\" || !TEXT.test(chain)",
+  "new": "!TEXT.test(chain as string)"
+ },
+ {
+  "name": "run: chain pattern not applied",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "typeof chain !== \"string\" || !TEXT.test(chain)",
+  "new": "typeof chain !== \"string\""
+ },
+ {
+  "name": "run: chain dropped",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "return { spec, chain };",
+  "new": "return { spec };"
+ },
+ {
+  "name": "run: chain always passed on",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "request.chain === undefined ? {} : { chain: request.chain }",
+  "new": "{ chain: request.chain }"
+ },
+ {
+  "name": "run: chain never passed on",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "request.chain === undefined ? {} : { chain: request.chain }",
+  "new": "{}"
+ },
+ {
+  "name": "answer: status taken from cancel",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "data = engine.status();",
+  "new": "data = engine.cancel();"
+ },
+ {
+  "name": "answer: cancel always true",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "data = { cancelled: engine.cancel() };",
+  "new": "data = { cancelled: (engine.cancel(), true) };"
+ },
+ {
+  "name": "answer: cancel never called",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "data = { cancelled: engine.cancel() };",
+  "new": "data = { cancelled: false };"
+ },
+ {
+  "name": "answer: check not awaited",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "data = await engine.check();",
+  "new": "data = engine.check();"
+ },
+ {
+  "name": "answer: install not awaited",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "data = await engine.install();",
+  "new": "data = engine.install();"
+ },
+ {
+  "name": "answer: run not awaited",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "data = await engine.run(",
+  "new": "data = engine.run("
+ },
+ {
+  "name": "answer: not converted to plain data",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "data: toWire(data) as",
+  "new": "data: (data as never) as"
+ },
+ {
+  "name": "error: a user error shown as internal",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "e instanceof BadRequest || e instanceof EngineUserError",
+  "new": "e instanceof BadRequest"
+ },
+ {
+  "name": "error: a bad request shown as internal",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "e instanceof BadRequest || e instanceof EngineUserError",
+  "new": "e instanceof EngineUserError"
+ },
+ {
+  "name": "error: the message of a user error replaced",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "return { ok: false, error: e.message };",
+  "new": "return { ok: false, error: \"error\" };"
+ },
+ {
+  "name": "error: the sink is not told",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "      onError?.(e);\n",
+  "new": ""
+ },
+ {
+  "name": "error: a broken sink escapes",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "    try {\n      onError?.(e);\n    } catch {\n      // A broken sink must not turn into a thrown error in the main process.\n    }",
+  "new": "    onError?.(e);"
+ },
+ {
+  "name": "error: internal error message changed",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "return { ok: false, error: \"internal error\" };",
+  "new": "return { ok: false, error: \"oops\" };"
+ },
+ {
+  "name": "error: internal error shows the message",
+  "file": "packages/service/src/engine-api.ts",
+  "old": "return { ok: false, error: \"internal error\" };",
+  "new": "return { ok: false, error: String((e as Error)?.message) };"
+ }
+]

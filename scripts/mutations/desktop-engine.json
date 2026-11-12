@@ -1,0 +1,536 @@
+[
+ {
+  "name": "sentence: \"the app is closing\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"the app is closing\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"a backtest is already running\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"a backtest is already running\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"the backtest engine is not installed\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"the backtest engine is not installed\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"the installed engine failed its integrity check; install it again\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"the installed engine failed its integrity check; install it again\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"the engine could not be started\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"the engine could not be started\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"the backtest was cancelled\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"the backtest was cancelled\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"the backtest took too long and was stopped\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"the backtest took too long and was stopped\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"the engine could not read the trade database\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"the engine could not read the trade database\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"the backtest needs more memory than the engine may use; try a shor...\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"the backtest needs more memory than the engine may use; try a shorter period or fewer wallets\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"the engine reported an error\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"the engine reported an error\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"the engine stopped unexpectedly\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"the engine stopped unexpectedly\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: NO_SOURCE",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return NO_SOURCE;",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"could not download the engine; check the connection and try again\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"could not download the engine; check the connection and try again\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"the engine release is not signed by a trusted key; nothing was ins...\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"the engine release is not signed by a trusted key; nothing was installed\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"the engine release information is not valid; nothing was installed\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"the engine release information is not valid; nothing was installed\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"that engine release is older than the installed one; nothing was i...\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"that engine release is older than the installed one; nothing was installed\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"the new engine failed its self-test; nothing was installed\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"the new engine failed its self-test; nothing was installed\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: \"the engine could not be installed; the previous one is unchanged\"",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return \"the engine could not be installed; the previous one is unchanged\"",
+  "new": "return \"x\""
+ },
+ {
+  "name": "sentence: NO_SOURCE",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "const NO_SOURCE = \"this build is not set up to fetch engine releases\";",
+  "new": "const NO_SOURCE = \"x\";"
+ },
+ {
+  "name": "sentence: UPDATING",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "const UPDATING = \"the engine is being updated; try again in a moment\";",
+  "new": "const UPDATING = \"x\";"
+ },
+ {
+  "name": "sentence: BUSY_INSTALL",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "const BUSY_INSTALL = \"a backtest is running; wait for it to finish, then install\";",
+  "new": "const BUSY_INSTALL = \"x\";"
+ },
+ {
+  "name": "describe: error code -32002 changed",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "e.code === -32002",
+  "new": "e.code === -32001"
+ },
+ {
+  "name": "describe: error code -32003 changed",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "e.code === -32003",
+  "new": "e.code === -32004"
+ },
+ {
+  "name": "describe: error code -32602 changed",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "e.code === -32602",
+  "new": "e.code === -32601"
+ },
+ {
+  "name": "describe: field path not checked as text",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "typeof path === \"string\" && FIELD_PATH.test(path)",
+  "new": "FIELD_PATH.test(path as string)"
+ },
+ {
+  "name": "describe: field path pattern not applied",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "typeof path === \"string\" && FIELD_PATH.test(path)",
+  "new": "typeof path === \"string\""
+ },
+ {
+  "name": "describe: field path may be 101 characters",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "{1,100}$/;",
+  "new": "{1,101}$/;"
+ },
+ {
+  "name": "describe: field path may be empty",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "{1,100}$/;",
+  "new": "{0,100}$/;"
+ },
+ {
+  "name": "describe: field path may hold a slash",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "[A-Za-z0-9_$.[\\]]{1,100}",
+  "new": "[A-Za-z0-9_$.[\\]/]{1,100}"
+ },
+ {
+  "name": "describe: field path may hold a backslash",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "[A-Za-z0-9_$.[\\]]{1,100}",
+  "new": "[A-Za-z0-9_$.[\\]\\\\]{1,100}"
+ },
+ {
+  "name": "describe: field path may hold a colon",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "[A-Za-z0-9_$.[\\]]{1,100}",
+  "new": "[A-Za-z0-9_$.[\\]:]{1,100}"
+ },
+ {
+  "name": "describe: field path may hold a hyphen",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "[A-Za-z0-9_$.[\\]]{1,100}",
+  "new": "[A-Za-z0-9_$.[\\]-]{1,100}"
+ },
+ {
+  "name": "describe: field path loses the dollar sign",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "[A-Za-z0-9_$.[\\]]{1,100}",
+  "new": "[A-Za-z0-9_.[\\]]{1,100}"
+ },
+ {
+  "name": "describe: field path loses the dot",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "[A-Za-z0-9_$.[\\]]{1,100}",
+  "new": "[A-Za-z0-9_$[\\]]{1,100}"
+ },
+ {
+  "name": "describe: field path loses the brackets",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "[A-Za-z0-9_$.[\\]]{1,100}",
+  "new": "[A-Za-z0-9_$.]{1,100}"
+ },
+ {
+  "name": "describe: pattern not anchored at the start",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "/^[A-Za-z0-9_$.[\\]]",
+  "new": "/[A-Za-z0-9_$.[\\]]"
+ },
+ {
+  "name": "describe: pattern not anchored at the end",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "{1,100}$/;",
+  "new": "{1,100}/;"
+ },
+ {
+  "name": "describe: the engine's data may be missing",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "(e.data as { path?: unknown } | null | undefined)?.path",
+  "new": "(e.data as { path?: unknown }).path"
+ },
+ {
+  "name": "describe: a damaged install reuses the not-installed sentence",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "case \"damaged\":\n        return \"the installed engine failed its integrity check; install it again\";",
+  "new": "case \"damaged\":\n        return \"the backtest engine is not installed\";"
+ },
+ {
+  "name": "describe: invalid spec message hidden",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return e.message; // names only a field of the request",
+  "new": "return \"the request is invalid\";"
+ },
+ {
+  "name": "status: cannot update always",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "canUpdate: update !== undefined",
+  "new": "canUpdate: true"
+ },
+ {
+  "name": "status: cannot update never",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "canUpdate: update !== undefined",
+  "new": "canUpdate: false"
+ },
+ {
+  "name": "status: no offer shown",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "offered: offer?.manifest.engineVersion ?? null",
+  "new": "offered: null"
+ },
+ {
+  "name": "status: problem dropped",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "problem: s.problem, canUpdate",
+  "new": "problem: null, canUpdate"
+ },
+ {
+  "name": "status: installed dropped",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return { installed: s.installed, running",
+  "new": "return { installed: null, running"
+ },
+ {
+  "name": "status: running dropped",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "running: s.running, busy",
+  "new": "running: false, busy"
+ },
+ {
+  "name": "status: busy dropped",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "busy: s.busy, problem",
+  "new": "busy: false, problem"
+ },
+ {
+  "name": "run: allowed while updating",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "      if (installing) throw new EngineUserError(UPDATING);\n      if (running !== null) throw new EngineUserError(\"a backtest is already running\");",
+  "new": "      if (running !== null) throw new EngineUserError(\"a backtest is already running\");"
+ },
+ {
+  "name": "run: a second run allowed",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "if (running !== null) throw new EngineUserError(\"a backtest is already running\");",
+  "new": ""
+ },
+ {
+  "name": "run: second-run message changed",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "throw new EngineUserError(\"a backtest is already running\");",
+  "new": "throw new EngineUserError(\"x\");"
+ },
+ {
+  "name": "run: the run is not remembered (cancel cannot find it)",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "      running = controller;\n",
+  "new": ""
+ },
+ {
+  "name": "run: abort signal not passed on",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "signal: controller.signal });",
+  "new": "});"
+ },
+ {
+  "name": "run: chain always passed",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "{ ...(options.chain === undefined ? {} : { chain: options.chain }), signal",
+  "new": "{ chain: options.chain, signal"
+ },
+ {
+  "name": "run: chain never passed",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "{ ...(options.chain === undefined ? {} : { chain: options.chain }), signal",
+  "new": "{ signal"
+ },
+ {
+  "name": "run: not freed after the run",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "      } finally {\n        running = null;\n      }",
+  "new": "      } finally {\n      }"
+ },
+ {
+  "name": "run: errors not made readable",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return readable(e, \"run\");",
+  "new": "throw e;"
+ },
+ {
+  "name": "cancel: nothing running not handled",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "if (running === null || running.signal.aborted) return false;",
+  "new": "if (running!.signal.aborted) return false;"
+ },
+ {
+  "name": "cancel: a second cancel says yes",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "if (running === null || running.signal.aborted) return false;",
+  "new": "if (running === null) return false;"
+ },
+ {
+  "name": "cancel: the run is not aborted",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "      running.abort();\n",
+  "new": ""
+ },
+ {
+  "name": "cancel: always no",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "      running.abort();\n      return true;",
+  "new": "      running.abort();\n      return false;"
+ },
+ {
+  "name": "check: allowed without a release source",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "if (update === undefined) throw new EngineUserError(NO_SOURCE);\n      let result",
+  "new": "let result"
+ },
+ {
+  "name": "check: offer not remembered",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "        offer = result.offer;\n",
+  "new": ""
+ },
+ {
+  "name": "check: offer not forgotten",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "      offer = null;\n      return result.kind",
+  "new": "      return result.kind"
+ },
+ {
+  "name": "check: version of the offer wrong",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return { kind: \"available\", version: result.offer.manifest.engineVersion };",
+  "new": "return { kind: \"available\", version: \"0.0.0\" };"
+ },
+ {
+  "name": "check: up-to-date and older swapped",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "result.kind === \"up-to-date\" ?",
+  "new": "result.kind === \"older\" ?"
+ },
+ {
+  "name": "check: failure not made readable",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return readable(e, \"update check\");",
+  "new": "throw e;"
+ },
+ {
+  "name": "install: allowed without a release source",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "if (update === undefined) throw new EngineUserError(NO_SOURCE);\n      if (installing)",
+  "new": "if (installing)"
+ },
+ {
+  "name": "install: two at once",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "      if (installing) throw new EngineUserError(UPDATING);\n      if (offer === null)",
+  "new": "      if (offer === null)"
+ },
+ {
+  "name": "install: no offer needed",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "if (offer === null) throw new EngineUserError(\"check for an update first\");",
+  "new": ""
+ },
+ {
+  "name": "install: allowed while a backtest runs",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "if (running !== null) throw new EngineUserError(BUSY_INSTALL);\n      installing = true;",
+  "new": "installing = true;"
+ },
+ {
+  "name": "install: lock never taken",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "      installing = true;\n",
+  "new": ""
+ },
+ {
+  "name": "install: lock never released",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "      } finally {\n        installing = false;\n      }",
+  "new": "      } finally {\n      }"
+ },
+ {
+  "name": "install: idle engine not stopped first",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "if (!(await manager.stopIfIdle())) throw new EngineUserError(BUSY_INSTALL);",
+  "new": ""
+ },
+ {
+  "name": "install: a busy engine does not stop the install",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "if (!(await manager.stopIfIdle())) throw new EngineUserError(BUSY_INSTALL);",
+  "new": "await manager.stopIfIdle();"
+ },
+ {
+  "name": "install: the offer is kept after installing",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "        offer = null;\n        return { version: info.version };",
+  "new": "        return { version: info.version };"
+ },
+ {
+  "name": "install: wrong version reported",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return { version: info.version };",
+  "new": "return { version: \"0.0.0\" };"
+ },
+ {
+  "name": "install: failure not made readable",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "return readable(e, \"install\");",
+  "new": "throw e;"
+ },
+ {
+  "name": "readable: every error made readable",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "if (message === null) throw e;",
+  "new": ""
+ },
+ {
+  "name": "readable: nothing logged",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "    log(`engine ${what} failed: ${e instanceof Error ? e.message : String(e)}`);\n",
+  "new": ""
+ },
+ {
+  "name": "readable: the log line loses the original message",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "${e instanceof Error ? e.message : String(e)}`);",
+  "new": "${what}`);"
+ },
+ {
+  "name": "readable: log line for a non-Error (EXPECTED EQUIVALENT: every recognised error is an Error)",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "e instanceof Error ? e.message : String(e)}`);",
+  "new": "String(e)}`);"
+ },
+ {
+  "name": "readable: the readable error is a plain Error",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "throw new EngineUserError(message);",
+  "new": "throw new Error(message);"
+ },
+ {
+  "name": "setup: layout errors not caught",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "if (e instanceof LayoutError) return { unavailable: e.message };",
+  "new": ""
+ },
+ {
+  "name": "setup: every error swallowed",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "    if (e instanceof LayoutError) return { unavailable: e.message };\n    throw e;",
+  "new": "    return { unavailable: \"x\" };"
+ },
+ {
+  "name": "setup: the platform ignored",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "platform ?? currentPlatform()",
+  "new": "\"linux\""
+ },
+ {
+  "name": "unavailable: reason hidden in the status",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "problem: reason, canUpdate: false",
+  "new": "problem: null, canUpdate: false"
+ },
+ {
+  "name": "unavailable: can update",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "problem: reason, canUpdate: false",
+  "new": "problem: reason, canUpdate: true"
+ },
+ {
+  "name": "unavailable: refusal without the reason",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "`the backtest engine is unavailable: ${reason}`",
+  "new": "\"the backtest engine is unavailable\""
+ },
+ {
+  "name": "unavailable: cancel says yes",
+  "file": "apps/desktop/src/main/engine.ts",
+  "old": "cancel: () => false,\n    check: refuse",
+  "new": "cancel: () => true,\n    check: refuse"
+ }
+]

@@ -3,7 +3,8 @@
 // through the screens, checks what is on them and saves a screenshot of each.
 // usage: node scripts/check-packaged.mjs --exe PATH --db PATH --out DIR [--rows N] [--no-sandbox]
 import { spawn, spawnSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const arg = (name, fallback) => {
@@ -43,8 +44,10 @@ const check = (name, ok, got) => {
   console.log(`${ok ? "PASS" : "FAIL"}  ${name}${ok ? "" : `  (got ${JSON.stringify(got)})`}`);
 };
 
+// The app gets its own empty engine folder, so what the Backtest screen says does not depend on the machine running this.
+const sidecarDir = mkdtempSync(join(tmpdir(), "memelens-sidecar-"));
 const child = spawn(exe, [`--remote-debugging-port=${port}`, ...(process.argv.includes("--no-sandbox") ? ["--no-sandbox"] : [])], {
-  env: { ...process.env, MEMELENS_DB: db },
+  env: { ...process.env, MEMELENS_DB: db, MEMELENS_SIDECAR_DIR: sidecarDir },
   stdio: ["ignore", "pipe", "pipe"],
 });
 let log = "";
@@ -130,7 +133,11 @@ try {
   check("the page runs on app://memelens", facts.origin === "app://memelens", facts.origin);
   check("the window title is MemeLens", facts.title === "MemeLens", facts.title);
   check("the page has no require/process/module/Buffer", [facts.req, facts.proc, facts.mod, facts.buf].every((t) => t === "undefined"), facts);
-  check("window.memelens has exactly the 5 channels", JSON.stringify(facts.api) === JSON.stringify(["feed", "overview", "smart", "token", "wallet"]), facts.api);
+  check(
+    "window.memelens has exactly the 10 channels",
+    JSON.stringify(facts.api) === JSON.stringify(["engineCancel", "engineCheck", "engineInstall", "engineRun", "engineStatus", "feed", "overview", "smart", "token", "wallet"]),
+    facts.api,
+  );
 
   const probes = JSON.parse(
     await evaluate(`(async () => {
@@ -162,6 +169,23 @@ try {
   const wallet = await text(".wallet-panel");
   check("alice's wallet page shows realised +0.005 SOL and 10 trades", /Realised\s*\+0\.005 SOL/.test(wallet) && /10 trades/.test(wallet), wallet.slice(0, 160));
   await shot("3-wallet-alice");
+
+  // The Backtest screen, with no engine installed: it says so, and the Run button is off with the reason beside it.
+  await evaluate(`[...document.querySelectorAll(".rail-item")].find((b) => b.textContent.includes("Backtest")).click()`);
+  await until(() => evaluate(`document.querySelector("h1").textContent === "Backtest"`), "the Backtest screen to open", 10_000);
+  const bt = JSON.parse(
+    await evaluate(`JSON.stringify({
+      state: (document.querySelector("[data-testid=engine-state]") || {}).textContent || null,
+      runDisabled: (([...document.querySelectorAll("form.bt-form button")].find((b) => b.textContent.trim() === "Run backtest")) || {}).disabled,
+      text: (document.querySelector(".bt") || {}).textContent || "",
+    })`),
+  );
+  check(
+    "the Backtest screen says no engine is installed, and its Run button is off with the reason",
+    bt.state === "No engine is installed" && bt.runDisabled === true && /No engine is installed, so a backtest cannot run\./.test(bt.text),
+    bt,
+  );
+  await shot("4-backtest");
 } catch (e) {
   failed = true;
   console.log(`FAIL  the check itself could not finish: ${e.message}`);

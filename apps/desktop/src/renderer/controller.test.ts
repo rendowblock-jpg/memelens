@@ -2,8 +2,11 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import { ReplayAdapter, Store, ingest, parseFixture } from "@memelens/data";
-import { CHANNELS, handle, type Api } from "@memelens/service";
-import { loadFeed, loadOverview, loadSmart, loadToken, loadWallet, MIN_CLOSED_TOKENS, pickChain } from "./controller";
+import { EngineUserError, handle, handleEngine, STORE_CHANNELS, ENGINE_CHANNELS, type Api, type EngineService } from "@memelens/service";
+import type { BacktestReport } from "@memelens/sidecar";
+import { buildSpec, DEFAULT_FORM } from "./backtest";
+import { cancelEngineBacktest, checkEngineUpdate, installEngineUpdate, loadEngineStatus, loadFeed, loadOverview, loadSmart, loadToken, loadWallet, MIN_CLOSED_TOKENS, pickChain, runEngineBacktest } from "./controller";
+import { quoteFor } from "./quote";
 
 // The api below is the real handler over the real pipeline (fixture -> store), as the window sees it through the
 // preload script. Expected values come from the fixture by hand (see views.test.tsx for the same data).
@@ -17,10 +20,32 @@ const LATEST = 1_700_020_700_000;
 
 function realApi(seen: { channel: string; request: unknown }[] = []): Api {
   const api: Record<string, (request: unknown) => Promise<unknown>> = {};
-  for (const channel of CHANNELS) {
+  for (const channel of STORE_CHANNELS) {
     api[channel] = async (request) => {
       seen.push({ channel, request });
       return handle(store, channel, request);
+    };
+  }
+  return api as unknown as Api;
+}
+
+const REPORT = { engineVersion: "1.0.0", specHash: "h", dataAsOf: null, positions: [], summary: {} } as unknown as BacktestReport;
+
+/** The real engine handler (validation, error sentences) over a fake engine, as the window sees it through the preload script. */
+function engineApi(over: Partial<EngineService> = {}, seen: { channel: string; request: unknown }[] = []): Api {
+  const engine: EngineService = {
+    status: () => ({ installed: "1.0.0", running: false, busy: false, problem: null, canUpdate: true, offered: null }),
+    run: async () => REPORT,
+    cancel: () => true,
+    check: async () => ({ kind: "available", version: "1.1.0" }),
+    install: async () => ({ version: "1.1.0" }),
+    ...over,
+  };
+  const api: Record<string, (request: unknown) => Promise<unknown>> = {};
+  for (const channel of ENGINE_CHANNELS) {
+    api[channel] = async (request) => {
+      seen.push({ channel, request });
+      return handleEngine(engine, channel, request);
     };
   }
   return api as unknown as Api;
@@ -126,5 +151,68 @@ describe("a broken api never makes a loader throw", () => {
   });
   it("an error reply without a text message becomes 'request failed'", async () => {
     expect(await loadFeed(odd, "c")).toEqual({ state: "error", message: "request failed" });
+  });
+});
+
+describe("the engine channels through the real handler", () => {
+  const SPEC_FORM = { ...DEFAULT_FORM, wallets: "alice bob" };
+  const built = (() => {
+    const r = buildSpec(SPEC_FORM, LATEST, quoteFor("solana"));
+    if (!r.ok) throw new Error("form refused");
+    return r.spec;
+  })();
+
+  it("status: the engine's state, as the window gets it", async () => {
+    expect(await loadEngineStatus(engineApi())).toEqual({ state: "ok", data: { installed: "1.0.0", running: false, busy: false, problem: null, canUpdate: true, offered: null } });
+  });
+
+  it("run: sends the spec, passes the validation of the real handler, and returns the report", async () => {
+    const seen: { channel: string; request: unknown }[] = [];
+    expect(await runEngineBacktest(engineApi({}, seen), built)).toEqual({ state: "ok", data: REPORT });
+    expect(seen).toEqual([{ channel: "engineRun", request: { spec: built } }]);
+  });
+
+  it("run: names the chain when one is given, and leaves the key out when not", async () => {
+    const seen: { channel: string; request: unknown }[] = [];
+    const api = engineApi({}, seen);
+    await runEngineBacktest(api, built, "solana");
+    await runEngineBacktest(api, built);
+    expect(seen.map((x) => Object.keys(x.request as object))).toEqual([["spec", "chain"], ["spec"]]);
+    expect((seen[0]!.request as { chain: string }).chain).toBe("solana");
+  });
+
+  it("run: an error the user can read arrives as the message, nothing more", async () => {
+    const api = engineApi({ run: async () => { throw new EngineUserError("the backtest engine is not installed"); } });
+    expect(await runEngineBacktest(api, built)).toEqual({ state: "error", message: "the backtest engine is not installed" });
+  });
+
+  it("run: an unexpected failure arrives as 'internal error'", async () => {
+    const api = engineApi({ run: async () => { throw new Error("C:\\secret\\path"); } });
+    expect(await runEngineBacktest(api, built)).toEqual({ state: "error", message: "internal error" });
+  });
+
+  it("run: a failure of the call itself is a plain 'request failed'", async () => {
+    const broken = { engineRun: async () => { throw new Error("C:\\x"); } } as unknown as Api;
+    expect(await runEngineBacktest(broken, built)).toEqual({ state: "error", message: "request failed" });
+  });
+
+  it("cancel: says whether a run was told to stop", async () => {
+    expect(await cancelEngineBacktest(engineApi())).toEqual({ state: "ok", data: { cancelled: true } });
+    expect(await cancelEngineBacktest(engineApi({ cancel: () => false }))).toEqual({ state: "ok", data: { cancelled: false } });
+  });
+
+  it("check and install: the same replies, on their own channels", async () => {
+    const seen: { channel: string; request: unknown }[] = [];
+    const api = engineApi({}, seen);
+    expect(await checkEngineUpdate(api)).toEqual({ state: "ok", data: { kind: "available", version: "1.1.0" } });
+    expect(await installEngineUpdate(api)).toEqual({ state: "ok", data: { version: "1.1.0" } });
+    expect(seen).toEqual([{ channel: "engineCheck", request: {} }, { channel: "engineInstall", request: {} }]);
+  });
+
+  it("every function turns a malformed reply into an error value, never a throw", async () => {
+    const weird = Object.fromEntries(ENGINE_CHANNELS.map((c) => [c, async () => 42])) as unknown as Api;
+    for (const result of [await loadEngineStatus(weird), await runEngineBacktest(weird, built), await cancelEngineBacktest(weird), await checkEngineUpdate(weird), await installEngineUpdate(weird)]) {
+      expect(result).toEqual({ state: "error", message: "the app gave an unexpected reply" });
+    }
   });
 });

@@ -1,0 +1,674 @@
+[
+ {
+  "name": "wallets: repeats kept",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "[...new Set(text.split(/[\\s,;]+/).filter((w) => w !== \"\"))]",
+  "new": "text.split(/[\\s,;]+/).filter((w) => w !== \"\")"
+ },
+ {
+  "name": "wallets: commas do not separate",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "text.split(/[\\s,;]+/)",
+  "new": "text.split(/[\\s;]+/)"
+ },
+ {
+  "name": "wallets: semicolons do not separate",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "text.split(/[\\s,;]+/)",
+  "new": "text.split(/[\\s,]+/)"
+ },
+ {
+  "name": "wallets: white space does not separate",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "text.split(/[\\s,;]+/)",
+  "new": "text.split(/[,;]+/)"
+ },
+ {
+  "name": "wallets: empty entries kept",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": ".filter((w) => w !== \"\")",
+  "new": ""
+ },
+ {
+  "name": "decimal: not anchored at the start",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "const DECIMAL = /^([0-9]+)",
+  "new": "const DECIMAL = /([0-9]+)"
+ },
+ {
+  "name": "decimal: not anchored at the end",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "(?:\\.([0-9]+))?$/;",
+  "new": "(?:\\.([0-9]+))?/;"
+ },
+ {
+  "name": "decimal: nothing before the dot allowed",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "/^([0-9]+)(?:",
+  "new": "/^([0-9]*)(?:"
+ },
+ {
+  "name": "decimal: nothing after the dot allowed",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "\\.([0-9]+))?$/",
+  "new": "\\.([0-9]*))?$/"
+ },
+ {
+  "name": "decimal: the dot is any character",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "(?:\\.([0-9]+))?$/",
+  "new": "(?:.([0-9]+))?$/"
+ },
+ {
+  "name": "amount: not trimmed",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "const m = DECIMAL.exec(text.trim());\n  if (m === null) return { ok: false, reason: \"format\" };\n  const fraction = m[2] ?? \"\";\n  if (fraction.length > decimals)",
+  "new": "const m = DECIMAL.exec(text);\n  if (m === null) return { ok: false, reason: \"format\" };\n  const fraction = m[2] ?? \"\";\n  if (fraction.length > decimals)"
+ },
+ {
+  "name": "amount: one place too many allowed",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "fraction.length > decimals",
+  "new": "fraction.length > decimals + 1"
+ },
+ {
+  "name": "amount: the last allowed place refused",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "fraction.length > decimals",
+  "new": "fraction.length >= decimals"
+ },
+ {
+  "name": "amount: places never refused",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "if (fraction.length > decimals) return { ok: false, reason: \"places\" };",
+  "new": ""
+ },
+ {
+  "name": "amount: not scaled by the decimals",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "m[1]! + fraction.padEnd(decimals, \"0\")",
+  "new": "m[1]! + fraction"
+ },
+ {
+  "name": "amount: padded with too few zeros",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "fraction.padEnd(decimals, \"0\")",
+  "new": "fraction.padEnd(decimals - 1, \"0\")"
+ },
+ {
+  "name": "amount: zero accepted",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "if (raw === \"0\") return { ok: false, reason: \"zero\" };",
+  "new": ""
+ },
+ {
+  "name": "amount: 39 digits refused",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "raw.length > 39",
+  "new": "raw.length >= 39"
+ },
+ {
+  "name": "amount: 40 digits allowed",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "raw.length > 39",
+  "new": "raw.length > 40"
+ },
+ {
+  "name": "amount: size never checked",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "if (raw.length > 39) return { ok: false, reason: \"size\" };",
+  "new": ""
+ },
+ {
+  "name": "percent: not trimmed",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "const m = DECIMAL.exec(text.trim());\n  if (m === null) return { ok: false, reason: \"format\" };\n  const fraction = m[2] ?? \"\";\n  if (fraction.length > 2)",
+  "new": "const m = DECIMAL.exec(text);\n  if (m === null) return { ok: false, reason: \"format\" };\n  const fraction = m[2] ?? \"\";\n  if (fraction.length > 2)"
+ },
+ {
+  "name": "percent: two places refused",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "fraction.length > 2",
+  "new": "fraction.length >= 2"
+ },
+ {
+  "name": "percent: three places allowed",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "fraction.length > 2",
+  "new": "fraction.length > 3"
+ },
+ {
+  "name": "percent: 9 digits refused",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "whole > 999_999_999",
+  "new": "whole >= 999_999_999"
+ },
+ {
+  "name": "percent: 10 digits allowed",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "whole > 999_999_999",
+  "new": "whole > 9_999_999_999"
+ },
+ {
+  "name": "percent: size never checked",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "if (whole > 999_999_999) return { ok: false, reason: \"size\" };",
+  "new": ""
+ },
+ {
+  "name": "percent: whole part scaled by 10",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "whole * 100 + Number",
+  "new": "whole * 10 + Number"
+ },
+ {
+  "name": "percent: fraction padded to one place",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "fraction.padEnd(2, \"0\")",
+  "new": "fraction.padEnd(1, \"0\")"
+ },
+ {
+  "name": "percent: fraction subtracted",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "whole * 100 + Number(fraction",
+  "new": "whole * 100 - Number(fraction"
+ },
+ {
+  "name": "window: no 5-year limit",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "Math.max(w.from, w.to - MAX_WINDOW_MS)",
+  "new": "w.from"
+ },
+ {
+  "name": "window: limit is the other way round",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "Math.max(w.from, w.to - MAX_WINDOW_MS)",
+  "new": "Math.min(w.from, w.to - MAX_WINDOW_MS)"
+ },
+ {
+  "name": "window: limit of 5 x 365 days",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "5 * 366 * DAY_MS",
+  "new": "5 * 365 * DAY_MS"
+ },
+ {
+  "name": "window: limit one millisecond longer",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "const MAX_WINDOW_MS = 5 * 366 * DAY_MS;",
+  "new": "const MAX_WINDOW_MS = 5 * 366 * DAY_MS + 1;"
+ },
+ {
+  "name": "window: ends before the newest data",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "return { from: Math.max(w.from, w.to - MAX_WINDOW_MS), to: w.to };",
+  "new": "return { from: Math.max(w.from, w.to - MAX_WINDOW_MS), to: w.to - 1 };"
+ },
+ {
+  "name": "whole: not trimmed",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "const t = text.trim();\n  if (!DIGITS.test(t)) return null;",
+  "new": "const t = text;\n  if (!DIGITS.test(t)) return null;"
+ },
+ {
+  "name": "whole: nothing accepted as a number",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "const DIGITS = /^[0-9]+$/;",
+  "new": "const DIGITS = /^[0-9]*$/;"
+ },
+ {
+  "name": "whole: not anchored",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "const DIGITS = /^[0-9]+$/;",
+  "new": "const DIGITS = /[0-9]+/;"
+ },
+ {
+  "name": "whole: the minimum refused",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "n >= min && n <= max",
+  "new": "n > min && n <= max"
+ },
+ {
+  "name": "whole: the maximum refused",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "n >= min && n <= max",
+  "new": "n >= min && n < max"
+ },
+ {
+  "name": "whole: no minimum",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "n >= min && n <= max",
+  "new": "n <= max"
+ },
+ {
+  "name": "whole: no maximum",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "n >= min && n <= max",
+  "new": "n >= min"
+ },
+ {
+  "name": "build: no wallet accepted",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "if (wallets.length === 0) errors.wallets",
+  "new": "if (false) errors.wallets"
+ },
+ {
+  "name": "build: 101 wallets allowed",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "wallets.length > 100",
+  "new": "wallets.length > 101"
+ },
+ {
+  "name": "build: 100 wallets refused",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "wallets.length > 100",
+  "new": "wallets.length >= 100"
+ },
+ {
+  "name": "build: wallet pattern allows 129 characters",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "{1,128}$/;",
+  "new": "{1,129}$/;"
+ },
+ {
+  "name": "build: wallet pattern allows spaces (EXPECTED EQUIVALENT: parseWallets splits on white space, so a space never reaches the pattern)",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "[\\x21-\\x7e]{1,128}",
+  "new": "[\\x20-\\x7e]{1,128}"
+ },
+ {
+  "name": "build: wallet pattern allows non-ASCII",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "[\\x21-\\x7e]{1,128}",
+  "new": "[\\x21-\\uffff]{1,128}"
+ },
+ {
+  "name": "build: first wallet never checked",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "bad !== -1",
+  "new": "bad > 0"
+ },
+ {
+  "name": "build: wallet number counted from 0",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "Wallet number ${bad + 1}",
+  "new": "Wallet number ${bad}"
+ },
+ {
+  "name": "build: wallets never checked for form",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "const bad = wallets.findIndex((w) => !WALLET.test(w));",
+  "new": "const bad = -1;"
+ },
+ {
+  "name": "build: delay of 0 refused",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "whole(form.delaySeconds, 0, 86_400)",
+  "new": "whole(form.delaySeconds, 1, 86_400)"
+ },
+ {
+  "name": "build: delay above a day allowed",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "whole(form.delaySeconds, 0, 86_400)",
+  "new": "whole(form.delaySeconds, 0, 86_401)"
+ },
+ {
+  "name": "build: delay not converted to milliseconds",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "latencyMs: seconds * 1000",
+  "new": "latencyMs: seconds"
+ },
+ {
+  "name": "build: hold of 0 allowed",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "whole(form.maxHoldHours, 1, 720)",
+  "new": "whole(form.maxHoldHours, 0, 720)"
+ },
+ {
+  "name": "build: hold above 720 allowed",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "whole(form.maxHoldHours, 1, 720)",
+  "new": "whole(form.maxHoldHours, 1, 721)"
+ },
+ {
+  "name": "build: hold not converted to milliseconds",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "maxHoldMs: hours * 3_600_000",
+  "new": "maxHoldMs: hours * 3_600"
+ },
+ {
+  "name": "build: zero position size reported as format",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "else if (amount.reason === \"zero\") errors.positionSize = \"Must be more than 0.\";",
+  "new": "else if (amount.reason === \"zero\") errors.positionSize = \"Enter an amount such as 0.5, with a dot for decimals.\";"
+ },
+ {
+  "name": "build: a currency with no decimals asked for places",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "quote.decimals === 0 ? \"Use a whole number.\"",
+  "new": "false ? \"Use a whole number.\""
+ },
+ {
+  "name": "build: the position is not the parsed amount",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "if (amount.ok) positionQuote = amount.raw;",
+  "new": "if (amount.ok) positionQuote = \"1\";"
+ },
+ {
+  "name": "build: take-profit limit one basis point higher",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "optionalPercent(form.takeProfitPct, 1_000_000,",
+  "new": "optionalPercent(form.takeProfitPct, 1_000_001,"
+ },
+ {
+  "name": "build: stop-loss limit 100%",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "optionalPercent(form.stopLossPct, 9999,",
+  "new": "optionalPercent(form.stopLossPct, 10_000,"
+ },
+ {
+  "name": "build: fee limit one basis point higher",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "requiredPercent(form.feePct, 1000,",
+  "new": "requiredPercent(form.feePct, 1001,"
+ },
+ {
+  "name": "build: slippage limit one basis point higher",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "requiredPercent(form.slippagePct, 5000,",
+  "new": "requiredPercent(form.slippagePct, 5001,"
+ },
+ {
+  "name": "optional: whitespace is not empty",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "if (text.trim() === \"\") return null;",
+  "new": "if (text === \"\") return null;"
+ },
+ {
+  "name": "optional: empty is an error",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "if (text.trim() === \"\") return null;",
+  "new": ""
+ },
+ {
+  "name": "optional: zero accepted",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "if (p.bps < 1) return say.zero;",
+  "new": ""
+ },
+ {
+  "name": "optional: the limit itself refused",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "return p.bps > maxBps ? say.big : p.bps;",
+  "new": "return p.bps >= maxBps ? say.big : p.bps;"
+ },
+ {
+  "name": "optional: places reported as format",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "p.reason === \"format\" ? say.format : p.reason === \"places\" ? \"Use at most 2 decimal places.\" : say.big",
+  "new": "p.reason === \"format\" || p.reason === \"places\" ? say.format : say.big"
+ },
+ {
+  "name": "optional: size reported as places",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "p.reason === \"format\" ? say.format : p.reason === \"places\" ? \"Use at most 2 decimal places.\" : say.big",
+  "new": "p.reason === \"format\" ? say.format : \"Use at most 2 decimal places.\""
+ },
+ {
+  "name": "required: the limit itself refused",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "return p.bps > maxBps ? range : p.bps;",
+  "new": "return p.bps >= maxBps ? range : p.bps;"
+ },
+ {
+  "name": "required: places reported as format",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "p.reason === \"format\" ? format : p.reason === \"places\" ? \"Use at most 2 decimal places.\" : range",
+  "new": "p.reason === \"format\" || p.reason === \"places\" ? format : range"
+ },
+ {
+  "name": "required: size reported as format",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "p.reason === \"format\" ? format : p.reason === \"places\" ? \"Use at most 2 decimal places.\" : range",
+  "new": "p.reason === \"format\" ? format : \"Use at most 2 decimal places.\""
+ },
+ {
+  "name": "spec: wrong version",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "version: 1,\n      from: window.from,",
+  "new": "version: 2 as 1,\n      from: window.from,"
+ },
+ {
+  "name": "spec: window start replaced",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "from: window.from,",
+  "new": "from: window.to,"
+ },
+ {
+  "name": "spec: window end replaced",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "      to: window.to,",
+  "new": "      to: window.from,"
+ },
+ {
+  "name": "spec: wrong strategy kind",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "kind: \"follow-wallets\", wallets, latencyMs",
+  "new": "kind: \"copy\" as \"follow-wallets\", wallets, latencyMs"
+ },
+ {
+  "name": "spec: fee and slippage swapped",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "costs: { feeBps, slippageBps }",
+  "new": "costs: { feeBps: slippageBps, slippageBps: feeBps }"
+ },
+ {
+  "name": "spec: stop-loss and take-profit swapped",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "takeProfitBps, stopLossBps, maxHoldMs",
+  "new": "takeProfitBps: stopLossBps, stopLossBps: takeProfitBps, maxHoldMs"
+ },
+ {
+  "name": "errors: invalid form accepted when only the field messages are checked (EXPECTED EQUIVALENT: the null guards that follow repeat the same test)",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "    Object.keys(errors).length > 0 ||\n    seconds === null ||",
+  "new": "    seconds === null ||"
+ },
+ {
+  "name": "errors: delay guard removed (EXPECTED EQUIVALENT: errors.delaySeconds is set in the same case and the first test catches it)",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "    seconds === null ||\n    hours === null ||",
+  "new": "    hours === null ||"
+ },
+ {
+  "name": "run: a second start restarts the run",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "state.phase === \"running\" ? state : { phase: \"running\", since: event.at, cancelling: false }",
+  "new": "{ phase: \"running\", since: event.at, cancelling: false }"
+ },
+ {
+  "name": "run: a start keeps the old time",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "{ phase: \"running\", since: event.at, cancelling: false }",
+  "new": "{ phase: \"running\", since: 0, cancelling: false }"
+ },
+ {
+  "name": "run: cancel works when nothing runs",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "state.phase === \"running\" && !state.cancelling ? { ...state, cancelling: true } : state",
+  "new": "{ phase: \"running\", since: 0, cancelling: true }"
+ },
+ {
+  "name": "run: cancel works twice",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "state.phase === \"running\" && !state.cancelling ? { ...state, cancelling: true } : state",
+  "new": "state.phase === \"running\" ? { ...state, cancelling: true } : state"
+ },
+ {
+  "name": "run: cancel does nothing",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "state.phase === \"running\" && !state.cancelling ? { ...state, cancelling: true } : state",
+  "new": "state"
+ },
+ {
+  "name": "run: an answer when nothing runs is taken",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "if (state.phase !== \"running\") return state;",
+  "new": ""
+ },
+ {
+  "name": "run: a good answer after a cancel is thrown away",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "if (event.result.state === \"ok\") return { phase: \"done\", report: event.result.data };",
+  "new": "if (event.result.state === \"ok\" && !state.cancelling) return { phase: \"done\", report: event.result.data };"
+ },
+ {
+  "name": "run: a failure after a cancel is shown as a failure",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "state.cancelling ? { phase: \"cancelled\" } : { phase: \"failed\", message: event.result.message }",
+  "new": "{ phase: \"failed\", message: event.result.message }"
+ },
+ {
+  "name": "run: a failure without a cancel is called cancelled",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "state.cancelling ? { phase: \"cancelled\" } : { phase: \"failed\", message: event.result.message }",
+  "new": "{ phase: \"cancelled\" }"
+ },
+ {
+  "name": "run: the reason is dropped",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "phase: \"failed\", message: event.result.message",
+  "new": "phase: \"failed\", message: \"failed\""
+ },
+ {
+  "name": "note: up to date sentence",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "`You have the latest engine (${info.version}).`",
+  "new": "`x`"
+ },
+ {
+  "name": "note: older sentence",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "`The newest published engine (${info.latest}) is older than yours (${info.current}); nothing to do.`",
+  "new": "`x`"
+ },
+ {
+  "name": "note: older swaps the versions",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "(${info.latest}) is older than yours (${info.current})",
+  "new": "(${info.current}) is older than yours (${info.latest})"
+ },
+ {
+  "name": "note: available sentence",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "`Version ${info.version} is available.`",
+  "new": "`x`"
+ },
+ {
+  "name": "blocked: waiting sentence",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "\"Waiting for the engine's state.\"",
+  "new": "\"x\""
+ },
+ {
+  "name": "blocked: unreadable sentence",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "\"The engine's state could not be read.\"",
+  "new": "\"x\""
+ },
+ {
+  "name": "blocked: waiting and unreadable swapped",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "loadError === null ? \"Waiting for the engine's state.\" : \"The engine's state could not be read.\"",
+  "new": "loadError !== null ? \"Waiting for the engine's state.\" : \"The engine's state could not be read.\""
+ },
+ {
+  "name": "blocked: no-engine sentence",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "\"No engine is installed, so a backtest cannot run.\"",
+  "new": "\"x\""
+ },
+ {
+  "name": "blocked: updating sentence",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "\"The engine is being updated.\"",
+  "new": "\"x\""
+ },
+ {
+  "name": "blocked: busy sentence",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "\"A backtest is already running.\"",
+  "new": "\"x\""
+ },
+ {
+  "name": "blocked: checking blocks the run",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "working === \"installing\"",
+  "new": "working !== null"
+ },
+ {
+  "name": "blocked: busy not checked",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "  if (status.busy) return \"A backtest is already running.\";\n",
+  "new": ""
+ },
+ {
+  "name": "blocked: missing engine not checked",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "  if (status.installed === null) return \"No engine is installed, so a backtest cannot run.\";\n",
+  "new": ""
+ },
+ {
+  "name": "blocked: updating checked before the missing engine",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "  if (status.installed === null) return \"No engine is installed, so a backtest cannot run.\";\n  if (working === \"installing\") return \"The engine is being updated.\";",
+  "new": "  if (working === \"installing\") return \"The engine is being updated.\";\n  if (status.installed === null) return \"No engine is installed, so a backtest cannot run.\";"
+ },
+ {
+  "name": "message: wallets \"Enter at least one wallet address.\"",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "errors.wallets = \"Enter at least one wallet address.\";",
+  "new": "errors.wallets = \"x\";"
+ },
+ {
+  "name": "message: wallets `Use at most 100 wallets (you entered ${wallets.le",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "errors.wallets = `Use at most 100 wallets (you entered ${wallets.length}).`;",
+  "new": "errors.wallets = \"x\";"
+ },
+ {
+  "name": "message: wallets `Wallet number ${bad + 1} is not a valid address.`",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "errors.wallets = `Wallet number ${bad + 1} is not a valid address.`;",
+  "new": "errors.wallets = \"x\";"
+ },
+ {
+  "name": "message: delaySeconds \"Enter a whole number of seconds from 0 to 86,400.",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "errors.delaySeconds = \"Enter a whole number of seconds from 0 to 86,400.\";",
+  "new": "errors.delaySeconds = \"x\";"
+ },
+ {
+  "name": "message: positionSize \"Enter an amount such as 0.5, with a dot for decim",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "errors.positionSize = \"Enter an amount such as 0.5, with a dot for decimals.\";",
+  "new": "errors.positionSize = \"x\";"
+ },
+ {
+  "name": "message: positionSize \"Must be more than 0.\"",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "errors.positionSize = \"Must be more than 0.\";",
+  "new": "errors.positionSize = \"x\";"
+ },
+ {
+  "name": "message: positionSize \"That amount is too large.\"",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "errors.positionSize = \"That amount is too large.\";",
+  "new": "errors.positionSize = \"x\";"
+ },
+ {
+  "name": "message: maxHoldHours \"Enter a whole number of hours from 1 to 720.\"",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "errors.maxHoldHours = \"Enter a whole number of hours from 1 to 720.\";",
+  "new": "errors.maxHoldHours = \"x\";"
+ }
+]

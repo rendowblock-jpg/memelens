@@ -46,8 +46,8 @@ describe("handleEngine: the answers", () => {
     const { engine, calls } = fakeEngine();
     await handleEngine(engine, "engineRun", { spec: SPEC });
     await handleEngine(engine, "engineRun", { spec: SPEC, chain: "solana" });
-    expect(calls[0]!.args).toEqual([SPEC, {}]);
-    expect(calls[1]!.args).toEqual([SPEC, { chain: "solana" }]);
+    expect(calls[0]!.args).toStrictEqual([SPEC, {}]);
+    expect(calls[1]!.args).toStrictEqual([SPEC, { chain: "solana" }]);
     expect((calls[0]!.args[0] as object) === SPEC).toBe(true);
   });
   it("reports 'not cancelled' when nothing was running", async () => {
@@ -116,7 +116,7 @@ describe("handleEngine: what it refuses before the engine is asked anything", ()
   it("treats a chain that is undefined as not given", async () => {
     const { engine, calls } = fakeEngine();
     await handleEngine(engine, "engineRun", { spec: SPEC, chain: undefined });
-    expect(calls[0]!.args).toEqual([SPEC, {}]);
+    expect(calls[0]!.args).toStrictEqual([SPEC, {}]);
   });
 });
 
