@@ -390,6 +390,18 @@ M3c-3 the screens, W-1 the MSI pipeline on Windows CI.
 - **SignPath vs a closed sidecar:** open-source the engine, or ask SignPath, or sign another way (see above).
 - **Calibration data:** needs real labelled history. Either a public dataset of rugged Solana tokens, or an RPC/indexer
   key for a one-off collection script (outside the app; the adapter is M4).
+  Probed on 12 Nov 2026 from the build host (no key, read-only calls), so the earlier "needs a key" is only partly true:
+  `api.mainnet-beta.solana.com` served a block from about 319 days back (`getFirstAvailableBlock` = 0), while
+  `solana-rpc.publicnode.com` keeps about 3 days and is no use. The Foundation endpoint throttles: about 1 call per second
+  held over a run of about 110 calls with 16 answers of HTTP 429 (retried). DexScreener and GeckoTerminal give free price
+  history for the outcome label. SolRPDS (CC BY 4.0, pool-level, 2021-2024) is a possible sampling frame, but it labels by
+  inactivity, not by the definition committed above, and has no holder snapshots at launch + 1 hour. Holders at that time
+  would have to be rebuilt from each token's transactions (`pre/postTokenBalances`); a plain token transfer does not name
+  the mint, so that rebuild can miss holders: a known limit to state next to any number. At about 1 call per second, 60
+  tokens with a few thousand launch-hour transactions each is many hours of collection. Not built; nothing scored.
+  A probe mistake, recorded so it is not repeated: my first cost probe took the USDC mint for a memecoin (the filter
+  "Instruction: Create" also matches `CreateIdempotent`); its signature count was USDC's and means nothing here. The rate
+  figure from it is still a real measurement. The corrected probe's result was not read when this was written.
 - **"Not in Electron's process tree":** reading above, please confirm.
 - **Update policy default** for the engine: ask before installing (chosen), or install silently.
 - Chain: Solana first. EVM later, through another adapter.
