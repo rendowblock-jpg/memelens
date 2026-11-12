@@ -185,7 +185,7 @@ Things only a Windows run can settle (none measured yet):
 
 ## Repos, licence and signing
 
-- **Public app repo** (not created yet when this was written; see Status for the result): everything in this tree, the protocol document, the test
+- **Public app repo** (https://github.com/rendowblock-jpg/memelens, created and pushed 12 Nov 2026): everything in this tree, the protocol document, the test
   vectors, CI, and the *public* key that verifies sidecar releases. Nothing secret, ever. Before the first push the
   tracked tree and the full history are scanned.
 - **Private sidecar repo** (not created yet): the Go source and the engine's private signing key (as a CI secret).
@@ -280,6 +280,12 @@ M3a service layer, M3b Electron main, preload and security, M3c-1 formatting, M3
 - LLM: any OpenAI-compatible endpoint; the user configures it.
 
 ## Status (12 Nov 2026, repo HEAD b71a4b9 before this change)
+
+Public repo: https://github.com/rendowblock-jpg/memelens, `main` pushed at b4b58a8; an unauthenticated API call returned
+`private: false`. Before the push the full history was scanned: no keys, tokens, key files or Solana-key-shaped strings.
+One old commit (5adebe4) contains a test-run output file with absolute build-host paths (not secrets); it was left in
+place rather than rewrite history. No licence file yet, so by default nobody may reuse the code (see Open questions).
+No sidecar repo exists yet.
 
 Measured this turn: `vitest run` 607 tests in 23 files, exit 0; `tsc --noEmit` exit 0 for `packages/core`,
 `packages/data`, `packages/service` and `apps/desktop`.
