@@ -217,6 +217,17 @@ nothing in this document describes how that picture looks. What is known about t
 - Not measured at all: the gauge, the risk bar, the smart-money and wallet screens as drawn (only their text and boxes).
 Whether the design is good is for the owner to judge when he installs it.
 
+### Delivery to the owner, and the latest Windows run
+- **Draft release `v0.1.0-preview.1`** (id 442707219, target commit `e1c4e4c`) holds `MemeLens-0.1.0-x64.msi` (126,578,688
+  bytes, SHA-256 `5F1A6EFB45AA648F52D7EA7E68E4FF5DCDE22D06B6903CA9398F755A3DC08C6C`). GitHub's own digest of the uploaded file
+  equals the value the Windows build printed, and the file was hashed again on the host. It is a draft and a pre-release:
+  with no credentials the release answers 404 and the public releases list is empty, so only repository admins see it.
+  The notes say it is unsigned, synthetic-data only, and untested by anyone on a real PC. Nothing was installed anywhere.
+- **Run 43188552598** (commit `b0e23d1`, which adds the mutation-guided tests and `needs: test`): on Windows, 697 of 697
+  tests passed and the real-app smoke passed 16 of 16; the package job started only after the test job finished.
+- **Host files:** artifacts are kept in `~/.cache/memelens-artifacts`, not `/tmp`: `/tmp` is a 3.9 GB tmpfs shared with
+  other work and filled up once during this session.
+
 ### Packaging decisions
 - **`upgradeCode` is `80E58C9E-4267-4FF5-A0F0-65565D71F798` and must never change.** Windows Installer uses it to know
   that a new version replaces the old one. Generated once on 12 Nov 2026; it is the constant in `apps/desktop/pack.mjs`.
@@ -253,7 +264,9 @@ Whether the design is good is for the owner to judge when he installs it.
 - **Public app repo** (https://github.com/rendowblock-jpg/memelens, created and pushed 12 Nov 2026): everything in this tree, the protocol document, the test
   vectors, CI, and the *public* key that verifies sidecar releases. Nothing secret, ever. Before the first push the
   tracked tree and the full history are scanned.
-- **Private sidecar repo** (not created yet): the Go source and the engine's private signing key (as a CI secret).
+- **Private sidecar repo** (https://github.com/rendowblock-jpg/memelens-sidecar, created 12 Nov 2026, empty): the Go source
+  and the engine's private signing key (as a CI secret). Checked: with credentials the API says `private: true`; without
+  credentials it answers 404, so a stranger cannot even see that it exists.
 - **Licence: not chosen.** It must be OSI-approved with no commercial dual licensing. Needed before the first release.
   Recommendation: Apache-2.0.
 - **SignPath Foundation** (https://signpath.org/terms.html) lists these conditions: an OSI-approved licence for
@@ -310,6 +323,14 @@ Score 30 tokens that rugged against 30 that did not, and report the hit rate for
 | Rugged | 30 | NOT MEASURED | | | |
 | Did not rug | 30 | NOT MEASURED | | | |
 
+## Toolchain notes
+
+- **Go on the host:** `go1.26.8` from the system package manager (`golang-go`). The official download hosts
+  (`dl.google.com`, `go.dev/dl`) answer 404 from this machine even for old releases, and `go.dev/dl/?mode=json` lists
+  `go1.27.4` whose file does not exist there; the first attempt downloaded a 1,449-byte HTML error page and the SHA-256
+  check refused it. Go cross-compiles to Windows natively (`GOOS=windows`), but a Windows binary still has to be run on
+  the Windows runner before it counts.
+
 ## Testing and process
 
 - **Test first** for every behaviour change. See the test fail for the right reason before writing the code.
@@ -331,7 +352,7 @@ Score 30 tokens that rugged against 30 that did not, and report the hit rate for
 
 1. **M3c** screens: feed, token panel with risk lens, smart-money ranking, wallet panel - **done on the host** (see "The screens"); not yet seen on Windows
 2. **W** Windows packaging: MSI from CI - **built, installed, run and uninstalled on a Windows runner (run 43185415658)**; still open: the owner installs it and sees it (L3)
-3. **S** sidecar: the slot (manager, protocol, versioned folder, update check) and the Go backtest engine, with conformance vectors
+3. **S** sidecar: the slot (manager, protocol, versioned folder, update check) and the Go backtest engine, with conformance vectors - **toolchain ready (Go 1.26.8 on the host, private repo created); nothing else started**
 4. **C** calibration gate: 30 rugged vs 30 not, numbers into the weights table above
 5. **M4** Solana adapter (needs a user-supplied RPC or data API key)
 6. **M5** agent chat and tools (with the red-team suite above)
