@@ -80,20 +80,15 @@ jobs:
         run: node --disable-warning=ExperimentalWarning --import tsx packages/data/src/bin.ts ingest packages/data/fixtures/sample.json --db "$env:RUNNER_TEMP\check.sqlite"
       - name: Run the INSTALLED app and look at it (no --no-sandbox)
         run: node scripts/check-packaged.mjs --exe "$env:EXE" --db "$env:RUNNER_TEMP\check.sqlite" --out "$env:RUNNER_TEMP\shots"
-      - name: Is any app process running with --no-sandbox?
-        if: always()
-        shell: pwsh
-        run: |
-          Get-CimInstance Win32_Process -Filter "Name='MemeLens.exe'" | ForEach-Object { if ($_.CommandLine -match 'no-sandbox') { "NO-SANDBOX: $($_.CommandLine)" } }
-          "processes left: " + (Get-Process MemeLens -ErrorAction SilentlyContinue | Measure-Object).Count
       - name: Uninstall
+        if: always()
         shell: pwsh
         run: |
           Get-Process MemeLens -ErrorAction SilentlyContinue | Stop-Process -Force
           $p = Start-Process msiexec.exe -ArgumentList "/x `"$env:MSI`" /qn /norestart /l*v `"$env:RUNNER_TEMP\uninstall.log`"" -Wait -PassThru
           "msiexec exit code: $($p.ExitCode)"
           if ($p.ExitCode -ne 0) { throw "uninstall failed" }
-          if (Test-Path $env:EXE) { throw "MemeLens.exe is still there after uninstall" }
+          if ($env:EXE -and (Test-Path $env:EXE)) { throw "MemeLens.exe is still there after uninstall" }
           "uninstalled: $env:EXE is gone"
       - name: Keep the MSI, the pictures and the logs
         if: always()

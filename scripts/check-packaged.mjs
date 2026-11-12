@@ -83,6 +83,15 @@ async function shot(name) {
   writeFileSync(file, Buffer.from(r.data, "base64"));
   console.log(`SHOT ${file} ${Buffer.from(r.data, "base64").length} bytes`);
 }
+// The command lines of the app's processes while it runs (Chromium puts --type=renderer on the renderer's).
+function appCommandLines() {
+  if (process.platform === "win32") {
+    const r = spawnSync("powershell", ["-NoProfile", "-Command", "Get-CimInstance Win32_Process -Filter \"Name='MemeLens.exe'\" | ForEach-Object { $_.CommandLine }"], { encoding: "utf8" });
+    return (r.stdout ?? "").split(/\r?\n/).filter(Boolean);
+  }
+  const r = spawnSync("ps", ["-eo", "args="], { encoding: "utf8" });
+  return (r.stdout ?? "").split("\n").filter((l) => l.includes(exe) && !l.includes("check-packaged"));
+}
 const text = (sel) => evaluate(`(document.querySelector(${JSON.stringify(sel)}) || {}).textContent || ""`);
 const waitSel = (sel) => until(() => evaluate(`Boolean(document.querySelector(${JSON.stringify(sel)}))`), `selector ${sel}`, 20_000);
 
@@ -136,6 +145,11 @@ try {
   check("network fetch is blocked", probes.fetch === "blocked", probes.fetch);
   check("eval is blocked", probes.eval === "blocked", probes.eval);
   check("inline script is blocked", probes.inline === "blocked", probes.inline);
+
+  const lines = appCommandLines();
+  check("the app is running its renderer as a separate process (--type=renderer)", lines.some((l) => l.includes("--type=renderer")), lines.length);
+  if (process.argv.includes("--no-sandbox")) console.log("SKIP  no process runs with --no-sandbox (this host needs the flag for the whole run)");
+  else check("no process of the app runs with --no-sandbox", lines.length > 0 && !lines.some((l) => l.includes("no-sandbox")), lines.filter((l) => l.includes("no-sandbox")));
 
   await shot("1-feed");
   await evaluate(`[...document.querySelectorAll(".rail-item")].find((b) => b.textContent.includes("Smart")).click()`);

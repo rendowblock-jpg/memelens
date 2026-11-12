@@ -95,11 +95,13 @@ export function App({ api }: { api: Api }): ReactElement {
   const wallet = useAsync(chain === null || walletId === null ? null : () => loadWallet(api, chain, walletId), [api, chain, walletId]);
 
   // Tells the test harness (and nothing else) that the first screen has finished loading.
-  const settled = overview.state === "error" || (overview.state === "ok" && (chain === null || feed.state === "ok" || feed.state === "error"));
+  const tokenSettled = selected === null || token.state === "ok" || token.state === "error";
+  const settled = overview.state === "error" || (overview.state === "ok" && (chain === null || feed.state === "error" || (feed.state === "ok" && tokenSettled)));
   useEffect(() => {
     if (!settled) return;
     document.body.dataset["state"] = overview.state === "error" || feed.state === "error" ? "error" : chain === null ? "empty" : "done";
   }, [settled, overview.state, feed.state, chain]);
+  // (token.state is not a dependency on purpose: `settled` already changes when it does.)
 
   const openWallet = (address: string): void => setRoute({ screen: "wallet", wallet: address, back: route.screen === "smart" ? "smart" : "feed" });
   const openToken = (t: string): void => setRoute({ screen: "feed", token: t });

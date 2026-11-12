@@ -37,10 +37,13 @@ describe("Store schema", () => {
       a.insertTrade("solana", trade("t1"));
       a.close();
       const b = Store.open(path);
-      opened.push(b);
-      expect(b.schemaVersion()).toBe(1);
-      expect(b.getToken("solana", "A")!.creator).toBe("C");
-      expect(b.counts("solana").trades).toBe(1);
+      try {
+        expect(b.schemaVersion()).toBe(1);
+        expect(b.getToken("solana", "A")!.creator).toBe("C");
+        expect(b.counts("solana").trades).toBe(1);
+      } finally {
+        b.close(); // Windows will not delete a folder with a database still open in it
+      }
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
