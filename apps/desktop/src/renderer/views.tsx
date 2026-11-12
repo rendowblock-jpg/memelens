@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 import type { ApiResponses } from "@memelens/service";
 import { formatAge, formatPercent, formatPrice, formatSignalValue, formatTime, formatUnits, shortAddress } from "./format";
 import type { Quote } from "./quote";
+import { RiskBar, RiskGauge } from "./lens";
 
 // Presentational components: data in, markup out, no state and no calls. They throw FormatError on a malformed
 // number (the app's error boundary shows it) rather than printing something wrong.
@@ -111,7 +112,17 @@ export function FeedTable({
   );
 }
 
-export function TokenPanel({ detail, quote }: { detail: TokenData; quote: Quote }): ReactElement {
+/** A wallet address: a button that opens the wallet when the app can, plain text otherwise. */
+function WalletRef({ address, onOpen }: { address: string; onOpen?: ((wallet: string) => void) | undefined }): ReactElement {
+  if (onOpen === undefined) return <code title={address}>{shortAddress(address)}</code>;
+  return (
+    <button type="button" className="link wallet" title={address} onClick={() => onOpen(address)}>
+      {shortAddress(address)}
+    </button>
+  );
+}
+
+export function TokenPanel({ detail, quote, onOpenWallet }: { detail: TokenData; quote: Quote; onOpenWallet?: ((wallet: string) => void) | undefined }): ReactElement {
   const { info, risk, concentration } = detail;
   const report = risk.report;
   return (
@@ -130,12 +141,18 @@ export function TokenPanel({ detail, quote }: { detail: TokenData; quote: Quote 
       </p>
 
       <h3>Risk</h3>
-      <p>
-        <RiskBadge risk={report} />
-      </p>
-      {report.level === "unknown" ? (
-        <p className="muted">Not enough of the signals are known to give a level. The score below covers only what is known.</p>
-      ) : null}
+      <div className="risk-lens">
+        <RiskGauge risk={report} />
+        <div className="risk-summary">
+          <p>
+            <RiskBadge risk={report} />
+          </p>
+          {report.level === "unknown" ? (
+            <p className="muted">Not enough of the signals are known to give a level. The score below covers only what is known.</p>
+          ) : null}
+        </div>
+      </div>
+      <RiskBar signals={report.signals} />
       <table className="signals" aria-label="Risk signals">
         <thead>
           <tr>
@@ -177,7 +194,7 @@ export function TokenPanel({ detail, quote }: { detail: TokenData; quote: Quote 
             <tbody>
               {concentration.topHolders.map((h) => (
                 <tr key={h.address}>
-                  <th scope="row"><code title={h.address}>{shortAddress(h.address)}</code></th>
+                  <th scope="row"><WalletRef address={h.address} onOpen={onOpenWallet} /></th>
                   <td className="num">{formatUnits(h.amount, info.decimals)}</td>
                   <td className="num">{formatPercent(h.share)}</td>
                 </tr>
@@ -208,7 +225,7 @@ export function TokenPanel({ detail, quote }: { detail: TokenData; quote: Quote 
                 <td>{t.side}</td>
                 <td className="num">{formatUnits(t.amount, info.decimals)}</td>
                 <td className="num">{formatUnits(t.quote, quote.decimals)}</td>
-                <td><code title={t.wallet}>{shortAddress(t.wallet)}</code></td>
+                <td><WalletRef address={t.wallet} onOpen={onOpenWallet} /></td>
               </tr>
             ))}
           </tbody>

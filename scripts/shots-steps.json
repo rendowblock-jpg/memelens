@@ -1,0 +1,9 @@
+[
+  {"name": "feed",        "width": 1360, "height": 860, "script": "'.token-panel .gauge'"},
+  {"name": "feed-tok1",   "width": 1360, "height": 860, "script": "document.querySelector('tr[data-token=\"TOK1\"] button').click(), \".token-panel[data-token='TOK1']\""},
+  {"name": "smart",       "width": 1360, "height": 860, "script": "[...document.querySelectorAll('.rail-item')].find(b => b.textContent.includes('Smart')).click(), 'table.smart-ranked'"},
+  {"name": "wallet-alice","width": 1360, "height": 860, "script": "document.querySelector('table.smart-ranked button.wallet').click(), \".wallet-panel[data-wallet='alice']\""},
+  {"name": "back",        "width": 1360, "height": 860, "script": "document.querySelector('.back').click(), 'table.smart-unranked'"},
+  {"name": "wallet-dave", "width": 1360, "height": 860, "script": "[...document.querySelectorAll('table.smart-unranked button.wallet')].find(b => b.textContent === 'dave').click(), \".wallet-panel[data-wallet='dave']\""},
+  {"name": "narrow-feed", "width": 1024, "height": 640, "script": "[...document.querySelectorAll('.rail-item')].find(b => b.textContent.includes('Feed')).click(), '.token-panel .gauge'"}
+]

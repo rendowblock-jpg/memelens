@@ -57,6 +57,22 @@ export function formatUnits(raw: string, decimals: number, maxFraction = 4): str
   return sign + render(n, dp);
 }
 
+/** Like formatUnits but with an explicit "+" on gains, for profit and loss. Zero has no sign. */
+export function formatSigned(raw: string, decimals: number, maxFraction = 4): string {
+  const text = formatUnits(raw, decimals, maxFraction);
+  return text === "0" || text.startsWith("-") ? text : `+${text}`;
+}
+
+/** A ratio that can be negative or above 1 (a return on cost) as a signed percentage. null prints a dash. */
+export function formatSignedPercent(ratio: number | null, digits = 1): string {
+  if (ratio === null) return "—";
+  if (!Number.isFinite(ratio)) throw new FormatError("a ratio must be a finite number");
+  checkInt("digits", digits, 0, 6);
+  const text = (ratio * 100).toFixed(digits);
+  if (Number(text) === 0) return `${(0).toFixed(digits)}%`;
+  return `${ratio > 0 ? "+" : ""}${text}%`;
+}
+
 /**
  * Price of one whole token in whole quote units, from a mark ("`amount` raw token units are worth `quote` raw
  * quote units"). Shows at least `significant` significant digits, rounded half up; the integer part is never

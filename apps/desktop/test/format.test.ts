@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FormatError, formatAge, formatPercent, formatPrice, formatSignalValue, formatTime, formatUnits, shortAddress } from "../src/renderer/format";
+import { FormatError, formatAge, formatPercent, formatPrice, formatSignalValue, formatTime, formatUnits, shortAddress, formatSigned, formatSignedPercent } from "../src/renderer/format";
 
 // Expected values were worked out by hand and cross-checked with Python's decimal module (round half up),
 // not with the code under test.
@@ -236,5 +236,42 @@ describe("formatSignalValue", () => {
   it("rejects numbers that are not finite", () => {
     expect(() => formatSignalValue(Number.NaN)).toThrow(FormatError);
     expect(() => formatSignalValue(Number.POSITIVE_INFINITY)).toThrow(FormatError);
+  });
+});
+
+describe("formatSigned", () => {
+  it("puts + on gains and - on losses, and nothing on zero", () => {
+    expect(formatSigned("5000000", 9)).toBe("+0.005");
+    expect(formatSigned("-5000000", 9)).toBe("-0.005");
+    expect(formatSigned("0", 9)).toBe("0");
+    expect(formatSigned("-0", 9)).toBe("0");
+    expect(formatSigned("1500000000000", 9)).toBe("+1,500");
+  });
+  it("keeps the sign on an amount too small to show, so a tiny loss is never printed as a gain", () => {
+    expect(formatSigned("1", 9)).toBe("+<0.0001");
+    expect(formatSigned("-1", 9)).toBe("-<0.0001");
+  });
+  it("refuses what formatUnits refuses", () => {
+    expect(() => formatSigned("1.5", 9)).toThrow(FormatError);
+    expect(() => formatSigned("12", -1)).toThrow(FormatError);
+  });
+});
+
+describe("formatSignedPercent", () => {
+  it("signs gains and losses and allows more than 100%", () => {
+    expect(formatSignedPercent(1)).toBe("+100.0%");
+    expect(formatSignedPercent(-0.5)).toBe("-50.0%");
+    expect(formatSignedPercent(12.345)).toBe("+1234.5%");
+    expect(formatSignedPercent(0.25, 0)).toBe("+25%");
+  });
+  it("prints zero, and anything that rounds to zero, without a sign", () => {
+    expect(formatSignedPercent(0)).toBe("0.0%");
+    expect(formatSignedPercent(0.00004)).toBe("0.0%");
+    expect(formatSignedPercent(-0.00004)).toBe("0.0%");
+  });
+  it("prints a dash for unknown, never 0%, and refuses numbers that are not numbers", () => {
+    expect(formatSignedPercent(null)).toBe("—");
+    expect(() => formatSignedPercent(Number.NaN)).toThrow(FormatError);
+    expect(() => formatSignedPercent(Number.POSITIVE_INFINITY)).toThrow(FormatError);
   });
 });

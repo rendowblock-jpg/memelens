@@ -51,16 +51,23 @@ async function run(): Promise<number> {
   const contents = window.webContents;
 
   const state = (await contents.executeJavaScript(WAIT_FOR_PAGE)) as string;
-  const page = JSON.parse((await contents.executeJavaScript(`document.getElementById("out").textContent`)) as string) as {
-    overview: { chains: unknown[] };
-    feed: { rows: unknown[] } | null;
-  };
+  // What the real screen shows, read from its DOM: the number of token rows, the data notice and the detail panel.
+  const page = JSON.parse(
+    (await contents.executeJavaScript(`JSON.stringify({
+      rows: document.querySelectorAll("table.feed tbody tr[data-token]").length,
+      notice: (document.querySelector("[data-testid=notice]") || {}).textContent || "",
+      panel: Boolean(document.querySelector("section.token-panel")),
+      gauge: Boolean(document.querySelector("section.token-panel .gauge")),
+      bar: document.querySelectorAll("section.token-panel svg[aria-label^='Risk by signal'] .seg-track").length,
+    })`)) as string,
+  ) as { rows: number; notice: string; panel: boolean; gauge: boolean; bar: number };
   const probes = JSON.parse((await contents.executeJavaScript(PROBES)) as string) as Record<string, any>;
 
   const checks: Check[] = [
     { name: "page script finished without error", ok: state === "done", got: state },
-    { name: "overview came through the real IPC path", ok: page.overview.chains.length === 1, got: page.overview.chains.length },
-    { name: "feed has the expected number of tokens", ok: page.feed?.rows.length === expectRows, got: page.feed?.rows.length },
+    { name: "the feed shows the expected number of tokens", ok: page.rows === expectRows, got: page.rows },
+    { name: "the notice names the chain and warns that the data is synthetic", ok: /synthetic/i.test(page.notice) && /SYNTHETIC DATA/.test(page.notice), got: page.notice },
+    { name: "the first token's panel is open with its risk gauge and a bar of 10 signals", ok: page.panel && page.gauge && page.bar === 10, got: page },
     { name: "page has no require/process/module/Buffer", ok: [probes["require"], probes["process"], probes["module"], probes["buffer"]].every((t) => t === "undefined"), got: [probes["require"], probes["process"], probes["module"], probes["buffer"]] },
     { name: "window.memelens has exactly the 5 channels", ok: JSON.stringify(probes["api"]) === JSON.stringify(["feed", "overview", "smart", "token", "wallet"]), got: probes["api"] },
     { name: "window.open is denied", ok: probes["windowOpenDenied"] === true, got: probes["windowOpenDenied"] },
