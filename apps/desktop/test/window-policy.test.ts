@@ -1,6 +1,6 @@
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { allowNavigation, allowPermission, webPreferences, windowOpenDecision } from "../src/main/window-policy";
+import { allowNavigation, allowPermission, webPreferences, windowOpenDecision, windowSize } from "../src/main/window-policy";
 
 const PRELOAD = resolve("/srv/memelens/dist/preload.cjs");
 
@@ -56,5 +56,29 @@ describe("navigation and permissions", () => {
 
   it("denies every permission", () => {
     expect(allowPermission()).toBe(false);
+  });
+});
+
+describe("windowSize", () => {
+  it("uses the wanted size when the screen is big enough", () => {
+    expect(windowSize({ width: 1920, height: 1040 })).toEqual({ width: 1360, height: 860, minWidth: 900, minHeight: 600 });
+  });
+  it("cuts the height to the usable area of a 1366x768 laptop (about 728 high with the taskbar)", () => {
+    expect(windowSize({ width: 1366, height: 728 })).toEqual({ width: 1360, height: 728, minWidth: 900, minHeight: 600 });
+  });
+  it("cuts both sides on a small screen", () => {
+    expect(windowSize({ width: 1280, height: 680 })).toEqual({ width: 1280, height: 680, minWidth: 900, minHeight: 600 });
+  });
+  it("never lets the minimum be bigger than the window, so a very small screen still gets a window that fits", () => {
+    expect(windowSize({ width: 800, height: 500 })).toEqual({ width: 800, height: 500, minWidth: 800, minHeight: 500 });
+  });
+  it("takes the wanted size and minimum as arguments", () => {
+    expect(windowSize({ width: 1000, height: 700 }, { width: 500, height: 400 }, { width: 300, height: 200 })).toEqual({ width: 500, height: 400, minWidth: 300, minHeight: 200 });
+  });
+  it("refuses sizes that are not positive whole numbers", () => {
+    for (const bad of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => windowSize({ width: bad, height: 700 }), String(bad)).toThrow(RangeError);
+      expect(() => windowSize({ width: 700, height: bad }), String(bad)).toThrow(RangeError);
+    }
   });
 });

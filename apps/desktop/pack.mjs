@@ -68,6 +68,18 @@ const files = await build({
     directories: { output: release, buildResources: join(here, "build") },
     asar: true,
     npmRebuild: false,
+    // Fuses are switches inside the Electron binary itself. The install folder is writable by the user, so the app
+    // must refuse to run code that is not in its own app.asar, refuse a modified app.asar, and not be turned into a
+    // general-purpose Node interpreter (ELECTRON_RUN_AS_NODE) or debugged through environment variables.
+    electronFuses: {
+      runAsNode: false,
+      enableCookieEncryption: true,
+      enableNodeOptionsEnvironmentVariable: false,
+      enableNodeCliInspectArguments: false,
+      enableEmbeddedAsarIntegrityValidation: true,
+      onlyLoadAppFromAsar: true,
+      grantFileProtocolExtraPrivileges: false,
+    },
     artifactName: "MemeLens-${version}-${arch}.${ext}",
     win: { icon: "icon.png", signAndEditExecutable: true },
     msi: {

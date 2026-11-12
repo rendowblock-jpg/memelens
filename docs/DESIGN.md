@@ -168,31 +168,69 @@ private source inside the public repo's CI: public Actions logs are world-readab
 
 ## Windows first
 
-There is no Windows machine on the build host. Packaging runs on a GitHub Actions `windows-latest` runner (free for
-public repos) and produces the MSI. The packaging tool (electron-builder's MSI target or Electron Forge's WiX maker)
-is chosen by trying it on the runner, not by reading about it.
+There is no Windows machine on the build host, so Windows is exercised on a GitHub Actions `windows-latest` runner
+(free for public repos). `.github/workflows/windows.yml` has two jobs, both on Windows, with every action pinned to a
+commit SHA and no secrets:
+- **Tests and smoke:** `npm ci`, `typecheck:all`, the whole unit-test suite, then `scripts/smoke-desktop.mjs`, which
+  starts the real Electron app with the sandbox on (no `--no-sandbox`).
+- **MSI, install, run, uninstall:** `apps/desktop/pack.mjs` builds the MSI; the job installs it silently with `msiexec`,
+  starts the INSTALLED `MemeLens.exe`, and `scripts/check-packaged.mjs` talks to its window over the Chrome DevTools
+  protocol, clicks through the screens, checks them and saves a picture of each; then it uninstalls and checks the
+  executable is gone. The MSI, the pictures and the install logs are kept as the artifact `memelens-windows` for 14 days.
 
 **Done means** (C5): the runner produced the MSI; it installed on a real Windows machine; the app starts; the window
 shows the feed built from the sample fixture; the security smoke checks pass there; the owner has seen it. Anything
 less is reported as "built" or "probed", not "done". Installing on the owner's PC needs his word that turn.
 
-Packaging facts read on 12 Nov 2026 (from the npm registry and the package's own schema; nothing has been built yet):
-- electron-builder `latest` is 26.18.0 (a `v26` tag points at 26.18.1). Its schema has an `msi` target. Its options include
-  `oneClick` (default true), `perMachine` (default false, so a per-user install), `upgradeCode` (optional), shortcut
-  switches, and `additionalWixArgs` / `additionalLightArgs`, so it drives WiX. **Not verified:** that the `windows-latest`
-  runner has WiX, or that the target works with this repo's esbuild output. That is the first thing the runner must prove.
-- Pin an explicit `upgradeCode` before the first MSI is ever built. Without a stable one, a reinstall or upgrade may not
-  replace the previous version, and the "survives reinstall" test for the sidecar cannot be trusted.
-- A per-user install matches the sidecar folder under `%LOCALAPPDATA%\MemeLens`; a per-machine install would need a
-  decision about who owns that folder.
-- Nothing is written yet: no electron-builder config, no workflow file, no icon.
+### Measured on 12 Nov 2026 (run 43185415658, commit 1d1d768, `windows-latest`, Node 22.23.4)
+- **Built:** the MSI (`MemeLens-0.1.0-x64.msi`, 126,558,208 bytes) built with electron-builder 26.18.0 and Electron 45.3.0.
+  It is **unsigned**: Windows SmartScreen will warn until the SignPath application is approved.
+- **Installed:** `msiexec /i ... /qn` exit code 0, per user, to `%LOCALAPPDATA%\Programs\memelens\MemeLens.exe`
+  (no administrator needed). The executable reports itself as MemeLens 0.1.0.0 from "MemeLens contributors".
+- **Ran:** the installed app passed 15 of 15 checks: the feed shows all 5 tokens, the synthetic-data notice, the risk gauge
+  and a 10-signal bar; no `require`/`process`/`Buffer` in the page; exactly the 5 channels; network fetch, eval and inline
+  script blocked; the renderer runs as its own process (`--type=renderer`); **no process of the app has `--no-sandbox`
+  in its command line**; clicking Smart money ranks alice first with +0.005 SOL, and her wallet page shows realised
+  +0.005 SOL and 10 trades. Pictures of the three screens were saved (1008x655, colours match the stylesheet).
+- **Uninstalled:** exit code 0, and `MemeLens.exe` was gone.
+- **Tests on Windows:** 681 of 681 pass, including the new Windows file-name tests, and `tsc` is clean. This settles two
+  items that were open: `node:sqlite` works inside Electron 45 on Windows, and the sandboxed window starts and works
+  without `--no-sandbox` (the smoke test reports the sandbox preference on and the switch absent).
+- **What the first Windows run found** (all fixed): a store test deleted a folder while a database in it was still open
+  (Linux allows that, Windows answers EBUSY); the app's "finished loading" flag came before the first token's panel, a
+  race that only showed on the slower machine; and the "no `--no-sandbox`" step I first wrote ran after the app had
+  exited, so it checked nothing. It is now done inside the checker while the app runs.
 
-Things only a Windows run can settle (none measured yet):
-- `resolveAppFile` was tested with POSIX paths. Add Windows cases: `..\`, drive letters, UNC paths, alternate data
-  streams (`name::$DATA`), reserved names (`CON`, `NUL`), trailing dots and spaces, 8.3 short names.
-- `sandbox: true` has never run in a real Chromium sandbox; the host smoke test uses `--no-sandbox`.
-- `node:sqlite` inside Electron 45 (Node 24) on Windows.
-- Start-up time and memory on the owner's PC (a Celeron N3060 with about 1.8 GB free RAM). No budget exists yet.
+### Packaging decisions
+- **`upgradeCode` is `80E58C9E-4267-4FF5-A0F0-65565D71F798` and must never change.** Windows Installer uses it to know
+  that a new version replaces the old one. Generated once on 12 Nov 2026; it is the constant in `apps/desktop/pack.mjs`.
+- **Per-user install** (`perMachine: false`), matching the per-user sidecar folder `%LOCALAPPDATA%\MemeLens`.
+- **Staged outside the repository.** The first attempt packed `react`, `react-dom` and the `@memelens/*` sources into
+  `app.asar` (8.7 MB) because electron-builder walks up from the app folder, finds the workspace and adds its dev
+  dependencies. `pack.mjs` now stages into the OS temp folder and fails the build unless `app.asar` holds exactly the 7
+  expected entries (310 KB).
+- **Electron fuses** (switches inside the executable; the install folder is user-writable): `RunAsNode` off,
+  `NODE_OPTIONS` and `--inspect` off, `onlyLoadAppFromAsar` on, embedded asar integrity validation on, cookie
+  encryption on. Read back from the Linux build with `electron-fuses read` and checked there (the app still passes 14
+  of 14 packaged checks and ignores `ELECTRON_RUN_AS_NODE`). **Not yet seen on Windows:** whether the Windows build
+  starts with asar integrity validation on is decided by the next run.
+- **Window size** fits the usable screen (`windowSize`, tested): the owner's laptop is probably 1366x768, which leaves
+  about 728 rows under the taskbar, and a fixed 860-row window would have hung off the bottom.
+- **Host-side tooling:** `/root/projects/tools/ml-ci.sh status|failed|log|fetch` reads the run, its logs and its artifacts
+  with the stored token without printing it. It lives outside the repository on purpose.
+
+### Not done, and not claimed
+- **The owner has not seen it.** Nothing here is at evidence level L3. The MSI is waiting as a CI artifact; installing it
+  on his PC needs his word that turn. The screenshots were checked by measurement (size, colours, edge positions), not
+  by eye.
+- **Start-up time and memory on his PC** (a Celeron N3060 with about 1.8 GB free RAM) are unmeasured and there is no budget yet.
+- **"The sandbox is enforced"** is shown by the switch being absent and the preference being on, not by inspecting the
+  renderer's token. A stronger check would read the renderer process's integrity level.
+- **Upgrade and reinstall** (a second MSI over the first, then the sidecar folder surviving) is not tested: there is only
+  one version and no sidecar yet.
+- **The test job and the package job are independent**, so a red test does not stop an MSI being built. Before the first
+  release the package job must depend on the test job.
+- **No code signing**, no auto-update, no macOS or Linux packaging.
 
 ## Repos, licence and signing
 
@@ -269,7 +307,7 @@ Score 30 tokens that rugged against 30 that did not, and report the hit rate for
 ## Milestones (order set 12 Nov 2026)
 
 1. **M3c** screens: feed, token panel with risk lens, smart-money ranking, wallet panel - **done on the host** (see "The screens"); not yet seen on Windows
-2. **W** Windows packaging: MSI from CI, run on Windows, seen by the owner (L3)
+2. **W** Windows packaging: MSI from CI - **built, installed, run and uninstalled on a Windows runner (run 43185415658)**; still open: the owner installs it and sees it (L3)
 3. **S** sidecar: the slot (manager, protocol, versioned folder, update check) and the Go backtest engine, with conformance vectors
 4. **C** calibration gate: 30 rugged vs 30 not, numbers into the weights table above
 5. **M4** Solana adapter (needs a user-supplied RPC or data API key)
@@ -278,7 +316,7 @@ Score 30 tokens that rugged against 30 that did not, and report the hit rate for
 
 Done earlier: M0 design and concentration, M1a PnL, M1b risk, M1c smart money, M2 storage, ReplayAdapter, ingest, CLI,
 M3a service layer, M3b Electron main, preload and security, M3c-1 formatting, M3c-2 first presentational components,
-M3c-3 the screens.
+M3c-3 the screens, W-1 the MSI pipeline on Windows CI.
 
 ## Open questions
 
@@ -310,7 +348,7 @@ wallet address; totals plus a positions table). The look is a dark instrument pa
   (real app, one PNG per screen listed in `scripts/shots-steps.json`), `scripts/preview-build.ts` (the built renderer with
   the real handler's answers, for browser inspection tools).
 
-## Status (12 Nov 2026, repo HEAD 6ed69dc before the follow-up fixes)
+## Status (12 Nov 2026)
 
 Public repo: https://github.com/rendowblock-jpg/memelens, `main` pushed at b4b58a8; an unauthenticated API call returned
 `private: false`. Before the push the full history was scanned: no keys, tokens, key files or Solana-key-shaped strings.
@@ -318,7 +356,7 @@ One old commit (5adebe4) contains a test-run output file with absolute build-hos
 place rather than rewrite history. No licence file yet, so by default nobody may reuse the code (see Open questions).
 No sidecar repo exists yet.
 
-Measured at the end of M3c-3: `vitest run` 675 tests in 26 files, exit 0; `tsc --noEmit` exit 0 for `packages/core`,
+Measured on the host after the Windows packaging work: `vitest run` 687 tests in 26 files, exit 0; `tsc --noEmit` exit 0 for `packages/core`,
 `packages/data`, `packages/service`, `apps/desktop` and the renderer project; real-app smoke 14/14, exit 0.
 Browser-tool measurements of the built renderer (through the preview harness, not the Electron window): 1360x860 for the
 feed, smart money and one wallet, and 900x600 (the app's minimum window) for the feed only. Not measured: the token panel
@@ -337,7 +375,7 @@ Run the CLI: `npm run memelens -- ingest packages/data/fixtures/sample.json --db
 Known gaps (not hidden):
 - Everything is verified on synthetic data. Nothing has touched real chain data.
 - Risk weights and thresholds are provisional (see calibration). Only 6 of 10 signals have a data source.
-- Not run on Windows. The Electron sandbox has not run for real. No MSI, no sidecar, no Solana adapter, no agent chat.
+- Run on Windows only by CI (see "Windows first"); the owner has not seen it. No sidecar, no Solana adapter, no agent chat.
 - The app has no way to load data yet: a user with an empty database sees instructions to run the command line. The live
   adapter (M4) is what fixes that.
 - No keyboard navigation inside the feed beyond tabbing to each row's button.

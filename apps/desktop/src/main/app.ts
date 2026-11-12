@@ -1,11 +1,11 @@
 import { statSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { app, BrowserWindow, ipcMain, protocol, session } from "electron";
+import { app, BrowserWindow, ipcMain, protocol, screen, session } from "electron";
 import { Store } from "@memelens/data";
 import { registerIpc } from "./ipc";
 import { APP_ORIGIN } from "./security";
 import { planResponse } from "./serve";
-import { allowNavigation, allowPermission, webPreferences, windowOpenDecision } from "./window-policy";
+import { allowNavigation, allowPermission, webPreferences, windowOpenDecision, windowSize } from "./window-policy";
 
 export interface LaunchOptions {
   /** The SQLite file the app reads. Created (empty) if it does not exist. */
@@ -63,11 +63,10 @@ export async function launch(opts: LaunchOptions): Promise<Launched> {
 
   registerIpc(ipcMain, store, (e) => opts.log(`ipc error: ${describe(e)}`));
 
+  // Fit the usable screen (a 1366x768 laptop has about 728 rows once the taskbar is counted).
+  const size = windowSize(screen.getPrimaryDisplay().workAreaSize);
   const window = new BrowserWindow({
-    width: 1360,
-    height: 860,
-    minWidth: 900,
-    minHeight: 600,
+    ...size,
     show: false,
     backgroundColor: "#0b0e13",
     title: "MemeLens",
