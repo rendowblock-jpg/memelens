@@ -294,3 +294,16 @@ describe("countOf", () => {
     expect(() => countOf(Number.NaN, "trade")).toThrow(FormatError);
   });
 });
+
+describe("formatSignedPercent: digits", () => {
+  it("accepts 0 to 6 digits and prints exactly that many", () => {
+    expect(formatSignedPercent(0.123456789, 0)).toBe("+12%");
+    expect(formatSignedPercent(0.123456789, 6)).toBe("+12.345679%");
+    expect(formatSignedPercent(-0.123456789, 3)).toBe("-12.346%");
+  });
+  it("refuses a number of digits outside 0..6 or not whole, with the app's own error", () => {
+    for (const d of [-1, 7, 100, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => formatSignedPercent(0.1, d), String(d)).toThrow(FormatError);
+    }
+  });
+});

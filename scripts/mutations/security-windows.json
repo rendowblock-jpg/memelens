@@ -1,0 +1,176 @@
+[
+ {
+  "name": "win names: leading space allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "segment !== segment.trim()",
+  "new": "segment !== segment.trimEnd()"
+ },
+ {
+  "name": "win names: trailing dot allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "|| segment.endsWith(\".\")) return true;",
+  "new": ") return true;"
+ },
+ {
+  "name": "win names: < allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "/[<>\"|?*]/",
+  "new": "/[>\"|?*]/"
+ },
+ {
+  "name": "win names: > allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "/[<>\"|?*]/",
+  "new": "/[<\"|?*]/"
+ },
+ {
+  "name": "win names: \" allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "/[<>\"|?*]/",
+  "new": "/[<>|?*]/"
+ },
+ {
+  "name": "win names: | allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "/[<>\"|?*]/",
+  "new": "/[<>\"?*]/"
+ },
+ {
+  "name": "win names: ? allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "/[<>\"|?*]/",
+  "new": "/[<>\"|*]/"
+ },
+ {
+  "name": "win names: * allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "/[<>\"|?*]/",
+  "new": "/[<>\"|?]/"
+ },
+ {
+  "name": "win names: only ~1 is a short name",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "/~[0-9]/",
+  "new": "/~1/"
+ },
+ {
+  "name": "win names: short names allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "/~[0-9]/.test(segment) || ",
+  "new": ""
+ },
+ {
+  "name": "win names: $ names allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": " || segment.startsWith(\"$\")) return true;",
+  "new": ") return true;"
+ },
+ {
+  "name": "win names: extension hides the device",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "(segment.split(\".\")[0] ?? \"\")",
+  "new": "(segment.split(\".\").at(-1) ?? \"\")"
+ },
+ {
+  "name": "win names: space before the dot hides the device",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": ".trimEnd();\n  return DEVICE",
+  "new": "; \n  return DEVICE"
+ },
+ {
+  "name": "win names: device names are case-sensitive",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "conout\\$)$/i;",
+  "new": "conout\\$)$/;"
+ },
+ {
+  "name": "win names: CON missing",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "^(?:con|prn",
+  "new": "^(?:prn"
+ },
+ {
+  "name": "win names: PRN missing",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "con|prn|aux",
+  "new": "con|aux"
+ },
+ {
+  "name": "win names: AUX missing",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "prn|aux|nul",
+  "new": "prn|nul"
+ },
+ {
+  "name": "win names: NUL missing",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "aux|nul|(?:com",
+  "new": "aux|(?:com"
+ },
+ {
+  "name": "win names: COM missing",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "(?:com|lpt)[0-9",
+  "new": "(?:lpt)[0-9"
+ },
+ {
+  "name": "win names: LPT missing",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "(?:com|lpt)[0-9",
+  "new": "(?:com)[0-9"
+ },
+ {
+  "name": "win names: COM0/LPT0 allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "[0-9\\u00b9",
+  "new": "[1-9\\u00b9"
+ },
+ {
+  "name": "win names: superscript 1 allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "\\u00b9\\u00b2\\u00b3",
+  "new": "\\u00b2\\u00b3"
+ },
+ {
+  "name": "win names: superscript 2 allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "\\u00b9\\u00b2\\u00b3",
+  "new": "\\u00b9\\u00b3"
+ },
+ {
+  "name": "win names: superscript 3 allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "\\u00b9\\u00b2\\u00b3",
+  "new": "\\u00b9\\u00b2"
+ },
+ {
+  "name": "win names: CONIN$ allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "|conin\\$|conout",
+  "new": "|conout"
+ },
+ {
+  "name": "win names: CONOUT$ allowed",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "|conout\\$)$",
+  "new": "|conin\\$)$"
+ },
+ {
+  "name": "win names: name merely ending in a device name refused",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "/^(?:con|prn",
+  "new": "/(?:con|prn"
+ },
+ {
+  "name": "win names: name merely starting with a device name refused",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "conout\\$)$/i",
+  "new": "conout\\$)/i"
+ },
+ {
+  "name": "win names: check not called",
+  "file": "apps/desktop/src/main/security.ts",
+  "old": "if (meansSomethingElseOnWindows(s)) return null;",
+  "new": "/* none */"
+ }
+]

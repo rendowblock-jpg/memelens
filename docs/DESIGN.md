@@ -191,7 +191,8 @@ less is reported as "built" or "probed", not "done". Installing on the owner's P
   and a 10-signal bar; no `require`/`process`/`Buffer` in the page; exactly the 5 channels; network fetch, eval and inline
   script blocked; the renderer runs as its own process (`--type=renderer`); **no process of the app has `--no-sandbox`
   in its command line**; clicking Smart money ranks alice first with +0.005 SOL, and her wallet page shows realised
-  +0.005 SOL and 10 trades. Pictures of the three screens were saved (1008x655, colours match the stylesheet).
+  +0.005 SOL and 10 trades. Pictures of the three screens were saved (1008x655). Measured from their pixels: the dominant colour of the rail is
+  #0c0f14, of the page #080a0e and of the notice bar #11151c, exactly the stylesheet's values.
 - **Uninstalled:** exit code 0, and `MemeLens.exe` was gone.
 - **Tests on Windows:** 681 of 681 pass, including the new Windows file-name tests, and `tsc` is clean. This settles two
   items that were open: `node:sqlite` works inside Electron 45 on Windows, and the sandboxed window starts and works
@@ -200,6 +201,22 @@ less is reported as "built" or "probed", not "done". Installing on the owner's P
   (Linux allows that, Windows answers EBUSY); the app's "finished loading" flag came before the first token's panel, a
   race that only showed on the slower machine; and the "no `--no-sandbox`" step I first wrote ran after the app had
   exited, so it checked nothing. It is now done inside the checker while the app runs.
+
+### What the Windows feed picture shows (opened and looked at on 12 Nov 2026)
+One picture, the feed screen of the installed app on the runner (1008x655), was opened and looked at, not only measured.
+It was carried to the reviewer in four pieces and reduced to 64 colours (sampled mean colour error 0.7 of 255); its
+SHA-256 matched the file on the host.
+- A dark panel with the lens mark and two rail items; the title "Token feed"; a notice line with the yellow SYNTHETIC DATA
+  tag; a table of the five tokens, newest first, the first row selected (accent bar on its left edge, tinted background).
+- The risk column reads "Critical 93" in a red pill with the flag "mintAuthority" and "57% of signals known" for SYN5, and
+  a dashed grey "Unknown" pill with "17% of signals known" for most of the others (45% for SYN1): dashed means not
+  measured is visible.
+- At this width (1008 px, under the 1180 px breakpoint) the detail panel stacks under the table, so the gauge and the risk
+  bar are below the first screen. The two-pane layout (table beside the detail panel) is what a 1366-wide screen gets.
+  **It has not been looked at on Windows,** only measured on the host.
+- Rows are about 66 px tall because the risk cell has three lines. With five tokens that is fine; with hundreds it means a
+  lot of scrolling, so a compact row is a likely later change.
+- Not looked at: the gauge, the risk bar, the smart-money and wallet screens.
 
 ### Packaging decisions
 - **`upgradeCode` is `80E58C9E-4267-4FF5-A0F0-65565D71F798` and must never change.** Windows Installer uses it to know
@@ -212,8 +229,9 @@ less is reported as "built" or "probed", not "done". Installing on the owner's P
 - **Electron fuses** (switches inside the executable; the install folder is user-writable): `RunAsNode` off,
   `NODE_OPTIONS` and `--inspect` off, `onlyLoadAppFromAsar` on, embedded asar integrity validation on, cookie
   encryption on. Read back from the Linux build with `electron-fuses read` and checked there (the app still passes 14
-  of 14 packaged checks and ignores `ELECTRON_RUN_AS_NODE`). **Not yet seen on Windows:** whether the Windows build
-  starts with asar integrity validation on is decided by the next run.
+  of 14 packaged checks and ignores `ELECTRON_RUN_AS_NODE`). **Seen on Windows (run 43186263409):** the build log shows `executing @electron/fuses` and `updating asar
+  integrity executable resource` for `MemeLens.exe`, and the installed app then started and passed 15 of 15 checks, so
+  these fuses do not stop it running. Not seen: the fuse values read back from the Windows binary (only the Linux one).
 - **Window size** fits the usable screen (`windowSize`, tested): the owner's laptop is probably 1366x768, which leaves
   about 728 rows under the taskbar, and a fixed 860-row window would have hung off the bottom.
 - **Host-side tooling:** `/root/projects/tools/ml-ci.sh status|failed|log|fetch` reads the run, its logs and its artifacts
@@ -221,15 +239,14 @@ less is reported as "built" or "probed", not "done". Installing on the owner's P
 
 ### Not done, and not claimed
 - **The owner has not seen it.** Nothing here is at evidence level L3. The MSI is waiting as a CI artifact; installing it
-  on his PC needs his word that turn. The screenshots were checked by measurement (size, colours, edge positions), not
-  by eye.
+  on his PC needs his word that turn. One screenshot (the feed) was opened and looked at on 12 Nov (next section); the other two were
+  checked by measurement only.
 - **Start-up time and memory on his PC** (a Celeron N3060 with about 1.8 GB free RAM) are unmeasured and there is no budget yet.
 - **"The sandbox is enforced"** is shown by the switch being absent and the preference being on, not by inspecting the
   renderer's token. A stronger check would read the renderer process's integrity level.
 - **Upgrade and reinstall** (a second MSI over the first, then the sidecar folder surviving) is not tested: there is only
   one version and no sidecar yet.
-- **The test job and the package job are independent**, so a red test does not stop an MSI being built. Before the first
-  release the package job must depend on the test job.
+- **The package job waits for the test job** (`needs: test`, added 12 Nov), so a red test cannot produce an MSI.
 - **No code signing**, no auto-update, no macOS or Linux packaging.
 
 ## Repos, licence and signing
@@ -303,6 +320,13 @@ Score 30 tokens that rugged against 30 that did not, and report the hit rate for
 - Backtests get explicit look-ahead tests: a strategy that peeks at the future must be rejected or show no edge.
 - Adapters are tested against recorded fixtures, not the live network.
 - Never say "fixed", "done" or "works" without the check run in the same turn and its exit code read.
+- **Mutation checks on the Windows work and the M3c logic (12 Nov 2026):** `scripts/mutations/renderer-logic.json` (51
+  mutants: `riskBar`, `gaugeArc`, `smartWindow`, `formatSigned`, `formatSignedPercent`, `countOf`, `pickChain`),
+  `desktop-window.json` (11: `windowSize`) and `security-windows.json` (29: the Windows file-name refusals). First run: 81
+  of 91 caught. The 10 survivors pointed at 9 missing tests (an infinite gauge radius, time 0, the digit bounds, a bad
+  wanted or minimum window size, short names `~2`..`~9`, the superscript-three device names, and names that merely end in
+  a device name such as `mycon.css`); all were added. Second run: 90 of 91. The survivor is `ratio > 0` -> `ratio >= 0` in
+  `formatSignedPercent`, equivalent because exactly 0 returns on the line before it.
 
 ## Milestones (order set 12 Nov 2026)
 
@@ -356,7 +380,7 @@ One old commit (5adebe4) contains a test-run output file with absolute build-hos
 place rather than rewrite history. No licence file yet, so by default nobody may reuse the code (see Open questions).
 No sidecar repo exists yet.
 
-Measured on the host after the Windows packaging work: `vitest run` 687 tests in 26 files, exit 0; `tsc --noEmit` exit 0 for `packages/core`,
+Measured on the host after the Windows packaging work: `vitest run` 697 tests in 26 files, exit 0; `tsc --noEmit` exit 0 for `packages/core`,
 `packages/data`, `packages/service`, `apps/desktop` and the renderer project; real-app smoke 14/14, exit 0.
 Browser-tool measurements of the built renderer (through the preview harness, not the Electron window): 1360x860 for the
 feed, smart money and one wallet, and 900x600 (the app's minimum window) for the feed only. Not measured: the token panel

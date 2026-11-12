@@ -1,0 +1,308 @@
+[
+ {
+  "name": "riskBar: weight 0 is an error",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "s.weight < 0) throw",
+  "new": "s.weight <= 0) throw"
+ },
+ {
+  "name": "riskBar: weight 0 is kept",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "return s.weight > 0;",
+  "new": "return s.weight >= 0;"
+ },
+ {
+  "name": "riskBar: no finite check on weight",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "!Number.isFinite(s.weight) || ",
+  "new": ""
+ },
+ {
+  "name": "riskBar: unknown signal's risk is checked",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "if (s.known && !(s.risk >= 0",
+  "new": "if (!(s.risk >= 0"
+ },
+ {
+  "name": "riskBar: risk 0 refused",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "s.risk >= 0 && s.risk <= 1",
+  "new": "s.risk > 0 && s.risk <= 1"
+ },
+ {
+  "name": "riskBar: risk 1 refused",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "s.risk >= 0 && s.risk <= 1",
+  "new": "s.risk >= 0 && s.risk < 1"
+ },
+ {
+  "name": "riskBar: x is the running weight, not a percentage",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "x: (100 * before) / total,",
+  "new": "x: before,"
+ },
+ {
+  "name": "riskBar: width is the weight, not a percentage",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "width: (100 * s.weight) / total,",
+  "new": "width: s.weight,"
+ },
+ {
+  "name": "riskBar: unknown signal is filled",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "fill: s.known ? s.risk : 0,",
+  "new": "fill: s.risk,"
+ },
+ {
+  "name": "riskBar: running weight never advances properly",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "before += s.weight;",
+  "new": "before += 1;"
+ },
+ {
+  "name": "riskBar: every signal reads as known",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "known: s.known,",
+  "new": "known: true,"
+ },
+ {
+  "name": "riskBar: label dropped",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "label: s.label,",
+  "new": "label: s.id,"
+ },
+ {
+  "name": "gaugeArc: 0% refused",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "percent >= 0 && percent <= 100",
+  "new": "percent > 0 && percent <= 100"
+ },
+ {
+  "name": "gaugeArc: 100% refused",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "percent >= 0 && percent <= 100",
+  "new": "percent >= 0 && percent < 100"
+ },
+ {
+  "name": "gaugeArc: zero radius allowed",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "Number.isFinite(radius) && radius > 0",
+  "new": "Number.isFinite(radius) && radius >= 0"
+ },
+ {
+  "name": "gaugeArc: infinite radius allowed",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "Number.isFinite(radius) && radius > 0",
+  "new": "radius > 0"
+ },
+ {
+  "name": "gaugeArc: circumference without 2",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "2 * Math.PI * radius",
+  "new": "Math.PI * radius"
+ },
+ {
+  "name": "gaugeArc: dash divides by 10",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "(circumference * percent) / 100",
+  "new": "(circumference * percent) / 10"
+ },
+ {
+  "name": "gaugeArc: rounds to 2 places",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "Math.round(n * 1000) / 1000",
+  "new": "Math.round(n * 100) / 100"
+ },
+ {
+  "name": "gaugeArc: gap adds",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "circumference - dash) }",
+  "new": "circumference + dash) }"
+ },
+ {
+  "name": "smartWindow: time 0 refused",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "latest < 0) throw",
+  "new": "latest <= 0) throw"
+ },
+ {
+  "name": "smartWindow: fractions allowed",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "!Number.isSafeInteger(latest)",
+  "new": "!Number.isFinite(latest)"
+ },
+ {
+  "name": "smartWindow: all is not all",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "span === \"all\"",
+  "new": "span !== \"all\""
+ },
+ {
+  "name": "smartWindow: all starts at 1",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "{ from: 0, to: latest }",
+  "new": "{ from: 1, to: latest }"
+ },
+ {
+  "name": "smartWindow: may start before 0",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "Math.max(0, latest - SPAN_DAYS[span] * DAY_MS)",
+  "new": "latest - SPAN_DAYS[span] * DAY_MS"
+ },
+ {
+  "name": "smartWindow: floor is 1",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "Math.max(0, latest",
+  "new": "Math.max(1, latest"
+ },
+ {
+  "name": "smartWindow: a day is a second longer",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "86_400_000",
+  "new": "86_400_001"
+ },
+ {
+  "name": "smartWindow: 1d is 2 days",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "\"1d\": 1",
+  "new": "\"1d\": 2"
+ },
+ {
+  "name": "smartWindow: 7d is 6 days",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "\"7d\": 7",
+  "new": "\"7d\": 6"
+ },
+ {
+  "name": "smartWindow: 30d is 31 days",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "\"30d\": 30",
+  "new": "\"30d\": 31"
+ },
+ {
+  "name": "smartWindow: ends before the newest data",
+  "file": "apps/desktop/src/renderer/model.ts",
+  "old": "to: latest };\n}",
+  "new": "to: latest - 1 };\n}"
+ },
+ {
+  "name": "formatSigned: zero gets a plus",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "text === \"0\" || text.startsWith(\"-\") ? text",
+  "new": "text.startsWith(\"-\") ? text"
+ },
+ {
+  "name": "formatSigned: losses get a plus too",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "text.startsWith(\"-\") ? text : `+${text}`",
+  "new": "text.startsWith(\"+\") ? text : `+${text}`"
+ },
+ {
+  "name": "formatSigned: gains get no plus",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "? text : `+${text}`;\n}\n\n/** \"1 trade\"",
+  "new": "? text : `${text}`;\n}\n\n/** \"1 trade\""
+ },
+ {
+  "name": "formatSignedPercent: unknown prints 0%",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (ratio === null) return \"\u2014\";",
+  "new": "if (ratio === null) return \"0.0%\";"
+ },
+ {
+  "name": "formatSignedPercent: infinity allowed",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "!Number.isFinite(ratio)) throw new FormatError(\"a ratio",
+  "new": "Number.isNaN(ratio)) throw new FormatError(\"a ratio"
+ },
+ {
+  "name": "formatSignedPercent: digits unchecked",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "  checkInt(\"digits\", digits, 0, 6);\n  const text = (ratio",
+  "new": "  const text = (ratio"
+ },
+ {
+  "name": "formatSignedPercent: digits up to 7",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "checkInt(\"digits\", digits, 0, 6);\n  const text = (ratio",
+  "new": "checkInt(\"digits\", digits, 0, 7);\n  const text = (ratio"
+ },
+ {
+  "name": "formatSignedPercent: ratio read as percent",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "(ratio * 100).toFixed(digits)",
+  "new": "(ratio * 10).toFixed(digits)"
+ },
+ {
+  "name": "formatSignedPercent: rounds-to-zero keeps its sign",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "if (Number(text) === 0) return",
+  "new": "if (ratio === 0) return"
+ },
+ {
+  "name": "formatSignedPercent: zero without decimals",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "`${(0).toFixed(digits)}%`",
+  "new": "`0%`"
+ },
+ {
+  "name": "formatSignedPercent: losses get a plus",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "`${ratio > 0 ? \"+\" : \"\"}${text}%`",
+  "new": "`${true ? \"+\" : \"\"}${text}%`"
+ },
+ {
+  "name": "formatSignedPercent: ratio 0 gets a plus (EXPECTED EQUIVALENT: 0 returns earlier)",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "ratio > 0 ? \"+\"",
+  "new": "ratio >= 0 ? \"+\""
+ },
+ {
+  "name": "countOf: zero refused",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "n < 0) throw new FormatError(\"a count",
+  "new": "n <= 0) throw new FormatError(\"a count"
+ },
+ {
+  "name": "countOf: fractions allowed",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "!Number.isSafeInteger(n) || n < 0",
+  "new": "!Number.isFinite(n) || n < 0"
+ },
+ {
+  "name": "countOf: zero is singular",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "n === 1 ? singular",
+  "new": "n <= 1 ? singular"
+ },
+ {
+  "name": "countOf: no thousands grouping",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "group(String(n))} ${n",
+  "new": "String(n)} ${n"
+ },
+ {
+  "name": "countOf: default plural without s",
+  "file": "apps/desktop/src/renderer/format.ts",
+  "old": "plural: string = `${singular}s`",
+  "new": "plural: string = `${singular}`"
+ },
+ {
+  "name": "pickChain: time 0 is not data",
+  "file": "apps/desktop/src/renderer/controller.ts",
+  "old": "c.latestTime !== null",
+  "new": "c.latestTime"
+ },
+ {
+  "name": "pickChain: nothing is empty string",
+  "file": "apps/desktop/src/renderer/controller.ts",
+  "old": "?.chain ?? null",
+  "new": "?.chain ?? \"\""
+ },
+ {
+  "name": "pickChain: takes the first chain, data or not",
+  "file": "apps/desktop/src/renderer/controller.ts",
+  "old": "chains.find((c) => c.latestTime !== null)?.chain",
+  "new": "chains[0]?.chain"
+ }
+]

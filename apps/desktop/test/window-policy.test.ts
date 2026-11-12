@@ -82,3 +82,24 @@ describe("windowSize", () => {
     }
   });
 });
+
+describe("windowSize: every size it is given is checked, not only the screen", () => {
+  const OK = { width: 1000, height: 700 };
+  it("refuses a wanted size that is not positive whole numbers", () => {
+    for (const bad of [0, -5, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => windowSize(OK, { width: bad, height: 400 }), `want.width ${bad}`).toThrow(RangeError);
+      expect(() => windowSize(OK, { width: 400, height: bad }), `want.height ${bad}`).toThrow(RangeError);
+    }
+  });
+  it("refuses a minimum that is not positive whole numbers", () => {
+    for (const bad of [0, -5, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => windowSize(OK, { width: 500, height: 400 }, { width: bad, height: 200 }), `min.width ${bad}`).toThrow(RangeError);
+      expect(() => windowSize(OK, { width: 500, height: 400 }, { width: 300, height: bad }), `min.height ${bad}`).toThrow(RangeError);
+    }
+  });
+  it("names which size was wrong", () => {
+    expect(() => windowSize(OK, { width: 0, height: 400 })).toThrow(/want\.width/);
+    expect(() => windowSize(OK, { width: 500, height: 400 }, { width: 300, height: 0 })).toThrow(/min\.height/);
+    expect(() => windowSize({ width: 0, height: 700 })).toThrow(/work\.width/);
+  });
+});

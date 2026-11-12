@@ -1,0 +1,68 @@
+[
+ {
+  "name": "windowSize: zero accepted",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "size[side] <= 0",
+  "new": "size[side] < 0"
+ },
+ {
+  "name": "windowSize: fractions accepted",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "!Number.isSafeInteger(size[side])",
+  "new": "!Number.isFinite(size[side])"
+ },
+ {
+  "name": "windowSize: wanted size not validated",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "[\"work\", work], [\"want\", want], [\"min\", min]",
+  "new": "[\"work\", work], [\"min\", min]"
+ },
+ {
+  "name": "windowSize: minimum not validated",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "[\"work\", work], [\"want\", want], [\"min\", min]",
+  "new": "[\"work\", work], [\"want\", want]"
+ },
+ {
+  "name": "windowSize: work area not validated",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "[\"work\", work], [\"want\", want], [\"min\", min]",
+  "new": "[\"want\", want], [\"min\", min]"
+ },
+ {
+  "name": "windowSize: width grows past the screen",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "Math.min(want.width, work.width)",
+  "new": "Math.max(want.width, work.width)"
+ },
+ {
+  "name": "windowSize: height grows past the screen",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "Math.min(want.height, work.height)",
+  "new": "Math.max(want.height, work.height)"
+ },
+ {
+  "name": "windowSize: min width can exceed the window",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "minWidth: Math.min(min.width, width)",
+  "new": "minWidth: min.width"
+ },
+ {
+  "name": "windowSize: min height can exceed the window",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "minHeight: Math.min(min.height, height)",
+  "new": "minHeight: min.height"
+ },
+ {
+  "name": "windowSize: width ignores the screen",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "Math.min(want.width, work.width)",
+  "new": "want.width"
+ },
+ {
+  "name": "windowSize: height ignores the screen",
+  "file": "apps/desktop/src/main/window-policy.ts",
+  "old": "Math.min(want.height, work.height)",
+  "new": "want.height"
+ }
+]

@@ -238,3 +238,17 @@ describe("resolveAppFile: names that mean something else on Windows", () => {
     expect(resolveAppFile(ROOT, "app://memelens/a$b.js")).toBe(join(ROOT, "a$b.js"));
   });
 });
+
+describe("resolveAppFile: Windows names, the cases the first tests missed", () => {
+  it("refuses every 8.3 short-name number, not only ~1", () => {
+    for (const n of [0, 1, 2, 5, 9]) expect(resolveAppFile(ROOT, `app://memelens/NAME~${n}.TXT`), `~${n}`).toBeNull();
+  });
+  it("refuses the superscript-three form of COM and LPT as well", () => {
+    for (const u of ["app://memelens/com%C2%B3.js", "app://memelens/LPT%C2%B3", "app://memelens/lpt%C2%B3.txt"]) expect(resolveAppFile(ROOT, u), u).toBeNull();
+  });
+  it("serves a name that merely ENDS in a device name (only the whole name is a device)", () => {
+    for (const name of ["mycon.css", "xnul.js", "legacyaux.js", "intercom1.js", "bigprn.html", "xlpt2.js"]) {
+      expect(resolveAppFile(ROOT, `app://memelens/${name}`), name).toBe(join(ROOT, name));
+    }
+  });
+});

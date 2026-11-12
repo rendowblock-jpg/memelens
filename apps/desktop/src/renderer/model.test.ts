@@ -93,3 +93,18 @@ describe("smartWindow", () => {
     expect(() => smartWindow(Number.NaN, "all")).toThrow(FormatError);
   });
 });
+
+describe("gaugeArc: a radius that is not a finite number", () => {
+  it("is refused, so an infinite ring is never drawn", () => {
+    for (const r of [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN]) {
+      expect(() => gaugeArc(50, r), String(r)).toThrow(FormatError);
+    }
+  });
+});
+
+describe("smartWindow: time 0", () => {
+  it("is a valid time (the very start of the data), not an error", () => {
+    expect(smartWindow(0, "7d")).toEqual({ from: 0, to: 0 });
+    expect(smartWindow(0, "all")).toEqual({ from: 0, to: 0 });
+  });
+});
