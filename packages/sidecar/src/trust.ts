@@ -2,9 +2,10 @@
 // ed25519 signature from one of these. More than one key is allowed so a key can be replaced without a flag day: ship an app
 // that trusts old + new, then sign with the new one, then drop the old one in a later app.
 //
-// DEVELOPMENT KEY: the matching private key lives on the build host, outside both repositories. It must be replaced by a key
-// whose private half is held by the release pipeline alone, before any engine is published to users.
-export const TRUSTED_SIDECAR_KEYS: readonly string[] = ["4KsdC1bGzcCItiFYU4cUA_haL17h7TwksqQJevL6HDE"];
+// The private half of the key below exists only as an Actions secret (ENGINE_SIGNING_KEY) of the private engine repository;
+// the release workflow there is the only thing that signs. It was generated on 12 Nov 2026 and deleted from the machine that
+// generated it. If the secret is ever lost, publish an app that trusts a new key as well, then sign with the new key.
+export const TRUSTED_SIDECAR_KEYS: readonly string[] = ["3meG0F38M2TSrHKv2t8EjE1PfOnNzbSbuJJYKlzS3mM"];
 
 /** Decodes one key written as 43 base64url characters. Refuses any other spelling, including a non-canonical one. */
 export function decodeTrustedKey(text: string, index = 0): Uint8Array {

@@ -177,6 +177,7 @@ try {
     await evaluate(`JSON.stringify({
       state: (document.querySelector("[data-testid=engine-state]") || {}).textContent || null,
       runDisabled: (([...document.querySelectorAll("form.bt-form button")].find((b) => b.textContent.trim() === "Run backtest")) || {}).disabled,
+      hasCheck: [...document.querySelectorAll(".engine-panel button")].some((b) => b.textContent.trim() === "Check for update"),
       text: (document.querySelector(".bt") || {}).textContent || "",
     })`),
   );
@@ -185,7 +186,59 @@ try {
     bt.state === "No engine is installed" && bt.runDisabled === true && /No engine is installed, so a backtest cannot run\./.test(bt.text),
     bt,
   );
+  // This build knows where engines are published, so the screen offers the update check (it is not pressed here: no network).
+  check(
+    "the Backtest screen offers Check for update, and says to use it",
+    bt.hasCheck === true && /Use Check for update to download one\./.test(bt.text),
+    { hasCheck: bt.hasCheck },
+  );
   await shot("4-backtest");
+
+  if (process.argv.includes("--live-engine")) {
+    // The whole product path through the screen, on this machine, against the real release host: find the published engine,
+    // install it (download, signature, size and hash, self-test), run a backtest on the app's database, read the result.
+    const clickButton = (label) =>
+      evaluate(`(() => { const b = [...document.querySelectorAll(".bt button")].find((x) => x.textContent.trim() === ${JSON.stringify(label)}); if (!b || b.disabled) return false; b.click(); return true; })()`);
+    const panel = () => text(".engine-panel");
+    // React controls these fields, so a value has to be set through the native setter and announced with an input event.
+    const setField = (id, value, kind) =>
+      evaluate(`(() => { const el = document.getElementById(${JSON.stringify(id)}); const set = Object.getOwnPropertyDescriptor(window.${kind}.prototype, "value").set; set.call(el, ${JSON.stringify(value)}); el.dispatchEvent(new Event("input", { bubbles: true })); return el.value; })()`);
+
+    await until(() => clickButton("Check for update"), "the Check for update button to be pressable", 30_000);
+    const found = await until(async () => {
+      const t = await panel();
+      return /is available\.|latest engine|older than yours|could not|not signed|not valid|nothing was installed|not set up/i.test(t) ? t : false;
+    }, "the update check to answer", 180_000);
+    const version = /Version (\S+) is available\./.exec(found)?.[1];
+    check("the update check finds the published engine", version !== undefined, found.slice(0, 300));
+    if (version !== undefined) {
+      await until(() => clickButton(`Install version ${version}`), "the Install button to be pressable", 30_000);
+      const installed = await until(async () => {
+        const t = await panel();
+        return /Installed engine \S+\.|could not|not signed|not valid|failed its self-test|nothing was installed/i.test(t) ? t : false;
+      }, "the install to finish", 240_000);
+      check("the engine installs from the release host", new RegExp(`Installed engine ${version.replace(/\./g, "\\.")}\\.`).test(installed), installed.slice(0, 300));
+      const state = await until(async () => {
+        const t = await text("[data-testid=engine-state]");
+        return t.startsWith("Engine ") ? t : false;
+      }, "the engine state to show the installed version", 30_000);
+      check("the screen then shows the installed version", state.startsWith(`Engine ${version} is installed`), state);
+
+      await setField("bt-wallets", "alice carol", "HTMLTextAreaElement");
+      await setField("bt-positionSize", "0.001", "HTMLInputElement");
+      await until(() => clickButton("Run backtest"), "the Run backtest button to be pressable", 30_000);
+      const outcome = await until(async () => {
+        const result = await text("section.bt-result");
+        if (result) return { result };
+        const alerts = await evaluate(`[...document.querySelectorAll(".bt [role=alert]")].map((e) => e.textContent).join(" | ")`);
+        return alerts ? { alerts } : false;
+      }, "the backtest to finish", 180_000);
+      const entered = /Entered\s*(\d+)/.exec(outcome.result ?? "")?.[1];
+      check("a backtest runs on the app's own database and enters positions", entered !== undefined && Number(entered) > 0, outcome.alerts ?? (outcome.result ?? "").slice(0, 300));
+      check("the result names the engine that produced it", new RegExp(`Engine ${version.replace(/\./g, "\\.")}`).test(outcome.result ?? ""), (outcome.result ?? "").slice(0, 200));
+      await shot("5-backtest-result");
+    }
+  }
 } catch (e) {
   failed = true;
   console.log(`FAIL  the check itself could not finish: ${e.message}`);

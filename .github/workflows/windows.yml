@@ -9,6 +9,11 @@ on:
   pull_request:
     paths-ignore: ["docs/**", "**/*.md"]
   workflow_dispatch:
+    inputs:
+      live_engine:
+        description: "Also download the published engine through the installed app and run a backtest (needs the network)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -84,8 +89,10 @@ jobs:
       - name: Load the sample data
         run: node --disable-warning=ExperimentalWarning --import tsx packages/data/src/bin.ts ingest packages/data/fixtures/sample.json --db "$env:RUNNER_TEMP\check.sqlite"
       - name: Run the INSTALLED app and look at it (no --no-sandbox)
-        timeout-minutes: 5
-        run: node scripts/check-packaged.mjs --exe "$env:EXE" --db "$env:RUNNER_TEMP\check.sqlite" --out "$env:RUNNER_TEMP\shots"
+        timeout-minutes: 12
+        env:
+          LIVE_ENGINE: ${{ inputs.live_engine && '--live-engine' || '' }}
+        run: node scripts/check-packaged.mjs --exe "$env:EXE" --db "$env:RUNNER_TEMP\check.sqlite" --out "$env:RUNNER_TEMP\shots" $env:LIVE_ENGINE
       # The next four steps were one step. Runs 43218046784 and 43222454513 sat in it for 20+ minutes and ignored both a
       # cancel and the step's own time limit, with nothing in the log we could read. Four small steps, each with a limit
       # and timestamps, tell us which command stalls.

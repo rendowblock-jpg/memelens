@@ -41,3 +41,20 @@ describe("decodeTrustedKey", () => {
     expect(() => decodeTrustedKey("short", 2)).toThrow(/#2/);
   });
 });
+
+describe("which keys this build trusts", () => {
+  // The development key's private half sat on a build host, outside any pipeline. It must not be trusted by anything that ships.
+  const DEVELOPMENT_KEY = "4KsdC1bGzcCItiFYU4cUA_haL17h7TwksqQJevL6HDE";
+  // The release pipeline's key. Its private half exists only as an Actions secret of the private engine repository.
+  const RELEASE_KEY = "3meG0F38M2TSrHKv2t8EjE1PfOnNzbSbuJJYKlzS3mM";
+
+  it("trusts the release pipeline's key", () => {
+    expect(TRUSTED_SIDECAR_KEYS).toContain(RELEASE_KEY);
+  });
+  it("no longer trusts the development key", () => {
+    expect(TRUSTED_SIDECAR_KEYS).not.toContain(DEVELOPMENT_KEY);
+  });
+  it("trusts exactly one key for now: adding a second is a deliberate change that updates this line", () => {
+    expect(TRUSTED_SIDECAR_KEYS).toEqual([RELEASE_KEY]);
+  });
+});
