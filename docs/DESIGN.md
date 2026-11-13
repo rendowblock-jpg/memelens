@@ -403,7 +403,9 @@ influence it. They are implemented in `packages/collector/src/label.ts` with tes
    fully elapsed hourly candles and `reserve_in_usd >= 1,000` in the pools reply of that reading. If the +30 d reading was
    missed: `neither`, reason `missing-30d`.
 9. *Neither* is everything else, with the reason kept: `collapsed-after-72h`, `faded`, `no-recovery-with-creator-held`,
-   and the reasons above. Counted by reason, never silently dropped.
+   `collapsed-and-recovered` (a candle at a tenth of the peak, then a price above a quarter at 72 h), `dipped-before-scoring`
+   (a low at a tenth of the peak inside the first hour that had recovered by S), `liquidity-unknown` (the +30 d pools reply
+   is missing), `unreadable-candles`, and the reasons above. Counted by reason, never silently dropped.
 10. *Order of tests:* no price data, collapsed before S, rugged, survived, neither. Rugged and survived exclude each other
     (a rug has a low at or below 10% of its peak).
 11. *Known weaknesses, printed with the result:* a single bad low tick in a candle can read as a collapse; one hour is the
