@@ -82,3 +82,35 @@ numbers, always.
 5. **Tooling lesson:** pictures from the preview's `?go=` start carry artifacts of its scripted navigation (the title
    ring). State that depends on how a person arrived is measured with real input (`--act click:` / `key:`), not read off
    a picture.
+
+## What was done about it (13 Nov 2026, same day)
+Each change started as a failing test, in the stylesheet contract (`style.test.ts`, red 2 of 41) and in the real Chromium
+audit (`scripts/audit-states.mjs`, wallet 99/111 and Backtest 103/111 before; **120 combinations, 1122/1122 after**).
+
+| # | Finding | Before | After | How measured |
+|---|---|---|---|---|
+| F1 | A finished backtest is invisible | result starts 306px below the fold, nothing moves focus | result heading is focused and scrolled into view (`785bc57`) | audit check red 12/12, green 12/12 |
+| F2 | The Backtest is narrower than its screens | `.bt` 980px in a 1124px column; form 664px tall; result at y=943 | `.bt` 1124px (the shared 1180px measure less padding); form 549px; result at y=829; prose capped at 80ch (widest paragraph 641px at 1920x1040) | `.bt` box and form box, real Chromium |
+| F4 | A wallet's own address is the weakest text | 12px/400 grey, 3 stat figures at 22px | 18px/600 in the text colour (rgb 227,233,243), mono; a 44-character address stays on one line (751px wide, 27px tall); the figures are still larger (22px) | computed style and box |
+| F3 | Row density (66px rows, 87 with a flag, nine rows in 637px) | - | **not built**: a taste call for the Founder | numbers only |
+
+What the numbers corrected in my own proposals above:
+- **Proposal 2 is only half done.** The form is 115px shorter (664 to 549) but the result is still below the fold at
+  1366x728 (y=829 against a 637px scroller). It is now found by focus, not by luck. A result beside the form would need a
+  layout decision; not built.
+- **Proposal 4, the notice line, is not a defect in real data.** The notice is 59px tall only with the yellow SYNTHETIC
+  pill (demo data); without the pill it is 33px, one line. Nothing to fix.
+- **A probe of mine measured the wrong thing.** It reported "3 columns" for the Backtest parameter grid. The picture
+  showed four fields in the first row and three in the second; the numbers agree (x = 125, 402, 679, 956, then 125, 402,
+  679). The probe had matched the first fieldset, not the parameter one. The eye was right and the script was wrong.
+
+### Looking at the result (sandbox route, integrity OK both times)
+Two pictures, each read and written down *before* any number was looked at
+(`2026-11-13-after-f2-f4-reading-wallet.txt`, `...-backtest.txt`). Wallet 900x600: the title reads as a title, near
+white, mono, larger than the grey line under it and smaller than the cards' figures (18px against 22px; the "Wallet"
+heading is also 18px). Backtest 1366x728: content ends at about x=1230 (106+1124), four fields then three, help text
+wraps to two lines on three fields (delay, take profit, stop loss; confirmed 2, 2, 2 lines), and the Run button is below
+the fold (y=775 in a 728px window), which the picture could not show and the number did. Every claim in the two readings that I
+checked held (title colour and size ordering, the 18/22px relation, the notice on two lines, 4+3 fields, the two-line
+help text, the right edge, the hidden Run button). The only disagreement was between the picture and my own earlier
+script, and the numbers sided with the picture. Not checked by number: that the textarea spans the full width.

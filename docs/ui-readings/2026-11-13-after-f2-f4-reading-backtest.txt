@@ -1,0 +1,13 @@
+READING written BEFORE checking any number (Backtest 1366x728, after the F2 change; overview picture, scaled x0.82)
+- The Backtest content now spans from just right of the rail to about 1008 of 1120 picture px (right edge ~1230 css px). There is empty
+  dark space to the right of that, so it is the shared ~1180 measure, not the whole window.
+- Cards: "Backtest engine" card (title, "Engine 0.1.2 is installed - idle", a "Check for update" button) and below it a big
+  "FOLLOW CHOSEN WALLETS" fieldset with a tall textarea, a Period segmented control (30 days selected, blue-ish text) and a grid of fields.
+- The fields grid looks like FOUR columns in the first row (Delay, Position size, Take profit, Stop loss) and THREE in the second
+  (Longest hold, Fee, Slippage) with an empty 4th slot. This differs from what my earlier probe said ("3 columns"), so the probe
+  must have measured a different element than the parameter grid. To check by numbers: x of each input.
+- The two fields with the help text wrap onto two lines ("How long after the wallet's trade we would have acted.").
+- The "Backtest" heading has a ring (the known ?go= preview artifact).
+- The page is cut at 728 px mid-way through the second row of fields, so the picture cannot show the Run button or the result.
+- Nothing overlaps; text is legible; labels are bold; the SYNTHETIC banner is a yellow pill on the right of the notice line.
+CLAIMS TO CHECK BY NUMBERS: field row 1 has 4 inputs side by side; row 2 has 3; .bt right edge ~1230; textarea spans ~full width.

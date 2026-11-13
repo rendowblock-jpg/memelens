@@ -201,7 +201,9 @@ tr.selected .link { color: var(--accent); }
 .flag { font-size: var(--fs-xs); color: var(--critical); font-weight: 600; }
 
 .token-panel h2 { margin: 0 0 4px; font-size: var(--fs-3xl); font-weight: 700; letter-spacing: -0.02em; }
-.token-panel h2 .addr, .wallet-panel h2 .addr { display: block; margin-top: 4px; font-size: var(--fs-xs); font-weight: 400; color: var(--muted); word-break: break-all; letter-spacing: 0; }
+.token-panel h2 .addr { display: block; margin-top: 4px; font-size: var(--fs-xs); font-weight: 400; color: var(--muted); word-break: break-all; letter-spacing: 0; }
+/* A wallet has no name besides its address, so the address IS the title: the text colour and the size of the panel's heading. */
+.wallet-panel h2 .addr { display: block; font-size: var(--fs-xl); font-weight: 600; color: var(--text); word-break: break-all; letter-spacing: 0; }
 .token-panel > p, .wallet-panel > p { margin: 8px 0; }
 .token-panel h3, .wallet-panel h3, .smart h2 {
   margin: 26px 0 10px; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted);
@@ -291,7 +293,9 @@ table.smart-ranked tbody tr:first-child { background: linear-gradient(90deg, var
 
 /* ---------- backtest ---------- */
 [hidden] { display: none !important; }
-.bt { display: grid; gap: 20px; max-width: 980px; }
+.bt { display: grid; gap: 20px; }
+/* The screen fills the same measure as the others, so a line of prose is kept to a readable length instead. */
+.bt p:not(.bt-empty):not(.error) { max-width: 80ch; }
 .bt h2 { margin: 0 0 8px; font-size: var(--fs-lg); font-weight: 650; }
 .engine-panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 14px 18px; }
 .engine-panel p { margin: 4px 0; }

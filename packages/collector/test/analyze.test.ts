@@ -19,8 +19,8 @@ const rugRows = (): number[][] => [...hourRows(2, 5, 1), [T0 + 6 * H, 1, 1, 0.05
 const pools = (reserve: string): string => JSON.stringify({ data: [{ attributes: { address: "POOL", reserve_in_usd: reserve, volume_usd: { h24: "1" } }, relationships: { dex: { data: { id: "pump-fun" } } } }] });
 
 type Holders = Array<[string, number]>;
-const report = (mint: string, holders: Holders, totalHolders = holders.length, supply = 1000): string =>
-  JSON.stringify({ mint, creator: "creator1", token: { supply, decimals: 0 }, topHolders: holders.map(([owner, amount]) => ({ owner, amount })), totalHolders, markets: [], mintAuthority: null, freezeAuthority: null });
+const report = (mint: string, holders: Holders, totalHolders = holders.length, supply = 1000, decimals = 0): string =>
+  JSON.stringify({ mint, creator: "creator1", token: { supply, decimals }, topHolders: holders.map(([owner, amount]) => ({ owner, amount })), totalHolders, markets: [], mintAuthority: null, freezeAuthority: null });
 
 const CONC: Holders = [["whale", 1000]];
 const DISP: Holders = Array.from({ length: 20 }, (_, i) => [`h${i + 1}`, 50] as [string, number]);
@@ -265,6 +265,16 @@ describe("analyze: what the picked tokens are made of", () => {
     expect(a.survived.bySupply).toEqual({ "below 1.5B": 2, "1.5B or more": 3, "no report": 1 });
     expect(a.survived.picked.find((p) => p.mint === "sur-2")!.supplyTokens).toBe(2_000_000_000);
     expect(a.survived.picked.find((p) => p.mint === "sur-6")!.supplyTokens).toBeNull();
+  });
+
+  it("reads the supply in tokens, not in raw units: a 1-billion-token supply with 6 decimals is 10^15 raw and still below 1.5B", () => {
+    const t = world("sur-1", "survived", [["whale", 1e15]]);
+    const six: StoredToken = { ...t, snapshot: task([t.snapshot!.payloads[0]!, payload("report", 200, report("sur-1", [["whale", 1e15]], 1, 1e15, 6))]) };
+    const a = must(analyze([six]));
+    expect(a.survived.picked[0]!.supplyTokens).toBe(1_000_000_000);
+    expect(a.survived.bySupply).toEqual({ "below 1.5B": 1, "1.5B or more": 0, "no report": 0 });
+    const two = { ...t, snapshot: task([t.snapshot!.payloads[0]!, payload("report", 200, report("sur-1", [["whale", 2e15]], 1, 2e15, 6))]) };
+    expect(must(analyze([two])).survived.bySupply).toEqual({ "below 1.5B": 0, "1.5B or more": 1, "no report": 0 });
   });
 
   it("counts only the picked ones, not every token that has the label", () => {

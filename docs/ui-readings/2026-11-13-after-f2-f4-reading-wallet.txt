@@ -1,0 +1,10 @@
+READING written BEFORE checking any number (wallet 900x600, after the F4 change)
+- The wallet's own name ("alice" in the demo) is now a clear line of its own under the topbar: light text, monospace,
+  noticeably larger and brighter than the grey "10 trades - as of ..." line below it. It reads as the title of the panel.
+- It is NOT larger than the three figures in the cards (+0.005 SOL, 0 SOL, 0 SOL): those still look bigger. I think the
+  title is about the same size as the "Wallet" heading in the bar above it.
+- The "Wallet" h1 has a visible ring around it: that is the ?go= preview artifact I already know about, not a defect.
+- The yellow SYNTHETIC banner sits on a second line under the "Chain synthetic" line.
+- Nothing overlaps or is cut off. The table header and first rows are legible.
+- Colours: title near white-blue (#e3e9f3-ish), muted line grey-blue.
+CLAIMS TO CHECK BY NUMBERS: title size ~18px, weight ~600, colour light; card figures 22px; "Wallet" h1 18px.

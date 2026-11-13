@@ -147,12 +147,19 @@ const MEASURE = `(() => {
   // "Result") and is on screen. Measured 13 Nov 2026: it started 306px below the fold and nothing moved it.
   const resultHeading = document.querySelector("section.bt-result h2");
   const reveal = resultHeading === null ? null : (() => { const b = resultHeading.getBoundingClientRect(); return { focused: document.activeElement === resultHeading, top: Math.round(b.top), bottom: Math.round(b.bottom), viewport: innerHeight }; })();
+  // The title of a detail panel (a token's or a wallet's) is set as a title: the largest text inside it is at least 16px.
+  // Measured 13 Nov 2026: a wallet's address was 12px grey, smaller than the figures under it.
+  const panelH2 = document.querySelector(".wallet-panel h2, .token-panel h2");
+  const panelTitle = panelH2 === null ? null : Math.max(...[panelH2, ...panelH2.querySelectorAll("*")].filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())).map((e) => parseFloat(getComputedStyle(e).fontSize)));
+  // The Backtest screen uses the same width as the others: all the room its parent gives, up to the shared 1180px.
+  const btEl = document.querySelector(".bt");
+  const btFill = btEl === null || !visible(btEl) ? null : (() => { const ps = getComputedStyle(btEl.parentElement); return { w: Math.round(btEl.getBoundingClientRect().width), inner: Math.round(btEl.parentElement.clientWidth - parseFloat(ps.paddingLeft) - parseFloat(ps.paddingRight)) }; })();
   const animated = [...document.querySelectorAll("*")].filter((e) => { const s = getComputedStyle(e); return s.animationName !== "none" && parseFloat(s.animationDuration) > 0.05; })
     .slice(0, 5).map((e) => ({ el: name(e), name: getComputedStyle(e).animationName, s: getComputedStyle(e).animationDuration }));
   const sizes = inMain.filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())).map((e) => parseFloat(getComputedStyle(e).fontSize));
   return JSON.stringify({
     h1: document.querySelectorAll("h1").length, mains: document.querySelectorAll("main").length,
-    reveal, overflowX: document.documentElement.scrollWidth - vw, sticksOut, spills, small, noEdge, unmarked, animated,
+    reveal, panelTitle, btFill, overflowX: document.documentElement.scrollWidth - vw, sticksOut, spills, small, noEdge, unmarked, animated,
     forced: matchMedia("(forced-colors: active)").matches, more: matchMedia("(prefers-contrast: more)").matches, reduce: matchMedia("(prefers-reduced-motion: reduce)").matches,
     bodyColor: getComputedStyle(document.body).color, bodyBg: getComputedStyle(document.body).backgroundColor,
     minFont: sizes.length ? Math.min(...sizes) : null, controls: controls.length, contentHeight: document.documentElement.scrollHeight,
@@ -206,6 +213,8 @@ try {
         at("nothing in <main> sticks out past the window", m.sticksOut.length === 0, m.sticksOut);
         at("no text runs out of its own box", m.spills.length === 0, m.spills);
         at("every control is at least 24 x 24 px", m.small.length === 0, m.small);
+        at("the title of a detail panel is set as a title (largest text in it at least 16px)", m.panelTitle === null || m.panelTitle >= 16, { panelTitle: m.panelTitle });
+        at("the Backtest screen fills the room its parent gives it (up to the width the other screens share)", m.btFill === null || m.btFill.w >= m.btFill.inner - 1, m.btFill);
         if (path.includes("run=1") && !path.includes("fail=1")) {
           at("a finished run focuses the result's heading and brings it on screen", m.reveal !== null && m.reveal.focused && m.reveal.top >= 0 && m.reveal.bottom <= m.reveal.viewport, m.reveal);
         }

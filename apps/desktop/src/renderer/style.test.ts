@@ -206,3 +206,36 @@ describe("type, colour and motion rules", () => {
     expect(panel).toMatch(/white-space\s*:\s*normal/);
   });
 });
+
+// Measured in a real Chromium on 13 Nov 2026 (docs/ui-readings/): the wallet's own address was the weakest text on its screen,
+// 12px grey under a title bar that says "Wallet", smaller than the three figures below it (22px). A detail panel's title is a
+// title: in the text colour and at a size from the top of the scale.
+describe("the title of a detail panel", () => {
+  const rule = (selector: string): string => {
+    const found = [...CSS.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((m) => m[1]!.split(",").map((x) => x.trim()).includes(selector));
+    return found.map((m) => m[2]).join(" ");
+  };
+
+  it("sets a wallet's address at the size of a title and in the text colour, not in the muted stub style", () => {
+    const wallet = rule(".wallet-panel h2 .addr");
+    expect(wallet).toMatch(/font-size\s*:\s*var\(--fs-xl\)/);
+    expect(wallet).toMatch(/color\s*:\s*var\(--text\)/);
+    expect(wallet).not.toMatch(/color\s*:\s*var\(--muted\)/);
+  });
+
+  it("keeps the token's address under its name as the small muted stub it is", () => {
+    const token = rule(".token-panel h2 .addr");
+    expect(token).toMatch(/font-size\s*:\s*var\(--fs-xs\)/);
+    expect(token).toMatch(/color\s*:\s*var\(--muted\)/);
+  });
+});
+
+describe("the Backtest screen", () => {
+  it("has the same measure as the screens beside it: no cap below the 1180px they share", () => {
+    const bt = /(?:^|\})\s*\.bt\s*\{([^}]*)\}/m.exec(CSS)?.[1] ?? "";
+    expect(bt).not.toBe("");
+    const cap = /max-width\s*:\s*(\d+)px/.exec(bt)?.[1];
+    expect(cap === undefined || Number(cap) >= 1180).toBe(true);
+    expect(/\.single\s*\{[^}]*max-width\s*:\s*1180px/.test(CSS)).toBe(true);
+  });
+});
