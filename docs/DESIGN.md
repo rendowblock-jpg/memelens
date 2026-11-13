@@ -303,13 +303,12 @@ Weights sum to 100. The six signals with a data source carry 57 points, so today
 coverage, and the default minimum coverage is 50%. Levels: below 25 low, below 50 medium, below 75 high, else
 critical. **All weights and thresholds are PROVISIONAL: first guesses, not measured.**
 
-### Calibration protocol (gate before M4 - not run yet)
+### Calibration protocol (gate before M4 - collection started, nothing scored)
 
 Score 30 tokens that rugged against 30 that did not, and report the hit rate for each group.
 - **Labels fixed before scoring.** The definition of "rugged" is written down and committed before any score is
-  looked at. Proposed: liquidity removed or price down 90% or more from peak within 72 hours, with a creator or
-  insider sell-off. "Did not rug": same venue and launch window, still trading after 30 days, picked at random,
-  not by hand.
+  looked at. The exact definitions are in "Calibration collection" below, committed before the first token was
+  collected. "Did not rug": same venue and launch window, still trading after 30 days, picked at random, not by hand.
 - **Same scoring time for both groups,** defined relative to launch (for example launch + 1 hour), never relative to
   the outcome. Data after that time is invisible (the as-of machinery already guarantees this). Scoring "just before
   the rug" would leak the answer.
@@ -326,6 +325,68 @@ Score 30 tokens that rugged against 30 that did not, and report the hit rate for
 |---|---|---|---|---|---|
 | Rugged | 30 | NOT MEASURED | | | |
 | Did not rug | 30 | NOT MEASURED | | | |
+
+### Calibration collection (13 Nov 2026): prospective, not retrospective
+
+**Why prospective.** Measured 12-13 Nov from the build host with no key: the Foundation RPC allows about 1 call a second
+and answers HTTP 429 beyond that; `getTokenLargestAccounts` ("who holds this token") is refused with 429 on that endpoint
+at any spacing, and on every other free endpoint tried (PublicNode, dRPC, Ankr, OnFinality: key or paid plan; BlockPI:
+bad certificate). Holders as they were at launch + 1 hour cannot be asked of any node afterwards, and rebuilding them from
+transactions costs thousands of calls per token. So the tokens are watched from the moment they appear, and each one is
+read at launch + 1 hour. This also removes look-ahead by construction: nothing about a token is read before the scoring
+time that was not true at that time. It costs calendar time: the first numbers come about 33 days after collection starts.
+
+**Sources, all keyless, all read from the build host (outside the app; the app's adapter is M4):**
+- *GeckoTerminal* `new_pools`: discovery (token address, pool address, name, `pool_created_at`), and OHLCV candles
+  (minute candles for the first hour, hourly candles afterwards) and the token's pools (liquidity) for outcomes.
+  Its public limit is 30 calls a minute; the collector stays under 12.
+- *RugCheck* `/v1/tokens/{mint}/report`: top holders (up to 20, with owner), total holder count, supply, creator, the
+  creator's balance, mint and freeze authority, the markets (curve and vault addresses). Checked 13 Nov on a young
+  pump.fun token and on an established one with 2,467 holders (20 listed). Its own `rugged` flag and score are stored
+  for audit and **never used** as an input or a label.
+- Population: tokens whose first GeckoTerminal pool is on `pump-fun` (the bonding curve). Tokens GeckoTerminal never
+  lists (no trade yet) cannot enter; that is a stated limit, and the numbers apply to pump.fun launches only.
+
+**Sampling.** A launch is followed if `sha256("memelens-calibration-v1:" + mint)`, read as a fraction of 2^32, is
+below 0.2. The rule depends only on the address, so it cannot prefer tokens by outcome. Discovery runs for 72 hours
+from the first poll; every followed token is then tracked to launch + 30 days. Expected: about 1.3 followed per
+minute, 4,000-5,000 tokens. Missed polls and missed windows are counted and reported, not hidden.
+
+**Schedule per followed token** (t0 = `pool_created_at`): at +60 min (window +60 to +75 min) the report and the minute
+candles of the first hour; at +72 h the report, the token's pools and the hourly candles; at +30 d the same again.
+The scoring time S is the moment the +60 min report was fetched.
+
+**Definitions, fixed before the first token is collected.** The price path is the hourly (and, up to S, minute) USD
+candles of the token's pool with the most volume in each period; "peak" is the running maximum of the candle highs.
+- *Already collapsed:* at S the price is at most 10% of the highest price before S. Excluded from both groups,
+  counted and reported. (A score taken after the collapse would be scoring the aftermath.)
+- *Rugged:* not already collapsed, and between S and +72 h some candle low is at most 10% of the running peak, and the
+  price at +72 h is at most 25% of that peak (no recovery), and it is not the case that the creator held tokens at +60 min
+  and still held more than 90% of them at +72 h (a creator who sat through the fall is an ordinary failure, not a rug).
+  A creator with no balance at +60 min cannot be shown to have held, so the collapse alone decides. What this measures
+  is a collapse the creator did not sit through; "rugged" is the protocol's word for it.
+- *Survived:* no candle low at or below 10% of the running peak at any time in 30 days, and at +30 d some pool has
+  at least USD 1,000 volume over its last 24 hourly candles and at least USD 1,000 liquidity.
+- *Neither:* everything else (faded, collapsed after 72 h, too little data). Counted, never silently dropped.
+- Thresholds (90%, 25%, 72 h, 30 d, USD 1,000) are fixed here and not tuned afterwards.
+
+**The 60.** After the last token has reached +30 d: take the Rugged and Survived tokens, order each group by
+`sha256("memelens-calibration-v1:pick:" + mint)`, and take the first 30 of each. If a group has fewer than 30, report
+that count and the groups as they are. Nothing is picked by hand.
+
+**Scoring input at S (also fixed before data).** Holdings: the listed top holders, summed by owner. Not holders and
+excluded from the counted supply: the curve and pool vaults (RugCheck `markets` and its AMM and locker accounts) and
+"protocol wallets": an owner that is the largest holder in at least 25% of all collected tokens (computed over every
+token collected, with no outcome used). One such wallet was seen on 13 Nov holding 46-53% of every 2-billion-supply
+token. The unlisted remainder (supply minus excluded minus listed) is spread evenly over the unlisted holders (total
+count minus listed minus excluded), so the top-10 share is exact and the HHI is a lower bound. Creator share, mint and
+freeze authority come from the same report; age is S minus t0. Only five signals can vary at S; coverage is 57 of 100.
+
+**Limits to print next to any number:** (1) pump.fun only; (2) a top-20 list, HHI is a lower bound; (3) the creator's
+earlier dumps, liquidity, clustering and wash trading are not scored, so this measures the five-signal model; (4) price
+path resolution is one hour after S, so a collapse and recovery inside one hour is invisible; (5) RugCheck and
+GeckoTerminal are third parties and can be wrong or change; their raw replies are kept; (6) with 30 per group the
+intervals are wide (see above); (7) if the weights are changed after this, the numbers are in-sample.
 
 ## Sidecar: state on 12 Nov 2026
 
@@ -388,20 +449,14 @@ M3c-3 the screens, W-1 the MSI pipeline on Windows CI.
 
 - **Licence** (legal): Apache-2.0 recommended. Needed before the first release and before the SignPath application.
 - **SignPath vs a closed sidecar:** open-source the engine, or ask SignPath, or sign another way (see above).
-- **Calibration data:** needs real labelled history. Either a public dataset of rugged Solana tokens, or an RPC/indexer
-  key for a one-off collection script (outside the app; the adapter is M4).
-  Probed on 12 Nov 2026 from the build host (no key, read-only calls), so the earlier "needs a key" is only partly true:
-  `api.mainnet-beta.solana.com` served a block from about 319 days back (`getFirstAvailableBlock` = 0), while
-  `solana-rpc.publicnode.com` keeps about 3 days and is no use. The Foundation endpoint throttles: about 1 call per second
-  held over a run of about 110 calls with 16 answers of HTTP 429 (retried). DexScreener and GeckoTerminal give free price
-  history for the outcome label. SolRPDS (CC BY 4.0, pool-level, 2021-2024) is a possible sampling frame, but it labels by
-  inactivity, not by the definition committed above, and has no holder snapshots at launch + 1 hour. Holders at that time
-  would have to be rebuilt from each token's transactions (`pre/postTokenBalances`); a plain token transfer does not name
-  the mint, so that rebuild can miss holders: a known limit to state next to any number. At about 1 call per second, 60
-  tokens with a few thousand launch-hour transactions each is many hours of collection. Not built; nothing scored.
-  A probe mistake, recorded so it is not repeated: my first cost probe took the USDC mint for a memecoin (the filter
-  "Instruction: Create" also matches `CreateIdempotent`); its signature count was USDC's and means nothing here. The rate
-  figure from it is still a real measurement. The corrected probe's result was not read when this was written.
+- **Calibration data:** decided 13 Nov 2026: a prospective collector (see "Calibration collection"). The retrospective
+  route was measured and rejected: Foundation RPC about 1 call a second with HTTP 429 beyond it, `getTokenLargestAccounts`
+  refused on every free endpoint, holders at a past moment not queryable. SolRPDS (CC BY 4.0, pool-level, 2021-2024)
+  labels by inactivity, not by this definition, and has no holders at launch + 1 hour. A probe mistake, recorded so it
+  is not repeated: the first cost probe took the USDC mint for a memecoin (the filter "Instruction: Create" also
+  matches `CreateIdempotent`); the second crashed on a token without a first balance (a pump.fun create without a
+  dev buy has no `postTokenBalances`). A third-party key (Helius, Birdeye) would give a second holder source; not
+  taken, because opening an account is the owner's call.
 - **"Not in Electron's process tree":** reading above, please confirm.
 - **Update policy default** for the engine: ask before installing (chosen), or install silently.
 - Chain: Solana first. EVM later, through another adapter.
@@ -425,6 +480,22 @@ wallet address; totals plus a positions table). The look is a dark instrument pa
 - Tooling for looking at it, none of it shipped: `scripts/smoke-desktop.sh` (real app, 14 checks), `scripts/shots-desktop.sh`
   (real app, one PNG per screen listed in `scripts/shots-steps.json`), `scripts/preview-build.ts` (the built renderer with
   the real handler's answers, for browser inspection tools).
+- **State audit (13 Nov 2026):** `scripts/audit-states.mjs` (with `scripts/audit-shell.cjs`, an empty Electron window with
+  a DevTools port, never packaged) serves the preview build and measures, in a real Chromium, 10 screen states (feed,
+  first run, token panel, smart money, wallet, Backtest with no engine / ready / problem / result / failed run) at 1366x728,
+  900x600 and 1920x1040, in normal, forced-colors, more-contrast and reduced-motion modes: axe-core (WCAG 2.2 A/AA and
+  best practice), 24x24 px targets, sideways scroll, text running out of its box, one `<h1>` and one `<main>`, a visible edge on
+  every control and a non-colour mark on the selected item in forced colors, no animation under reduced motion. Run it
+  with `xvfb-run -a node scripts/audit-states.mjs` after `scripts/preview-build.ts`. Result on Linux: 120 combinations,
+  870 of 870 checks. It found one real bug (the wallet's positions table 24 px wider than its panel at 900x600; fixed,
+  with a test) and two false alarms in its own first version. Forced-colors is Chromium's emulation, not real Windows
+  High Contrast, and has not been rendered on a Windows desktop. The Windows runner runs the same axe and 24 px
+  checks on the installed app (run 43399748516 on `b8e133d`: 29 of 29 and 9 of 9, 0 violations on 6 screens).
+- **The uninstall stall (13 Nov):** in three runs (43218046784, 43222454513, 43267334943) the Uninstall step began and never
+  ended until the job limit cancelled it, although `msiexec /x` takes about 2 s and the step's own time limits (3 and 6
+  minutes) never fired; so the runner itself stopped answering, not `msiexec`. Run 43399748516 uninstalled in 1.2 s. Cause
+  unknown, probably the runner. Mitigation: the MSI, pictures and install log are uploaded before the uninstall, and the
+  job limit is 25 minutes.
 
 ## Status (12 Nov 2026)
 
