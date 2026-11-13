@@ -374,6 +374,42 @@ candles of the token's pool with the most volume in each period; "peak" is the r
 - *Neither:* everything else (faded, collapsed after 72 h, too little data). Counted, never silently dropped.
 - Thresholds (90%, 25%, 72 h, 30 d, USD 1,000) are fixed here and not tuned afterwards.
 
+**The labelling rules, made exact (13 Nov 2026, 10:4xZ by `date -u`; no +72 h or +30 d reading exists yet, the first falls on
+16 Nov).** The definitions above leave eleven points open. Each is decided here, with the reason, before any outcome can
+influence it. They are implemented in `packages/collector/src/label.ts` with tests on hand-computed price paths.
+1. *Candles.* Prices are USD. A candle is `[start, open, high, low, close, volume]`, start in seconds. A candle counts only
+   once it is fully over (`start + length <= the time asked about`), so nothing after the time in question leaks in, however
+   late the reading was taken (up to 6 h for +72 h, 12 h for +30 d).
+2. *The path.* Up to S: the first-hour minute candles of the launch pool. After S: the hourly candles with `start >= S` (the
+   hour that contains S is left out: it mixes before and after). For each hour, of the pools whose hourly candles were stored
+   (at most three), the one with the most volume in THAT hour supplies the candle. "The pool with the most volume in each
+   period" is read per hour, not per window, so that a rug on the bonding curve is not hidden behind a bigger pool that only
+   exists after the token graduates.
+3. *Price at a time* is the close of the last fully elapsed candle at or before it (carried forward over hours without a
+   trade). *The running peak* at a candle is the largest high of every candle up to and including it, minute candles included.
+4. *No price data* (no candle at all in the first hour): `neither`, reason `no-price-data`. Nothing can be said.
+5. *Already collapsed at S:* the price at S is at most 10% of the largest high before S. Label `collapsed-before-scoring`,
+   counted and reported, in neither group.
+6. *Rugged* needs the +72 h reading. Some hourly candle between S and +72 h has `low <= 10%` of its running peak, AND the
+   price at +72 h is `<= 25%` of the largest high up to +72 h, AND the creator did not sit through it. If the +72 h reading was
+   missed: `neither`, reason `missing-72h`. (A missed reading is a missing label, never a rug and never a survivor.)
+7. *Sat through:* the creator held a counted amount above 0 in the +60 min report AND the +72 h report still lists the creator
+   with more than 90% of that amount. A creator that is no longer listed at +72 h holds 0 for this purpose. If the +72 h
+   report is missing or unreadable while the creator held tokens at +60 min: `neither`, reason `creator-at-72h-unknown` (the
+   alternative, letting the collapse decide, would turn every missing report into a rug, which is the error that does the most
+   harm to the numbers). A creator with nothing at +60 min: the collapse alone decides, as written above.
+8. *Survived* needs the +30 d reading, no collapse or rug label, no candle low `<= 10%` of its running peak anywhere in
+   the 30 days (minute candles included), and at +30 d some stored pool with at least USD 1,000 volume over its last 24
+   fully elapsed hourly candles and `reserve_in_usd >= 1,000` in the pools reply of that reading. If the +30 d reading was
+   missed: `neither`, reason `missing-30d`.
+9. *Neither* is everything else, with the reason kept: `collapsed-after-72h`, `faded`, `no-recovery-with-creator-held`,
+   and the reasons above. Counted by reason, never silently dropped.
+10. *Order of tests:* no price data, collapsed before S, rugged, survived, neither. Rugged and survived exclude each other
+    (a rug has a low at or below 10% of its peak).
+11. *Known weaknesses, printed with the result:* a single bad low tick in a candle can read as a collapse; one hour is the
+    smallest step after S; a token that graduates and trades on a pool that was not stored (more than three pools) is
+    followed on the three that were; price is the pool's, not a market-wide price.
+
 **The 60.** After the last token has reached +30 d: take the Rugged and Survived tokens, order each group by
 `sha256("memelens-calibration-v1:pick:" + mint)`, and take the first 30 of each. If a group has fewer than 30, report
 that count and the groups as they are. Nothing is picked by hand.
