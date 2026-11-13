@@ -1,7 +1,7 @@
 import { parseBacktestSpec, type BacktestReport } from "@memelens/sidecar";
 import { describe, expect, it } from "vitest";
 import type { EngineStatusInfo } from "@memelens/service";
-import { backtestWindow, blockedReason, buildSpec, checkNote, DEFAULT_FORM, parseAmount, parsePercent, parseWallets, reduceRun, type BacktestForm, type RunState } from "./backtest";
+import { backtestWindow, blockedReason, buildSpec, checkNote, DEFAULT_FORM, parseAmount, parsePercent, parseWallets, reduceRun, type BacktestForm, type RunState, revealsResult } from "./backtest";
 import { FormatError } from "./format";
 import { quoteFor, RAW_QUOTE } from "./quote";
 
@@ -351,5 +351,33 @@ describe("blockedReason", () => {
   it("gives the most basic reason first", () => {
     expect(blockedReason({ ...status, installed: null, busy: true }, null, "installing")).toBe("No engine is installed, so a backtest cannot run.");
     expect(blockedReason({ ...status, busy: true }, null, "installing")).toBe("The engine is being updated.");
+  });
+});
+
+describe("revealsResult", () => {
+  const report = {} as never;
+  const phases = {
+    idle: { phase: "idle" },
+    running: { phase: "running", since: 1, cancelling: false },
+    done: { phase: "done", report },
+    failed: { phase: "failed", message: "x" },
+    cancelled: { phase: "cancelled" },
+  } as const;
+
+  it("is true exactly when a run has just finished with a result", () => {
+    expect(revealsResult(phases.running, phases.done)).toBe(true);
+  });
+
+  it("is false while a finished run starts again, and true again when that second run finishes", () => {
+    expect(revealsResult(phases.done, phases.running)).toBe(false);
+    expect(revealsResult(phases.running, phases.done)).toBe(true);
+  });
+
+  it("is false when nothing changed, when the first state is already done, and for every other ending", () => {
+    expect(revealsResult(phases.done, phases.done)).toBe(false);
+    expect(revealsResult(phases.idle, phases.idle)).toBe(false);
+    expect(revealsResult(phases.running, phases.failed)).toBe(false);
+    expect(revealsResult(phases.running, phases.cancelled)).toBe(false);
+    expect(revealsResult(phases.running, phases.running)).toBe(false);
   });
 });

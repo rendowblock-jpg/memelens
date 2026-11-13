@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import type { ReactElement, Ref } from "react";
 import type { EngineStatusInfo } from "@memelens/service";
 import type { BacktestReport, ExitReason } from "@memelens/sidecar";
 import type { BacktestForm, FormErrors, FormField, RunState } from "./backtest";
@@ -177,7 +177,7 @@ export function BacktestFormView({ form, errors, quote, blockedReason, run, onCh
 
 // ----------------------------------------------------------------------------------------------------- the result
 
-export function BacktestResult({ report, quote }: { report: BacktestReport; quote: Quote }): ReactElement {
+export function BacktestResult({ report, quote, headingRef }: { report: BacktestReport; quote: Quote; headingRef?: Ref<HTMLHeadingElement> }): ReactElement {
   const s = report.summary;
   const amount = (raw: string): string => `${formatUnits(raw, quote.decimals)} ${quote.symbol}`;
   const exits = (Object.keys(EXIT_LABELS) as ExitReason[]).map((reason) => `${EXIT_LABELS[reason]} ${s.exits[reason]}`).join(" · ");
@@ -197,7 +197,7 @@ export function BacktestResult({ report, quote }: { report: BacktestReport; quot
 
   return (
     <section className="bt-result" aria-label="Backtest result">
-      <h2>Result</h2>
+      <h2 ref={headingRef} tabIndex={-1}>Result</h2>
       <p className="muted bt-note">
         {`A replay of recorded trades, not a forecast. Each entry is priced at the token's next recorded trade after your delay, plus the slippage you chose. Engine ${report.engineVersion}${
           report.dataAsOf === null ? "" : ` · Data up to ${formatTime(report.dataAsOf)}`

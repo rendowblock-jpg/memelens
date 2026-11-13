@@ -200,6 +200,16 @@ export function reduceRun(state: RunState, event: RunEvent): RunState {
   }
 }
 
+/**
+ * Whether the screen should bring its result to the person: exactly when a run has just ended with a result. A finished
+ * run's result is drawn below the form (about 300px under the first screen at 1366x728), so without this nothing tells the
+ * person it is there. Failures and cancellations speak for themselves (role=alert / role=status), and a re-render that
+ * changes nothing must not pull the page back to the result.
+ */
+export function revealsResult(before: RunState, after: RunState): boolean {
+  return before.phase !== "done" && after.phase === "done";
+}
+
 /** What an update check found, as a sentence for the person looking at the screen. */
 export function checkNote(info: UpdateInfo): string {
   switch (info.kind) {

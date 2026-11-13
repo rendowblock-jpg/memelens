@@ -143,12 +143,16 @@ const MEASURE = `(() => {
     .filter((e) => e.matches("tr.selected") || !e.closest("tr.selected")) // a button inside the selected row is marked by the row
     .filter((e) => { const s = getComputedStyle(e); return !(parseFloat(s.outlineWidth) >= 1 && s.outlineStyle !== "none") && !(parseFloat(s.borderTopWidth) >= 1 && s.borderTopStyle !== "none"); })
     .slice(0, 5).map((e) => ({ el: name(e), text: (e.textContent || "").trim().slice(0, 20) }));
+  // After a run has finished, its result must be where the person is looking: the heading holds focus (so a screen reader says
+  // "Result") and is on screen. Measured 13 Nov 2026: it started 306px below the fold and nothing moved it.
+  const resultHeading = document.querySelector("section.bt-result h2");
+  const reveal = resultHeading === null ? null : (() => { const b = resultHeading.getBoundingClientRect(); return { focused: document.activeElement === resultHeading, top: Math.round(b.top), bottom: Math.round(b.bottom), viewport: innerHeight }; })();
   const animated = [...document.querySelectorAll("*")].filter((e) => { const s = getComputedStyle(e); return s.animationName !== "none" && parseFloat(s.animationDuration) > 0.05; })
     .slice(0, 5).map((e) => ({ el: name(e), name: getComputedStyle(e).animationName, s: getComputedStyle(e).animationDuration }));
   const sizes = inMain.filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())).map((e) => parseFloat(getComputedStyle(e).fontSize));
   return JSON.stringify({
     h1: document.querySelectorAll("h1").length, mains: document.querySelectorAll("main").length,
-    overflowX: document.documentElement.scrollWidth - vw, sticksOut, spills, small, noEdge, unmarked, animated,
+    reveal, overflowX: document.documentElement.scrollWidth - vw, sticksOut, spills, small, noEdge, unmarked, animated,
     forced: matchMedia("(forced-colors: active)").matches, more: matchMedia("(prefers-contrast: more)").matches, reduce: matchMedia("(prefers-reduced-motion: reduce)").matches,
     bodyColor: getComputedStyle(document.body).color, bodyBg: getComputedStyle(document.body).backgroundColor,
     minFont: sizes.length ? Math.min(...sizes) : null, controls: controls.length, contentHeight: document.documentElement.scrollHeight,
@@ -202,6 +206,9 @@ try {
         at("nothing in <main> sticks out past the window", m.sticksOut.length === 0, m.sticksOut);
         at("no text runs out of its own box", m.spills.length === 0, m.spills);
         at("every control is at least 24 x 24 px", m.small.length === 0, m.small);
+        if (path.includes("run=1") && !path.includes("fail=1")) {
+          at("a finished run focuses the result's heading and brings it on screen", m.reveal !== null && m.reveal.focused && m.reveal.top >= 0 && m.reveal.bottom <= m.reveal.viewport, m.reveal);
+        }
         if (modeName === "forced-colors") {
           at("the forced-colors emulation took effect", m.forced === true, { forced: m.forced });
           at("every control keeps a visible edge (or sits in a bordered group, is an underlined link, or a navigation item)", m.noEdge.length === 0, m.noEdge);

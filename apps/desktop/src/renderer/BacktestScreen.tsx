@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState, type ReactElement } from "react";
 import type { Api, EngineStatusInfo } from "@memelens/service";
-import { blockedReason, buildSpec, checkNote, DEFAULT_FORM, reduceRun, type BacktestForm, type FormErrors, type FormField, type RunState } from "./backtest";
+import { blockedReason, buildSpec, checkNote, DEFAULT_FORM, reduceRun, revealsResult, type BacktestForm, type FormErrors, type FormField, type RunState } from "./backtest";
 import { BacktestFormView, BacktestResult, EnginePanel } from "./backtest-views";
 import { cancelEngineBacktest, checkEngineUpdate, installEngineUpdate, loadEngineStatus, runEngineBacktest } from "./controller";
 import { formatAge } from "./format";
@@ -21,6 +21,18 @@ export function BacktestScreen({ api, chain, latest, quote }: { api: Api; chain:
   const [note, setNote] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const alive = useRef(true);
+  const resultHeading = useRef<HTMLHeadingElement>(null);
+  const previousRun = useRef<RunState>(run);
+
+  // A finished run's result is drawn under the form, out of sight on a normal window: bring it to the person. Focus goes to
+  // its heading (so a screen reader says "Result"; a mouse user sees no ring, a keyboard user does) and the page scrolls to it.
+  useEffect(() => {
+    if (revealsResult(previousRun.current, run)) {
+      resultHeading.current?.focus({ preventScroll: true });
+      resultHeading.current?.scrollIntoView?.({ block: "start" });
+    }
+    previousRun.current = run;
+  }, [run]);
 
   useEffect(() => {
     alive.current = true;
@@ -117,7 +129,7 @@ export function BacktestScreen({ api, chain, latest, quote }: { api: Api; chain:
       ) : null}
       {run.phase === "failed" ? <p className="error" role="alert">{`The backtest did not finish: ${run.message}`}</p> : null}
       {run.phase === "cancelled" ? <p className="muted" role="status">The backtest was cancelled.</p> : null}
-      {run.phase === "done" ? <BacktestResult report={run.report} quote={quote} /> : null}
+      {run.phase === "done" ? <BacktestResult report={run.report} quote={quote} headingRef={resultHeading} /> : null}
     </div>
   );
 }
