@@ -11,7 +11,7 @@
     "test": "vitest run",
     "typecheck": "tsc -p packages/core/tsconfig.json --noEmit",
     "memelens": "node --disable-warning=ExperimentalWarning --import tsx packages/data/src/bin.ts",
-    "typecheck:all": "tsc -p packages/core --noEmit && tsc -p packages/data --noEmit && tsc -p packages/service --noEmit && tsc -p apps/desktop --noEmit && tsc -p packages/sidecar --noEmit && tsc -p apps/desktop/src/renderer --noEmit"
+    "typecheck:all": "tsc -p packages/core --noEmit && tsc -p packages/data --noEmit && tsc -p packages/service --noEmit && tsc -p apps/desktop --noEmit && tsc -p packages/sidecar --noEmit && tsc -p packages/collector --noEmit && tsc -p apps/desktop/src/renderer --noEmit"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",

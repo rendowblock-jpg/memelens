@@ -348,9 +348,13 @@ time that was not true at that time. It costs calendar time: the first numbers c
   lists (no trade yet) cannot enter; that is a stated limit, and the numbers apply to pump.fun launches only.
 
 **Sampling.** A launch is followed if `sha256("memelens-calibration-v1:" + mint)`, read as a fraction of 2^32, is
-below 0.2. The rule depends only on the address, so it cannot prefer tokens by outcome. Discovery runs for 72 hours
-from the first poll; every followed token is then tracked to launch + 30 days. Expected: about 1.3 followed per
-minute, 4,000-5,000 tokens. Missed polls and missed windows are counted and reported, not hidden.
+below 0.1. The rule depends only on the address, so it cannot prefer tokens by outcome. A launch first seen more than
+30 minutes after its pool was created is recorded but not followed (the +60 minute reading could not be on time); the
+count of those is reported. GeckoTerminal's newest-pools page is polled every 20 seconds (a page covers about 45
+seconds; page 2 is read too when no launch on page 1 was known before). Measured 13 Nov 2026: about 15 pump.fun
+launches appear per minute, so about 1.5 are followed per minute, about 6,500 in 72 hours. Discovery runs for 72 hours
+from the first poll; every followed token is then tracked to launch + 30 days. Missed polls and missed windows are
+counted and reported, not hidden.
 
 **Schedule per followed token** (t0 = `pool_created_at`): at +60 min (window +60 to +75 min) the report and the minute
 candles of the first hour; at +72 h the report, the token's pools and the hourly candles; at +30 d the same again.
