@@ -1,0 +1,362 @@
+[
+ {
+  "name": "wilson: z rounded",
+  "file": "packages/collector/src/wilson.ts",
+  "old": "1.959963984540054",
+  "new": "1.96"
+ },
+ {
+  "name": "wilson: k above n allowed",
+  "file": "packages/collector/src/wilson.ts",
+  "old": "k < 0 || k > n)",
+  "new": "k < 0 || k > n + 1)"
+ },
+ {
+  "name": "wilson: negative k allowed",
+  "file": "packages/collector/src/wilson.ts",
+  "old": "|| k < 0 ||",
+  "new": "|| k < -1 ||"
+ },
+ {
+  "name": "wilson: fraction allowed",
+  "file": "packages/collector/src/wilson.ts",
+  "old": "!Number.isInteger(k) || !Number.isInteger(n) ||",
+  "new": "false ||"
+ },
+ {
+  "name": "wilson: nothing counted as 0%",
+  "file": "packages/collector/src/wilson.ts",
+  "old": "if (n === 0) return null;",
+  "new": ""
+ },
+ {
+  "name": "wilson: centre without the 2",
+  "file": "packages/collector/src/wilson.ts",
+  "old": "z2 / (2 * n)",
+  "new": "z2 / n"
+ },
+ {
+  "name": "wilson: half without the square",
+  "file": "packages/collector/src/wilson.ts",
+  "old": "z2 / (4 * n * n)",
+  "new": "z2 / (4 * n)"
+ },
+ {
+  "name": "wilson: denominator without n",
+  "file": "packages/collector/src/wilson.ts",
+  "old": "1 + z2 / n",
+  "new": "1 + z2"
+ },
+ {
+  "name": "wilson: low end not exact at 0",
+  "file": "packages/collector/src/wilson.ts",
+  "old": "low: k === 0 ? 0 : centre - half",
+  "new": "low: centre - half"
+ },
+ {
+  "name": "wilson: high end not exact at n",
+  "file": "packages/collector/src/wilson.ts",
+  "old": "high: k === n ? 1 : centre + half",
+  "new": "high: centre + half"
+ },
+ {
+  "name": "pick: order reversed",
+  "file": "packages/collector/src/pick.ts",
+  "old": "(a.key < b.key ? -1 : a.key > b.key ? 1 : 0)",
+  "new": "(a.key > b.key ? -1 : a.key < b.key ? 1 : 0)"
+ },
+ {
+  "name": "pick: label not filtered",
+  "file": "packages/collector/src/pick.ts",
+  "old": "rows.filter((r) => r.label === label).map",
+  "new": "rows.map"
+ },
+ {
+  "name": "pick: one too many",
+  "file": "packages/collector/src/pick.ts",
+  "old": "slice(0, size)",
+  "new": "slice(0, size + 1)"
+ },
+ {
+  "name": "pick: ordered by name",
+  "file": "packages/collector/src/pick.ts",
+  "old": "key: pickKey(r.mint)",
+  "new": "key: r.mint"
+ },
+ {
+  "name": "pick: fraction size allowed",
+  "file": "packages/collector/src/pick.ts",
+  "old": "!Number.isInteger(size) || size < 0",
+  "new": "size < 0"
+ },
+ {
+  "name": "pick: negative size allowed",
+  "file": "packages/collector/src/pick.ts",
+  "old": "size < 0)",
+  "new": "size < -1)"
+ },
+ {
+  "name": "analyze: default group size 20",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "options.groupSize ?? 30",
+  "new": "options.groupSize ?? 20"
+ },
+ {
+  "name": "analyze: default census minimum 1",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "options.minCensus ?? DEFAULT_MIN_CENSUS",
+  "new": "options.minCensus ?? 1"
+ },
+ {
+  "name": "analyze: a missed reading counts as pending",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "r !== null && r.status === \"pending\"",
+  "new": "r !== null && r.status !== \"done\""
+ },
+ {
+  "name": "analyze: first hour pending ignored",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "[t.snapshot, t.path72, t.path30d].some",
+  "new": "[t.path72, t.path30d].some"
+ },
+ {
+  "name": "analyze: 30 day pending ignored",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "[t.snapshot, t.path72, t.path30d].some",
+  "new": "[t.snapshot, t.path72].some"
+ },
+ {
+  "name": "(equivalent) analyze: pending tokens still scored (the result is refused before it is used)",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "if (pending(t)) {\n      waiting++;\n      continue;\n    }",
+  "new": "if (pending(t)) {\n      waiting++;\n    }"
+ },
+ {
+  "name": "analyze: report for another token accepted",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "if (parsed.mint === t.mint) view = parsed;",
+  "new": "view = parsed;"
+ },
+ {
+  "name": "analyze: census bar exclusive",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "views.length >= minCensus",
+  "new": "views.length > minCensus"
+ },
+ {
+  "name": "analyze: census always on",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "const censusUsed = views.length >= minCensus;",
+  "new": "const censusUsed = true;"
+ },
+ {
+  "name": "analyze: census from picked only",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "const views = seen.flatMap((s) => (s.view === null ? [] : [s.view]));",
+  "new": "const views = seen.filter((s) => s.row.label === \"rugged\" || s.row.label === \"survived\").flatMap((s) => (s.view === null ? [] : [s.view]));"
+ },
+ {
+  "name": "analyze: wallets never excluded",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "buildFixture(fixtureRows, wallets)",
+  "new": "buildFixture(fixtureRows, new Set())"
+ },
+ {
+  "name": "analyze: critical not flagged",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "new Set<RiskLevel>([\"high\", \"critical\"])",
+  "new": "new Set<RiskLevel>([\"high\"])"
+ },
+ {
+  "name": "analyze: high not flagged",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "new Set<RiskLevel>([\"high\", \"critical\"])",
+  "new": "new Set<RiskLevel>([\"critical\"])"
+ },
+ {
+  "name": "analyze: medium not left",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "new Set<RiskLevel>([\"low\", \"medium\"])",
+  "new": "new Set<RiskLevel>([\"low\"])"
+ },
+ {
+  "name": "analyze: low not left",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "new Set<RiskLevel>([\"low\", \"medium\"])",
+  "new": "new Set<RiskLevel>([\"medium\"])"
+ },
+ {
+  "name": "(equivalent) analyze: unknown not the rest (the only other level is unknown)",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "unknown: rows.length - flagged - left",
+  "new": "unknown: rows.filter((r) => r.level === \"unknown\").length"
+ },
+ {
+  "name": "analyze: estimated not well formed",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "r.quality === \"exact\" || r.quality === \"estimated\"",
+  "new": "r.quality === \"exact\""
+ },
+ {
+  "name": "analyze: unattributed well formed",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "r.quality === \"exact\" || r.quality === \"estimated\"",
+  "new": "r.quality === \"exact\" || r.quality === \"estimated\" || r.quality === \"unattributed\""
+ },
+ {
+  "name": "analyze: exact not well formed",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "r.quality === \"exact\" || r.quality === \"estimated\"",
+  "new": "r.quality === \"estimated\""
+ },
+ {
+  "name": "analyze: no report scored as a level",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "level: \"unknown\", score: null, coverage: null, quality: \"no-report\"",
+  "new": "level: \"low\", score: null, coverage: null, quality: \"no-report\""
+ },
+ {
+  "name": "analyze: available counts the picked",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "available: rows.filter((r) => r.label === label).length",
+  "new": "available: picked.length"
+ },
+ {
+  "name": "analyze: scored counts all tokens",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "scored: scored.length",
+  "new": "scored: rows.length"
+ },
+ {
+  "name": "analyze: coverage dropped",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "coverage: risk === null ? null : risk.report.coverage",
+  "new": "coverage: null"
+ },
+ {
+  "name": "analyze: score dropped",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "score: risk === null ? null : risk.report.score",
+  "new": "score: null"
+ },
+ {
+  "name": "analyze: sorted by name only",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "a.row.createdAt - b.row.createdAt || (a.row.mint < b.row.mint ? -1 : a.row.mint > b.row.mint ? 1 : 0)",
+  "new": "0"
+ },
+ {
+  "name": "analyze: wallets not sorted",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "wallets: [...wallets].sort()",
+  "new": "wallets: [...wallets]"
+ },
+ {
+  "name": "cli analyze: headline without the unknowns",
+  "file": "packages/collector/src/cli.ts",
+  "old": "rateText(counted(all), all.n) ?? \"nobody picked\"",
+  "new": "rateText(counted(all), known) ?? \"nobody picked\""
+ },
+ {
+  "name": "cli analyze: among known uses everyone",
+  "file": "packages/collector/src/cli.ts",
+  "old": "rateText(counted(all), known) ?? \"nobody\"",
+  "new": "rateText(counted(all), all.n) ?? \"nobody\""
+ },
+ {
+  "name": "cli analyze: subset uses all",
+  "file": "packages/collector/src/cli.ts",
+  "old": "rateText(counted(sub), sub.n)",
+  "new": "rateText(counted(all), all.n)"
+ },
+ {
+  "name": "cli analyze: subset unknown from all",
+  "file": "packages/collector/src/cli.ts",
+  "old": "; no level ${sub.unknown}",
+  "new": "; no level ${all.unknown}"
+ },
+ {
+  "name": "cli analyze: percent with two decimals",
+  "file": "packages/collector/src/cli.ts",
+  "old": "(x * 100).toFixed(1)",
+  "new": "(x * 100).toFixed(2)"
+ },
+ {
+  "name": "cli analyze: wilson low shown as rate",
+  "file": "packages/collector/src/cli.ts",
+  "old": "${percent(w.low)} to",
+  "new": "${percent(w.rate)} to"
+ },
+ {
+  "name": "cli analyze: census none not said",
+  "file": "packages/collector/src/cli.ts",
+  "old": "a.census.wallets.length === 0 ? \"none\" : a.census.wallets.join(\", \")",
+  "new": "a.census.wallets.join(\", \")"
+ },
+ {
+  "name": "cli analyze: census not used reads as used",
+  "file": "packages/collector/src/cli.ts",
+  "old": "a.census.used\n    ?",
+  "new": "true\n    ?"
+ },
+ {
+  "name": "cli analyze: group size of 0 allowed",
+  "file": "packages/collector/src/cli.ts",
+  "old": "!Number.isInteger(groupSize) || groupSize < 1",
+  "new": "!Number.isInteger(groupSize) || groupSize < 0"
+ },
+ {
+  "name": "cli analyze: census minimum of 0 allowed (analyze)",
+  "file": "packages/collector/src/cli.ts",
+  "old": "!Number.isInteger(minCensus) || minCensus < 1) throw new UsageError(\"--min-census must be a whole number of at least 1\");\n    const groupSize",
+  "new": "!Number.isInteger(minCensus) || minCensus < 0) throw new UsageError(\"--min-census must be a whole number of at least 1\");\n    const groupSize"
+ },
+ {
+  "name": "cli analyze: analyze default group size",
+  "file": "packages/collector/src/cli.ts",
+  "old": "Number(values.get(\"--group-size\")) : 30",
+  "new": "Number(values.get(\"--group-size\")) : 20"
+ },
+ {
+  "name": "cli analyze: analyze needs no output file",
+  "file": "packages/collector/src/cli.ts",
+  "old": "if (command === \"analyze\") {\n    const out = values.get(\"--out\");\n    if (out === undefined || out === \"\") throw",
+  "new": "if (command === \"analyze\") {\n    const out = values.get(\"--out\");\n    if (false) throw"
+ },
+ {
+  "name": "analyze: supply bar 1.4B",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "r.supplyTokens >= 1_500_000_000 ?",
+  "new": "r.supplyTokens >= 1_400_000_000 ?"
+ },
+ {
+  "name": "analyze: supply bar exclusive",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "r.supplyTokens >= 1_500_000_000 ?",
+  "new": "r.supplyTokens > 1_500_000_000 ?"
+ },
+ {
+  "name": "analyze: supply decimals ignored",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "Number(s.view.supply / 10n ** BigInt(s.view.decimals))",
+  "new": "Number(s.view.supply)"
+ },
+ {
+  "name": "analyze: no report counted as small",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "r.supplyTokens === null ? \"no report\" :",
+  "new": "r.supplyTokens === null ? \"below 1.5B\" :"
+ },
+ {
+  "name": "analyze: supply of every token counted",
+  "file": "packages/collector/src/analyze.ts",
+  "old": "for (const r of picked) bySupply",
+  "new": "for (const r of scored) bySupply"
+ },
+ {
+  "name": "cli analyze: supply line shows the wrong bucket",
+  "file": "packages/collector/src/cli.ts",
+  "old": "1.5B or more ${g.bySupply[\"1.5B or more\"]}",
+  "new": "1.5B or more ${g.bySupply[\"below 1.5B\"]}"
+ }
+]

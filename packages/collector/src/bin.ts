@@ -2,7 +2,8 @@
 // The process that runs on the build host: `memelens-collector run --state FILE` and `memelens-collector status --state FILE`.
 // Glue only; what it does is tested in packages/collector/test (the network is replaced there by recorded replies).
 import { writeFileSync } from "node:fs";
-import { formatExportSummary, formatLabelSummary, formatStats, parseCliArgs, UsageError } from "./cli";
+import { analyze } from "./analyze";
+import { formatAnalysis, formatExportSummary, formatLabelSummary, formatStats, parseCliArgs, UsageError } from "./cli";
 import { exportFromStored } from "./export";
 import { labelStored, summarizeLabels, type LabelRow } from "./load";
 import { PoliteClient } from "./http";
@@ -23,6 +24,19 @@ async function main(): Promise<void> {
     console.log(formatExportSummary(result.summary));
     for (const u of result.unreadable.slice(0, 10)) console.log(`unreadable ${u.mint}: ${u.why}`);
     console.log(`wrote ${result.fixture.tokens.length} tokens to ${args.out}`);
+    return;
+  }
+  if (args.command === "analyze") {
+    const store = CollectorStore.openReadOnly(args.state);
+    const result = analyze(store.storedTokens(), { groupSize: args.groupSize, minCensus: args.minCensus });
+    store.close();
+    if (!result.ok) {
+      console.error(`no result: ${result.reason}`);
+      process.exit(3);
+    }
+    writeFileSync(args.out, JSON.stringify(result, null, 1));
+    console.log(formatAnalysis(result));
+    console.log(`wrote the full result, with every picked token, to ${args.out}`);
     return;
   }
   if (args.command === "label") {
@@ -95,7 +109,7 @@ async function main(): Promise<void> {
 
 main().catch((error) => {
   if (error instanceof UsageError) {
-    console.error(`${error.message}\nusage: memelens-collector run --state FILE [--rate 0.1] [--window-hours 72] [--discover-every 20]\n       memelens-collector status --state FILE\n       memelens-collector export --state FILE --out FIXTURE.json [--min-census 100]\n       memelens-collector label --state FILE --out LABELS.jsonl`);
+    console.error(`${error.message}\nusage: memelens-collector run --state FILE [--rate 0.1] [--window-hours 72] [--discover-every 20]\n       memelens-collector status --state FILE\n       memelens-collector export --state FILE --out FIXTURE.json [--min-census 100]\n       memelens-collector label --state FILE --out LABELS.jsonl\n       memelens-collector analyze --state FILE --out RESULT.json [--min-census 100] [--group-size 30]`);
     process.exit(2);
   }
   console.error(error);

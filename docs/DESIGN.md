@@ -450,6 +450,27 @@ What the real reports showed, which changes or sharpens the text above:
 - `pct` in a report is a share of the whole supply, the supply can exceed what a JSON number holds exactly for tokens of
   other decimals; such a report is refused (`ReportError`), counted and listed, never rounded.
 
+**The analysis, as built and fixed before any outcome exists (13 Nov 2026, 11:55Z by `date -u`).**
+`memelens-collector analyze --state FILE --out RESULT.json` is run ONCE, after every reading of every followed token was taken
+or given up on; it refuses while any is still pending (no override). It (1) labels every followed token by the rules above,
+(2) runs the protocol-wallet census over all readable first-hour reports (skipped, and said so, under 100), (3) takes 30 from
+each of Rugged and Survived by `pickKey`, (4) scores only those through the app's own `tokenRisk` at the first-hour reading,
+at its provisional weights, (5) tallies. *Flagged* = level high or critical; *left* = low or medium; *unknown* = no level
+(no readable report, or too little known, e.g. nobody counted after the exclusions). Headline rate: over everyone picked, so
+unknown counts as not flagged / not left; beside it the rate over those with a level, and the rate over snapshots that are
+exact or estimated. Every rate carries its Wilson 95% interval (`wilson.ts`, checked against Python). Also printed: how the
+picked tokens split by supply (below 1.5B / 1.5B or more / no report).
+*Not done, on purpose:* no weight, threshold, label rule, group size or quality filter is changed after the result is seen
+(if one is, the new numbers are in-sample, as said above); the result is reported whatever it is; no token is scored before the
+picks are fixed. The two-token dry run of 13 Nov 10:45Z (export, ingest, `tokenRisk`) was a check of the plumbing before any
+label existed; its levels are not used for anything.
+*What the population looks like (measured 13 Nov, from 109 first-hour reports and 115 first-hour readings):* 62 of the 109 reports
+are tokens of exactly 2,000,000,000 supply, where a protocol wallet holds about half; the census found exactly one wallet,
+`BwWK17cb...`. Snapshot quality: exact 86, estimated 5, unattributed 16 (mostly the same missing half on 2B tokens), inconsistent 0,
+unmodelled 2. 33 of the 115 first-hour readings (29%) had already fallen to a tenth of their peak by the scoring time: they are in
+neither group and are counted. So what this measures is whether a first-hour score separates later rugs from survivors among
+tokens that were still alive at the first hour, in a population that is mostly 2-billion-supply tokens.
+
 **Limits to print next to any number:** (1) pump.fun only; (2) a top-20 list, HHI is a lower bound; (3) the creator's
 earlier dumps, liquidity, clustering and wash trading are not scored, so this measures the five-signal model; (4) price
 path resolution is one hour after S, so a collapse and recovery inside one hour is invisible; (5) RugCheck and

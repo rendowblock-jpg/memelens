@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { formatExportSummary, formatLabelSummary, formatStats, parseCliArgs, UsageError } from "../src/cli";
+import { formatAnalysis, formatExportSummary, formatLabelSummary, formatStats, parseCliArgs, UsageError } from "../src/cli";
+import type { Analysis } from "../src/analyze";
 import type { Stats } from "../src/store";
 
 describe("parseCliArgs", () => {
@@ -20,6 +21,11 @@ describe("parseCliArgs", () => {
     expect(parseCliArgs(["label", "--state", "s", "--out", "labels.jsonl"])).toEqual({ command: "label", state: "s", out: "labels.jsonl" });
   });
 
+  it("reads analyze with its defaults and its options", () => {
+    expect(parseCliArgs(["analyze", "--state", "s", "--out", "r.json"])).toEqual({ command: "analyze", state: "s", out: "r.json", minCensus: 100, groupSize: 30 });
+    expect(parseCliArgs(["analyze", "--state", "s", "--out", "r.json", "--min-census", "7", "--group-size", "12"])).toEqual({ command: "analyze", state: "s", out: "r.json", minCensus: 7, groupSize: 12 });
+  });
+
   it("reads status", () => {
     expect(parseCliArgs(["status", "--state", "s"])).toEqual({ command: "status", state: "s" });
   });
@@ -36,6 +42,12 @@ describe("parseCliArgs", () => {
       [["run", "--state", "s", "--window-hours", "0"], /--window-hours/],
       [["run", "--state", "s", "--discover-every", "1.5"], /--discover-every/],
       [["status", "--state", "s", "--rate", "0.1"], /unknown option --rate/],
+      [["analyze", "--state", "s"], /--out/],
+      [["analyze", "--out", "f"], /--state/],
+      [["analyze", "--state", "s", "--out", "f", "--group-size", "0"], /--group-size/],
+      [["analyze", "--state", "s", "--out", "f", "--group-size", "2.5"], /--group-size/],
+      [["analyze", "--state", "s", "--out", "f", "--min-census", "0"], /--min-census/],
+      [["analyze", "--state", "s", "--out", "f", "--rate", "1"], /unknown option --rate/],
       [["label", "--state", "s"], /--out/],
       [["label", "--out", "f"], /--state/],
       [["label", "--state", "s", "--out", "f", "--min-census", "5"], /unknown option --min-census/],
@@ -105,5 +117,63 @@ describe("formatLabelSummary", () => {
 
   it("says none when nothing is neither", () => {
     expect(formatLabelSummary({ total: 0, byLabel: { rugged: 0, survived: 0, neither: 0, "collapsed-before-scoring": 0 }, neitherByReason: {} })).toBe("tokens labelled 0: rugged 0, survived 0, neither 0, collapsed-before-scoring 0\nneither because: none");
+  });
+});
+
+describe("formatAnalysis", () => {
+  const tally = (n: number, flagged: number, left: number): Analysis["rugged"]["all"] => ({ n, flagged, left, unknown: n - flagged - left });
+  const analysis: Analysis = {
+    ok: true,
+    labels: { total: 12, byLabel: { rugged: 5, survived: 4, neither: 2, "collapsed-before-scoring": 1 }, neitherByReason: { faded: 2 } },
+    census: { readable: 11, used: true, wallets: ["PW1", "PW2"] },
+    rugged: { available: 5, picked: [], all: tally(5, 3, 1), wellFormed: tally(4, 3, 1), bySupply: { "below 1.5B": 2, "1.5B or more": 2, "no report": 1 } },
+    survived: { available: 9, picked: [], all: tally(4, 1, 3), wellFormed: tally(4, 1, 3), bySupply: { "below 1.5B": 4, "1.5B or more": 0, "no report": 0 } },
+    scored: 9,
+  };
+  // The Wilson numbers were computed in Python from the formula, not by the code under test.
+  const expected = [
+    "tokens labelled 12: rugged 5, survived 4, neither 2, collapsed-before-scoring 1",
+    "neither because: faded 2",
+    "protocol wallets: census over 11 readable first-hour reports found PW1, PW2",
+    "",
+    "RUGGED: 5 picked of 5 available",
+    "  flagged high or critical: 3 of 5 = 60.0% (Wilson 95%: 23.1% to 88.2%)",
+    "  no level (unknown), counted as not flagged: 1",
+    "  among those with a level: 3 of 4 = 75.0% (Wilson 95%: 30.1% to 95.4%)",
+    "  snapshots exact or estimated only: 3 of 4 = 75.0% (Wilson 95%: 30.1% to 95.4%); no level 0",
+    "  picked by supply: below 1.5B 2, 1.5B or more 2, no report 1",
+    "",
+    "SURVIVED: 4 picked of 9 available",
+    "  left at medium or below: 3 of 4 = 75.0% (Wilson 95%: 30.1% to 95.4%)",
+    "  no level (unknown), counted as not left: 0",
+    "  among those with a level: 3 of 4 = 75.0% (Wilson 95%: 30.1% to 95.4%)",
+    "  snapshots exact or estimated only: 3 of 4 = 75.0% (Wilson 95%: 30.1% to 95.4%); no level 0",
+    "  picked by supply: below 1.5B 4, 1.5B or more 0, no report 0",
+  ].join("\n");
+
+  it("prints the labels, the census, and for each group the rate with its interval, the unknowns, and the well-formed subset", () => {
+    expect(formatAnalysis(analysis)).toBe(expected);
+  });
+
+  it("says the census was not used, and why", () => {
+    expect(formatAnalysis({ ...analysis, census: { readable: 6, used: false, wallets: [] } })).toContain("protocol wallets: NOT USED (6 readable first-hour reports are fewer than the minimum for a census)");
+  });
+
+  it("says no wallet was found when the census ran and found none", () => {
+    expect(formatAnalysis({ ...analysis, census: { readable: 150, used: true, wallets: [] } })).toContain("protocol wallets: census over 150 readable first-hour reports found none");
+  });
+
+  it("says so, with no rate, for a group with nobody picked, and for a subset with nobody in it", () => {
+    const none = { available: 0, picked: [], all: tally(0, 0, 0), wellFormed: tally(0, 0, 0), bySupply: { "below 1.5B": 0, "1.5B or more": 0, "no report": 0 } };
+    const out = formatAnalysis({ ...analysis, rugged: none });
+    expect(out).toContain("RUGGED: 0 picked of 0 available");
+    expect(out).toContain("  flagged high or critical: nobody picked");
+    expect(out).toContain("  among those with a level: nobody");
+    expect(out).toContain("  snapshots exact or estimated only: nobody; no level 0");
+  });
+
+  it("shows a rate of 0 or all with its one-sided interval", () => {
+    const out = formatAnalysis({ ...analysis, survived: { available: 2, picked: [], all: tally(2, 0, 2), wellFormed: tally(2, 0, 2), bySupply: { "below 1.5B": 2, "1.5B or more": 0, "no report": 0 } } });
+    expect(out).toContain("  left at medium or below: 2 of 2 = 100.0% (Wilson 95%: 34.2% to 100.0%)");
   });
 });
