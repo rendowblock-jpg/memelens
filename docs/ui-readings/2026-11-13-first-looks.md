@@ -150,6 +150,15 @@ wrong reason (a 404, not the focus ring), so I rebuilt the preview and ran it ag
 | Full audit | 120 combinations, 1122 of 1122 (the old check could not see this) | 120 combinations, 1134 of 1134 |
 | Full suite | 1694 passed, 26 skipped | 1695 passed, 26 skipped; `tsc` clean |
 
-Fix: `.bt-result h2 { scroll-margin-top: 12px; }` (scrollIntoView honours it). Not yet seen again on Windows: the live-engine run on the commit
-with the fix is the next look.
+Fix: `.bt-result h2 { scroll-margin-top: 12px; }` (scrollIntoView honours it). Seen again on Windows below.
+
+### After the fix, on Windows (live-engine run 43430616601, commit 502d9f8, both jobs green)
+Run numbers (from its log): Windows unit tests 1694 passed, 27 skipped; smoke 26/26; first-run checks 9/9; installed-app checks 38/38 (the update
+check finds engine 0.1.2, it installs from the release host into `%LOCALAPPDATA%\MemeLens\sidecar`, a backtest on the app's own database enters 5
+positions, the result names the engine); install and uninstall both exit 0; `MemeLens.exe` is gone afterwards; the engine is still there with the
+SHA-256 its manifest names. The database's survival after uninstall is by design but is NOT checked by the run.
+The picture (`5-backtest-result.png`, read before measuring, `2026-11-13-windows-backtest-result-after-fix-reading.txt`): the Result heading now has
+a complete outline. Numbers: ring rows at y=99-100 (top) and 129-130 (bottom), 9px of page between the notice band and the ring's top.
+One earlier claim of mine is refuted by this picture: the list rows are not striped, only the first row is shaded. Open, taste: the outline runs
+across the whole content width around a short word.
 

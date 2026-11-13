@@ -1,0 +1,28 @@
+READING written BEFORE checking any number. Picture: the installed app ON WINDOWS after the ring fix, live run 43430616601 (commit 502d9f8),
+5-backtest-result.png, 1008x655, integrity OK 59253 bytes. A look: this time read_file returned an image block; sealed test P59B (12:55Z) MATCH 6/6.
+- Same screen as before: left rail (logo, Feed, Smart money, Backtest selected with a filled pill and a bar on the left edge), "Backtest" in the
+  top bar, one notice line with the yellow SYNTHETIC DATA pill at the right, a vertical scrollbar whose thumb sits in the lower half.
+- THE CHANGE: the "Result" heading now has a COMPLETE rounded outline in violet-blue, all four edges, including the top. A strip of the dark
+  page shows between the bottom of the notice bar and the top of the outline (about 8-10px). The outline is wide: it runs across the whole
+  content width (about x=103 to x=968) around a short word, which looks heavier than it needs to.
+- Under it the same two-line grey prose, then three equal cards: RESULT "-0.0016 SOL" in pink-red, RETURN ON COST "-31.8%", POSITIONS "5 positions".
+  The third card ends near x=965.
+- Below the cards the list is narrower than the cards (ends near x=726); the FIRST row ("Signals from the chosen wallets 7") has a slightly
+  lighter background than the rest; thin rules between rows; "Exits" wraps to two lines: "Take profit 0 - Stop loss 0 - Max hold / 0 - End of data 5".
+  The last row, "Total spent (with fees) 0.005 SOL", is cut by the bottom edge of the window (it is the end of the visible area).
+- Nothing overlaps. Text is crisp.
+CLAIMS TO CHECK BY NUMBERS: (1) horizontal ring rows exist at the TOP as well as the bottom; (2) the gap between the notice band's bottom border and the
+ring's top is >= 8px; (3) the ring spans about x=103..968; (4) the third card ends near x=965 and the cards are about 278px wide;
+(5) the list is still 620px wide; (6) only the first list row is shaded.
+
+CHECKED BY NUMBERS afterwards (PIL on the downloaded PNG, run 43430616601):
+- (1) horizontal ring rows exist at the TOP (y=99,100) and the bottom (y=129,130), each 2px, x=106..964: the ring is complete.   RIGHT. FIX CONFIRMED ON WINDOWS.
+- (2) notice band's bottom border at y=90, ring top row y=99: gap 9px (reading said 8-10).                                       RIGHT
+- (3) ring pixels x=102..968 (reading said ~103..968): it surrounds the whole content width, not just the word.                  RIGHT
+- (4) cards: first two are 276 and 277px wide; the third ends near x=963 (the run detection is cut by text inside the cards, so the
+  third card's own width is not resolved).                                                                                        PARTLY checked
+- (5) list rules x=106..725 = 620px.                                                                                              RIGHT
+- (6) only the first list row is shaded: sampled row backgrounds (16,18,22) at the first row, (8,10,14) at four others.            RIGHT, and it
+  REFUTES the "striped rows" claim in my reading of the earlier picture (same screen): that claim was an eye error or a mistake of mine.
+- Not changed, a taste item: the outline hugs the full content width around a short word, which reads heavier than it needs to
+  (`width: fit-content` on the heading would make it hug the word). Left for the owner.
