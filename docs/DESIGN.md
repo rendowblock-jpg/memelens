@@ -592,44 +592,62 @@ wallet address; totals plus a positions table). The look is a dark instrument pa
   unknown, probably the runner. Mitigation: the MSI, pictures and install log are uploaded before the uninstall, and the
   job limit is 25 minutes.
 
-## Status (12 Nov 2026)
+## Status (13 Nov 2026, by `date -u`; the 12 Nov text this replaces was out of date in four places)
 
-Public repo: https://github.com/rendowblock-jpg/memelens, `main` pushed at b4b58a8; an unauthenticated API call returned
-`private: false`. Before the push the full history was scanned: no keys, tokens, key files or Solana-key-shaped strings.
-One old commit (5adebe4) contains a test-run output file with absolute build-host paths (not secrets); it was left in
-place rather than rewrite history. No licence file yet, so by default nobody may reuse the code (see Open questions).
-The private sidecar repo now exists (see "Sidecar: state").
+Public repo: https://github.com/rendowblock-jpg/memelens (an unauthenticated API call returned `private: false` on 12 Nov).
+Before the first push the full history was scanned: no keys, tokens, key files or Solana-key-shaped strings. One old
+commit (5adebe4) contains a test-run output file with absolute build-host paths (not secrets); it was left in place
+rather than rewrite history. No licence file yet, so by default nobody may reuse the code (see Open questions).
 
-Measured on the host after the Windows packaging work: `vitest run` 697 tests in 26 files, exit 0; `tsc --noEmit` exit 0 for `packages/core`,
-`packages/data`, `packages/service`, `apps/desktop` and the renderer project; real-app smoke 14/14, exit 0.
-Browser-tool measurements of the built renderer (through the preview harness, not the Electron window): 1360x860 for the
-feed, smart money and one wallet, and 900x600 (the app's minimum window) for the feed only. Not measured: the token panel
-at 900x600 beyond the feed's own layout, the other wallets, 1024 wide, and anything in Arabic. Findings: no overflow,
-cut-off text, overlap or covered controls; all text 12 px or larger; link targets 24 px; no contrast failures reported by
-the audit runs I made (feed before the fixes, smart money and one wallet after).
-Two layout bugs were found that way and fixed: the page grew to its content (1475 px in an 860 px window) because the
-grid rows were not fixed, and headings skipped from h1 to h3.
-**Not seen by a person yet.** I opened screenshots through the sandbox relay and received only a file description, not
-pixels, so no statement here is about how the design *looks*; it is about measured numbers. The owner has not seen it.
+**Measured on the host, 13 Nov 2026:**
+- `vitest run`: 1694 tests passed, 26 skipped, 62 files, exit 0. The skipped ones are the end-to-end tests that need a
+  built engine binary or a live release host (they run in CI and in the release job) and one POSIX-only symlink test.
+- `tsc --noEmit` exit 0 for every project in `npm run typecheck:all` (core, data, service, desktop, sidecar, collector, renderer).
+- The real-Chromium state audit (`scripts/audit-states.mjs`): 10 states x 3 window sizes x 4 modes (normal, forced
+  colours, more contrast, reduced motion) = 120 combinations, 1122 of 1122 checks passed. The checks: one `<h1>` and one
+  `<main>`, no sideways scroll, nothing past the window, no text running out of its box, controls at least 24 x 24 px,
+  visible edges on controls, the selection marked without colour, the contrast and motion preferences reaching the page,
+  nothing animating under reduced motion, axe-core (no WCAG 2.2 AA or best-practice violation), and, since 13 Nov, that a
+  finished backtest is focused and on screen, that a detail panel's title is set as a title, and that the Backtest
+  screen uses the shared measure.
+- Windows CI (`.github/workflows/windows.yml`): on `0ba1cb8` both jobs passed, including the installed app and the uninstall.
+
+**What changed since the 12 Nov status, and is now true:**
+- The sidecar engine **is wired into the app**: the Backtest screen, five engine channels (status, run, cancel, check,
+  install), an update path with signed manifests (see "Sidecar: state"). It is not an unwired module any more.
+- **Real chain data has been touched**, but only by `packages/collector`, which is separate from the app: it watches
+  pump.fun launches and stores RugCheck reports to calibrate the risk score (see "Calibration collection"). The app's
+  feed still has no real-data adapter, so a fresh install shows only the bundled made-up sample (M4).
+- **A person has not seen the app; I have looked at it.** On 13 Nov I read screens through a route where the picture
+  reaches me intact (checksummed), wrote down what I saw before measuring, and checked it by numbers: of 14 first readings
+  (`docs/ui-readings/`), 9 were right or close, 3 were wrong in a detail (counts and sizes), 1 was an artefact of the
+  preview and 1 a new fact, which is why sizes and counts always come from numbers. The two readings after the fixes
+  held on every claim that was checked. Three findings were fixed (focus on the finished result, the Backtest
+  width, the wallet's title). One is left to the owner's taste: row density (rows are 66 px, 87 with a flag, so nine
+  fit in a 728 px window). The owner has not seen the app and has not installed the draft installer.
+- **The risk weights are still not measured.** The table in "Risk engine signals and calibration" says NOT MEASURED and
+  will be filled only from one `analyze` run once every reading has been taken (earliest mid-December 2026).
 
 Run the CLI: `npm run memelens -- ingest packages/data/fixtures/sample.json --db demo.sqlite`, then
 `npm run memelens -- smart --db demo.sqlite`. Exit codes: 0 done, 1 could not be done, 2 command written wrongly,
 3 ingested but items were rejected.
 
 Known gaps (not hidden):
-- Everything is verified on synthetic data. Nothing has touched real chain data.
+- The app is verified on synthetic data only. No Solana adapter feeds the app; no agent chat.
 - Risk weights and thresholds are provisional (see calibration). Only 6 of 10 signals have a data source.
-- Run on Windows only by CI (see "Windows first"); the owner has not seen it. The sidecar engine exists but is not wired into the app yet; no Solana adapter, no agent chat.
-- A fresh install has no data. With an empty database the app offers a button that loads the bundled made-up sample (only into a completely empty database, never added to existing data). There is still no real-data adapter, so a fresh install can show only synthetic data until M4.
+- Run on Windows only by CI (see "Windows first"); the owner has not seen it.
+- Not measured: Arabic or right-to-left layouts, widths other than 900, 1366 and 1920, the Electron process on a slow
+  PC, and the engine's memory on Windows.
 - No keyboard navigation inside the feed beyond tabbing to each row's button.
 - `feed` runs several queries per token; the cost with thousands of tokens is unmeasured.
 - Two store mutation survivors are accepted: dropping `, id` from the ascending `ORDER BY time, id` in
   `Store.tradesForWallet` and `Store.tradesForToken`. They looked equivalent on this SQLite build (primary-key scan
   keeps the order, seen with `EXPLAIN QUERY PLAN`); the clause stays so the order does not depend on the planner.
 - Mutation runs cover core, replay, store, ingest, analyze, args, CLI options and render layer, service, handler,
-  security and the formatting functions. Under the new process rule they are not extended to glue or rendering.
-  The component mutation check noted as pending in the M3c-2 commit message is cancelled by that rule.
-- Unmeasured: the Electron process for this app on a slow PC; WAL versus rollback journal with a second reader.
+  security and the formatting functions, the engine client and update path, the Backtest form, and the whole collector
+  pipeline (export 88/88, labeller 56/56, loader 28/29, analysis 58/60; the three survivors are equivalent code).
+  Glue and plain rendering are not mutation-checked.
+- Unmeasured: WAL versus rollback journal with a second reader.
 
 ## History: M3 groundwork (measured on the host; date not recorded)
 

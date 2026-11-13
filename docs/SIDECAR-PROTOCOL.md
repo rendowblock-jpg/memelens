@@ -225,4 +225,6 @@ reason; the user's data is never changed by any of this.
   of rollback in `previous.json` (see `packages/sidecar/src/layout.ts`). The app checks the binary against its manifest
   (name, size, SHA-256) **before every launch**.
 - A release is a manifest and a binary. The manifest is signed with ed25519; the app holds the public key and checks the
-  signature before it installs anything (`verifyManifestSignature`). The download client is not built yet.
+  signature before it installs anything (`verifyManifestSignature`). The update path is built: `trust.ts` (the key and the
+  checks), `fetch.ts` (a bounded, https-only, one-host client), `updater.ts` (check, then install in a fixed order), and the
+  window reaches it through `engineCheck` and `engineInstall` only (see `docs/DESIGN.md`, "Update path").
