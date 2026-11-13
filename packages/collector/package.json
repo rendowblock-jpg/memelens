@@ -5,5 +5,11 @@
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
-  "bin": { "memelens-collector": "src/bin.ts" }
+  "bin": {
+    "memelens-collector": "src/bin.ts"
+  },
+  "dependencies": {
+    "@memelens/core": "*",
+    "@memelens/data": "*"
+  }
 }

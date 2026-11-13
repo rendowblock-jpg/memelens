@@ -30,6 +30,10 @@ describe("the schedule of one followed token", () => {
     expect([MINUTE, HOUR, DAY]).toEqual([60_000, 3_600_000, 86_400_000]);
   });
 
+  it("accepts a creation time of exactly 0", () => {
+    expect(planTasks(0)[0]!.dueAt).toBe(3_600_000);
+  });
+
   it("refuses a creation time that is not a whole non-negative number of milliseconds", () => {
     for (const bad of [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) expect(() => planTasks(bad)).toThrow(RangeError);
   });

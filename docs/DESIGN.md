@@ -386,6 +386,32 @@ token. The unlisted remainder (supply minus excluded minus listed) is spread eve
 count minus listed minus excluded), so the top-10 share is exact and the HHI is a lower bound. Creator share, mint and
 freeze authority come from the same report; age is S minus t0. Only five signals can vary at S; coverage is 57 of 100.
 
+**Scoring input, as built and measured (13 Nov 2026, 10:3xZ; written before any +72 h outcome exists).** The rules above were
+turned into `packages/collector/src/export.ts` and checked against a second implementation in Python
+(`test/reference/export_reference.py`) on six real RugCheck reports (five young pump.fun tokens and one graduated token).
+What the real reports showed, which changes or sharpens the text above:
+- *The curve is a holder row, sometimes.* RugCheck lists the bonding curve as a holder (the owner is the market's address)
+  when it ranks in the top 20, and leaves it out otherwise. A curve that is not listed is not in `totalHolders` either.
+  So the unlisted tail is `totalHolders - rows listed`, and "excluded" is not subtracted again.
+- *The curve's balance is known even when unlisted:* the market's vault balance plus pump.fun's unsold reserve, 206,900,000
+  tokens (1,000,000,000 minus the 793,100,000 sold on the curve). Where the curve is listed, its row equals that sum to the
+  token on 6 of 6 reports. A graduated pool (`pump_fun_amm`) has no reserve. A market of any other type, or without a vault of
+  this token, makes the report `unmodelled`.
+- *Protocol wallets:* the largest counted holder is taken after removing markets, known AMMs and lockers (the curve is often
+  the biggest row, which would hide the wallet). On the six reports the wallet `BwWK17cb...` was largest in 2 of 6; with the
+  curve and that wallet removed, a 2-billion-token launch has nobody left to score, which the risk code reports as unknown
+  (never as safe). The census is used only over at least 100 readable reports; below that it is skipped and said so.
+- *`creatorBalance` is not used:* it read 0 where the creator was listed holding 5.0%. The creator's share is the creator's
+  listed row over the counted supply. A creator that is not listed is "holds nothing" only when every holder is listed;
+  with unlisted holders it is not named at all (the signal is then unavailable), never read as zero.
+- *Quality of each snapshot, printed next to every result:* `exact` (every token accounted for, every holder listed),
+  `estimated` (unlisted holders share what is left), `unattributed` (more than 0.1% of the supply is in no field and nobody
+  is left to hold it: it is given to nobody), `inconsistent` (rows exceed the supply by more than 0.1%), `unmodelled`.
+  **Fixed before outcomes: every collected token is scored whatever its quality, and each result is reported for all tokens and
+  again for `exact` + `estimated` only.** Nothing is dropped after seeing a label.
+- `pct` in a report is a share of the whole supply, the supply can exceed what a JSON number holds exactly for tokens of
+  other decimals; such a report is refused (`ReportError`), counted and listed, never rounded.
+
 **Limits to print next to any number:** (1) pump.fun only; (2) a top-20 list, HHI is a lower bound; (3) the creator's
 earlier dumps, liquidity, clustering and wash trading are not scored, so this measures the five-signal model; (4) price
 path resolution is one hour after S, so a collapse and recovery inside one hour is invisible; (5) RugCheck and

@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // The process that runs on the build host: `memelens-collector run --state FILE` and `memelens-collector status --state FILE`.
 // Glue only; what it does is tested in packages/collector/test (the network is replaced there by recorded replies).
-import { formatStats, parseCliArgs, UsageError } from "./cli";
+import { writeFileSync } from "node:fs";
+import { formatExportSummary, formatStats, parseCliArgs, UsageError } from "./cli";
+import { exportFromStored } from "./export";
 import { PoliteClient } from "./http";
 import { Collector } from "./runner";
 import { CollectorStore } from "./store";
@@ -12,6 +14,16 @@ const stamp = (line: string): void => console.log(`${new Date().toISOString()} $
 
 async function main(): Promise<void> {
   const args = parseCliArgs(process.argv.slice(2));
+  if (args.command === "export") {
+    const store = CollectorStore.openReadOnly(args.state);
+    const result = exportFromStored(store.doneSnapshots(), { minCensus: args.minCensus });
+    store.close();
+    writeFileSync(args.out, JSON.stringify(result.fixture));
+    console.log(formatExportSummary(result.summary));
+    for (const u of result.unreadable.slice(0, 10)) console.log(`unreadable ${u.mint}: ${u.why}`);
+    console.log(`wrote ${result.fixture.tokens.length} tokens to ${args.out}`);
+    return;
+  }
   const store = new CollectorStore(args.state);
   if (args.command === "status") {
     console.log(formatStats(store.stats()));
@@ -69,7 +81,7 @@ async function main(): Promise<void> {
 
 main().catch((error) => {
   if (error instanceof UsageError) {
-    console.error(`${error.message}\nusage: memelens-collector run --state FILE [--rate 0.1] [--window-hours 72] [--discover-every 20]\n       memelens-collector status --state FILE`);
+    console.error(`${error.message}\nusage: memelens-collector run --state FILE [--rate 0.1] [--window-hours 72] [--discover-every 20]\n       memelens-collector status --state FILE\n       memelens-collector export --state FILE --out FIXTURE.json [--min-census 100]`);
     process.exit(2);
   }
   console.error(error);

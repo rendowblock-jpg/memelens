@@ -1,0 +1,530 @@
+[
+ {
+  "name": "export: reserve ignores decimals",
+  "file": "packages/collector/src/export.ts",
+  "old": "PUMP_RESERVE_TOKENS * 10n ** BigInt(v.decimals) : 0n",
+  "new": "PUMP_RESERVE_TOKENS : 0n"
+ },
+ {
+  "name": "export: reserve added to a graduated pool too",
+  "file": "packages/collector/src/export.ts",
+  "old": "(m.type === \"pump_fun\" ? PUMP_RESERVE_TOKENS",
+  "new": "(true ? PUMP_RESERVE_TOKENS"
+ },
+ {
+  "name": "export: reserve constant wrong",
+  "file": "packages/collector/src/export.ts",
+  "old": "PUMP_RESERVE_TOKENS = 206_900_000n",
+  "new": "PUMP_RESERVE_TOKENS = 206_000_000n"
+ },
+ {
+  "name": "export: a listed market is added again from its vault",
+  "file": "packages/collector/src/export.ts",
+  "old": "    if (byOwner.has(m.pubkey)) continue;\n    if (m.vault === null",
+  "new": "    if (m.vault === null"
+ },
+ {
+  "name": "export: tolerance one percent",
+  "file": "packages/collector/src/export.ts",
+  "old": "v.supply / 1000n",
+  "new": "v.supply / 100n"
+ },
+ {
+  "name": "export: tolerance a hundredth of a percent",
+  "file": "packages/collector/src/export.ts",
+  "old": "v.supply / 1000n",
+  "new": "v.supply / 10000n"
+ },
+ {
+  "name": "export: inconsistent at any excess",
+  "file": "packages/collector/src/export.ts",
+  "old": "remainder < -tolerance ? \"inconsistent\"",
+  "new": "remainder < 0n ? \"inconsistent\""
+ },
+ {
+  "name": "export: unattributed at any gap",
+  "file": "packages/collector/src/export.ts",
+  "old": "remainder > tolerance ? \"unattributed\"",
+  "new": "remainder > 0n ? \"unattributed\""
+ },
+ {
+  "name": "export: unmodelled not first",
+  "file": "packages/collector/src/export.ts",
+  "old": "unmodelled ? \"unmodelled\" : remainder < -tolerance ? \"inconsistent\" : tailHolders > 0 ? \"estimated\"",
+  "new": "remainder < -tolerance ? \"inconsistent\" : tailHolders > 0 ? \"estimated\" : unmodelled ? \"unmodelled\""
+ },
+ {
+  "name": "export: tail holders not net of the listed ones",
+  "file": "packages/collector/src/export.ts",
+  "old": "Math.max(0, v.totalHolders - v.holders.length)",
+  "new": "Math.max(0, v.totalHolders)"
+ },
+ {
+  "name": "export: tail holdings made even with nothing left",
+  "file": "packages/collector/src/export.ts",
+  "old": "if (tailHolders > 0 && remainder > 0n) {",
+  "new": "if (tailHolders > 0 && remainder >= 0n) {"
+ },
+ {
+  "name": "export: odd tokens to the last tail holder",
+  "file": "packages/collector/src/export.ts",
+  "old": "i === 0 ? each + extra : each",
+  "new": "i === tailHolders - 1 ? each + extra : each"
+ },
+ {
+  "name": "export: odd tokens lost",
+  "file": "packages/collector/src/export.ts",
+  "old": "i === 0 ? each + extra : each",
+  "new": "each"
+ },
+ {
+  "name": "export: tail addresses from zero",
+  "file": "packages/collector/src/export.ts",
+  "old": "address: `tail:${i + 1}`",
+  "new": "address: `tail:${i}`"
+ },
+ {
+  "name": "export: rows of one owner not added",
+  "file": "packages/collector/src/export.ts",
+  "old": "v.holders) byOwner.set(h.owner, (byOwner.get(h.owner) ?? 0n) + h.amount);\n  let listedTotal",
+  "new": "v.holders) byOwner.set(h.owner, h.amount);\n  let listedTotal"
+ },
+ {
+  "name": "export: markets not excluded",
+  "file": "packages/collector/src/export.ts",
+  "old": "new Set<string>([...v.markets.map((m) => m.pubkey), ...v.nonHolders, ...protocolWallets])",
+  "new": "new Set<string>([...v.nonHolders, ...protocolWallets])"
+ },
+ {
+  "name": "export: known AMMs and lockers not excluded",
+  "file": "packages/collector/src/export.ts",
+  "old": "new Set<string>([...v.markets.map((m) => m.pubkey), ...v.nonHolders, ...protocolWallets])",
+  "new": "new Set<string>([...v.markets.map((m) => m.pubkey), ...protocolWallets])"
+ },
+ {
+  "name": "export: protocol wallets not excluded",
+  "file": "packages/collector/src/export.ts",
+  "old": "new Set<string>([...v.markets.map((m) => m.pubkey), ...v.nonHolders, ...protocolWallets])",
+  "new": "new Set<string>([...v.markets.map((m) => m.pubkey), ...v.nonHolders])"
+ },
+ {
+  "name": "export: excluded not sorted",
+  "file": "packages/collector/src/export.ts",
+  "old": "excluded: [...excludedSet].sort(),",
+  "new": "excluded: [...excludedSet],"
+ },
+ {
+  "name": "export: creator named with nobody counted",
+  "file": "packages/collector/src/export.ts",
+  "old": " && countedTotal > 0n) {\n    if (byOwner.has(v.creator))",
+  "new": ") {\n    if (byOwner.has(v.creator))"
+ },
+ {
+  "name": "export: creator named although excluded",
+  "file": "packages/collector/src/export.ts",
+  "old": "v.creator !== null && !excludedSet.has(v.creator) && countedTotal",
+  "new": "v.creator !== null && countedTotal"
+ },
+ {
+  "name": "export: unlisted creator named on any quality",
+  "file": "packages/collector/src/export.ts",
+  "old": "else if (quality === \"exact\" || quality === \"unattributed\") creator",
+  "new": "else creator"
+ },
+ {
+  "name": "export: creator never named when unlisted",
+  "file": "packages/collector/src/export.ts",
+  "old": "else if (quality === \"exact\" || quality === \"unattributed\") creator = v.creator;",
+  "new": ""
+ },
+ {
+  "name": "export: largest owner tie to the larger address",
+  "file": "packages/collector/src/export.ts",
+  "old": "entry[1] === best[1] && entry[0] < best[0]",
+  "new": "entry[1] === best[1] && entry[0] > best[0]"
+ },
+ {
+  "name": "export: largest owner first of equals",
+  "file": "packages/collector/src/export.ts",
+  "old": "entry[1] > best[1] || (entry[1] === best[1] && entry[0] < best[0])",
+  "new": "entry[1] >= best[1]"
+ },
+ {
+  "name": "export: largest owner counts lockers",
+  "file": "packages/collector/src/export.ts",
+  "old": "const skip = new Set<string>([...v.markets.map((m) => m.pubkey), ...v.nonHolders]);",
+  "new": "const skip = new Set<string>([...v.markets.map((m) => m.pubkey)]);"
+ },
+ {
+  "name": "export: largest owner counts markets",
+  "file": "packages/collector/src/export.ts",
+  "old": "const skip = new Set<string>([...v.markets.map((m) => m.pubkey), ...v.nonHolders]);",
+  "new": "const skip = new Set<string>([...v.nonHolders]);"
+ },
+ {
+  "name": "export: largest owner rows not added",
+  "file": "packages/collector/src/export.ts",
+  "old": "if (!skip.has(h.owner)) byOwner.set(h.owner, (byOwner.get(h.owner) ?? 0n) + h.amount);",
+  "new": "if (!skip.has(h.owner)) byOwner.set(h.owner, h.amount);"
+ },
+ {
+  "name": "export: census bar exclusive",
+  "file": "packages/collector/src/export.ts",
+  "old": "if (n * 1_000_000 >= bar * views.length)",
+  "new": "if (n * 1_000_000 > bar * views.length)"
+ },
+ {
+  "name": "export: census divides by reports that have a holder",
+  "file": "packages/collector/src/export.ts",
+  "old": "bar * views.length",
+  "new": "bar * [...counts.values()].reduce((a, b) => a + b, 0)"
+ },
+ {
+  "name": "export: census default bar",
+  "file": "packages/collector/src/export.ts",
+  "old": "views: readonly ReportView[], threshold = 0.25",
+  "new": "views: readonly ReportView[], threshold = 0.5"
+ },
+ {
+  "name": "export: no authority read as an authority",
+  "file": "packages/collector/src/export.ts",
+  "old": "v === null ? false : typeof v",
+  "new": "v === null ? true : typeof v"
+ },
+ {
+  "name": "export: missing authority read as none",
+  "file": "packages/collector/src/export.ts",
+  "old": "v === undefined ? null : v === null",
+  "new": "v === undefined ? false : v === null"
+ },
+ {
+  "name": "export: amount of 0 refused",
+  "file": "packages/collector/src/export.ts",
+  "old": "!Number.isSafeInteger(v) || v < min)",
+  "new": "!Number.isSafeInteger(v) || v <= min)"
+ },
+ {
+  "name": "export: unsafe integers accepted",
+  "file": "packages/collector/src/export.ts",
+  "old": "typeof v !== \"number\" || !Number.isSafeInteger(v) || v < min",
+  "new": "typeof v !== \"number\" || !Number.isInteger(v) || v < min"
+ },
+ {
+  "name": "export: vault from the wrong side",
+  "file": "packages/collector/src/export.ts",
+  "old": "a !== null && a[\"mint\"] === mint && typeof",
+  "new": "a !== null && typeof"
+ },
+ {
+  "name": "export: decimals 37 accepted",
+  "file": "packages/collector/src/export.ts",
+  "old": "decimals < 0 || decimals > 36",
+  "new": "decimals < 0 || decimals > 37"
+ },
+ {
+  "name": "export: fixture time is the creation time",
+  "file": "packages/collector/src/export.ts",
+  "old": "time: row.asOf, holdings",
+  "new": "time: row.createdAt, holdings"
+ },
+ {
+  "name": "export: fixture creator ignores the rule",
+  "file": "packages/collector/src/export.ts",
+  "old": "creator: snap.creator,",
+  "new": "creator: row.view.creator,"
+ },
+ {
+  "name": "sampling: boundary inclusive",
+  "file": "packages/collector/src/sampling.ts",
+  "old": "return fraction(SAMPLING_SALT, address) < rate;",
+  "new": "return fraction(SAMPLING_SALT, address) <= rate;"
+ },
+ {
+  "name": "sampling: wrong denominator",
+  "file": "packages/collector/src/sampling.ts",
+  "old": "digest.readUInt32BE(0) / 2 ** 32",
+  "new": "digest.readUInt32BE(0) / 2 ** 31"
+ },
+ {
+  "name": "sampling: little endian",
+  "file": "packages/collector/src/sampling.ts",
+  "old": "digest.readUInt32BE(0)",
+  "new": "digest.readUInt32LE(0)"
+ },
+ {
+  "name": "sampling: default rate",
+  "file": "packages/collector/src/sampling.ts",
+  "old": "rate = 0.1",
+  "new": "rate = 0.2"
+ },
+ {
+  "name": "sampling: rate 1 refused",
+  "file": "packages/collector/src/sampling.ts",
+  "old": "rate < 0 || rate > 1",
+  "new": "rate < 0 || rate >= 1"
+ },
+ {
+  "name": "sampling: rate 0 refused",
+  "file": "packages/collector/src/sampling.ts",
+  "old": "rate < 0 || rate > 1",
+  "new": "rate <= 0 || rate > 1"
+ },
+ {
+  "name": "sampling: pick key lower hash prefix",
+  "file": "packages/collector/src/sampling.ts",
+  "old": "update(PICK_SALT + address).digest(\"hex\")",
+  "new": "update(SAMPLING_SALT + address).digest(\"hex\")"
+ },
+ {
+  "name": "plan: snapshot due at 61 minutes",
+  "file": "packages/collector/src/plan.ts",
+  "old": "dueAt: createdAt + 60 * MINUTE",
+  "new": "dueAt: createdAt + 61 * MINUTE"
+ },
+ {
+  "name": "plan: snapshot grace 20 minutes",
+  "file": "packages/collector/src/plan.ts",
+  "old": "deadlineAt: createdAt + 75 * MINUTE",
+  "new": "deadlineAt: createdAt + 80 * MINUTE"
+ },
+ {
+  "name": "plan: 72 hours becomes 48",
+  "file": "packages/collector/src/plan.ts",
+  "old": "dueAt: createdAt + 72 * HOUR",
+  "new": "dueAt: createdAt + 48 * HOUR"
+ },
+ {
+  "name": "plan: 72 hour grace 12",
+  "file": "packages/collector/src/plan.ts",
+  "old": "deadlineAt: createdAt + 78 * HOUR",
+  "new": "deadlineAt: createdAt + 84 * HOUR"
+ },
+ {
+  "name": "plan: 30 days becomes 29",
+  "file": "packages/collector/src/plan.ts",
+  "old": "dueAt: createdAt + 30 * DAY,",
+  "new": "dueAt: createdAt + 29 * DAY,"
+ },
+ {
+  "name": "plan: 30 day grace 24 hours",
+  "file": "packages/collector/src/plan.ts",
+  "old": "deadlineAt: createdAt + 30 * DAY + 12 * HOUR",
+  "new": "deadlineAt: createdAt + 30 * DAY + 24 * HOUR"
+ },
+ {
+  "name": "plan: zero creation time refused",
+  "file": "packages/collector/src/plan.ts",
+  "old": "!Number.isSafeInteger(createdAt) || createdAt < 0",
+  "new": "!Number.isSafeInteger(createdAt) || createdAt <= 0"
+ },
+ {
+  "name": "runner: late launch followed at exactly 30 minutes refused",
+  "file": "packages/collector/src/runner.ts",
+  "old": "now - launch.createdAt <= FOLLOW_LATE_MS",
+  "new": "now - launch.createdAt < FOLLOW_LATE_MS"
+ },
+ {
+  "name": "runner: late launches always followed",
+  "file": "packages/collector/src/runner.ts",
+  "old": "now - launch.createdAt <= FOLLOW_LATE_MS && isFollowed",
+  "new": "isFollowed"
+ },
+ {
+  "name": "runner: window closes at its last instant",
+  "file": "packages/collector/src/runner.ts",
+  "old": "if (now > started + this.windowMs)",
+  "new": "if (now >= started + this.windowMs)"
+ },
+ {
+  "name": "runner: window never closes",
+  "file": "packages/collector/src/runner.ts",
+  "old": "if (now > started + this.windowMs)",
+  "new": "if (false)"
+ },
+ {
+  "name": "runner: page 2 always read",
+  "file": "packages/collector/src/runner.ts",
+  "old": "first.launches.length > 0 && known === 0",
+  "new": "first.launches.length > 0"
+ },
+ {
+  "name": "runner: page 2 never read",
+  "file": "packages/collector/src/runner.ts",
+  "old": "first.launches.length > 0 && known === 0",
+  "new": "false"
+ },
+ {
+  "name": "runner: four pools of candles",
+  "file": "packages/collector/src/runner.ts",
+  "old": "export const MAX_POOLS = 3;",
+  "new": "export const MAX_POOLS = 4;"
+ },
+ {
+  "name": "runner: retry delay not doubling",
+  "file": "packages/collector/src/runner.ts",
+  "old": "MINUTE * 2 ** Math.min(failuresSoFar, 20)",
+  "new": "MINUTE * (failuresSoFar + 1)"
+ },
+ {
+  "name": "runner: retry delay cap 60 minutes",
+  "file": "packages/collector/src/runner.ts",
+  "old": "Math.min(30 * MINUTE,",
+  "new": "Math.min(60 * MINUTE,"
+ },
+ {
+  "name": "runner: a 404 is a failure",
+  "file": "packages/collector/src/runner.ts",
+  "old": "if (r.status === 404) {",
+  "new": "if (r.status === 4040) {"
+ },
+ {
+  "name": "runner: saved steps read again",
+  "file": "packages/collector/src/runner.ts",
+  "old": "if (saved.has(name)) return",
+  "new": "if (false) return"
+ },
+ {
+  "name": "runner: the first poll does not start the window",
+  "file": "packages/collector/src/runner.ts",
+  "old": "if (startedText === null) this.store.setMeta",
+  "new": "if (false) this.store.setMeta"
+ },
+ {
+  "name": "exportFromStored: a 404 is unreadable",
+  "file": "packages/collector/src/export.ts",
+  "old": "if (row.status === 404) {\n      noReport++;",
+  "new": "if (row.status === 4040) {\n      noReport++;"
+ },
+ {
+  "name": "exportFromStored: any status accepted",
+  "file": "packages/collector/src/export.ts",
+  "old": "if (row.status !== 200) {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "exportFromStored: report for another token accepted",
+  "file": "packages/collector/src/export.ts",
+  "old": "if (view.mint !== row.mint) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "exportFromStored: census bar exclusive",
+  "file": "packages/collector/src/export.ts",
+  "old": "good.length >= minCensus",
+  "new": "good.length > minCensus"
+ },
+ {
+  "name": "exportFromStored: census minimum default",
+  "file": "packages/collector/src/export.ts",
+  "old": "DEFAULT_MIN_CENSUS = 100",
+  "new": "DEFAULT_MIN_CENSUS = 3"
+ },
+ {
+  "name": "exportFromStored: census always run",
+  "file": "packages/collector/src/export.ts",
+  "old": "const censusUsed = good.length >= minCensus;",
+  "new": "const censusUsed = true;"
+ },
+ {
+  "name": "exportFromStored: newest pool first",
+  "file": "packages/collector/src/export.ts",
+  "old": "a.row.createdAt - b.row.createdAt ||",
+  "new": "b.row.createdAt - a.row.createdAt ||"
+ },
+ {
+  "name": "exportFromStored: ties by the larger address",
+  "file": "packages/collector/src/export.ts",
+  "old": "(a.row.mint < b.row.mint ? -1 : a.row.mint > b.row.mint ? 1 : 0)",
+  "new": "(a.row.mint > b.row.mint ? -1 : a.row.mint < b.row.mint ? 1 : 0)"
+ },
+ {
+  "name": "exportFromStored: fixture without the wallets",
+  "file": "packages/collector/src/export.ts",
+  "old": "asOf: g.row.asOf })), wallets),",
+  "new": "asOf: g.row.asOf })), new Set()),"
+ },
+ {
+  "name": "exportFromStored: wallets not sorted",
+  "file": "packages/collector/src/export.ts",
+  "old": "protocolWallets: [...wallets].sort()",
+  "new": "protocolWallets: [...wallets]"
+ },
+ {
+  "name": "exportFromStored: stored count is the used count",
+  "file": "packages/collector/src/export.ts",
+  "old": "stored: rows.length,",
+  "new": "stored: good.length,"
+ },
+ {
+  "name": "cli export: census default",
+  "file": "packages/collector/src/cli.ts",
+  "old": "Number(values.get(\"--min-census\")) : 100",
+  "new": "Number(values.get(\"--min-census\")) : 10"
+ },
+ {
+  "name": "cli export: census of 0 allowed",
+  "file": "packages/collector/src/cli.ts",
+  "old": "!Number.isInteger(minCensus) || minCensus < 1",
+  "new": "!Number.isInteger(minCensus) || minCensus < 0"
+ },
+ {
+  "name": "cli export: fraction allowed",
+  "file": "packages/collector/src/cli.ts",
+  "old": "!Number.isInteger(minCensus) ||",
+  "new": "false ||"
+ },
+ {
+  "name": "cli export: no output file needed",
+  "file": "packages/collector/src/cli.ts",
+  "old": "if (out === undefined || out === \"\") throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "cli export: summary says used where it is stored",
+  "file": "packages/collector/src/cli.ts",
+  "old": "`reports stored ${s.stored}:",
+  "new": "`reports stored ${s.used}:"
+ },
+ {
+  "name": "cli export: none not said",
+  "file": "packages/collector/src/cli.ts",
+  "old": "s.protocolWallets.length === 0 ? \"none\"",
+  "new": "s.protocolWallets.length === 0 ? \"\""
+ },
+ {
+  "name": "store: pending snapshots exported",
+  "file": "packages/collector/src/store.ts",
+  "old": "WHERE t.kind = 'snapshot' AND t.status = 'done' AND p.valid = 1",
+  "new": "WHERE t.kind = 'snapshot' AND p.valid = 1"
+ },
+ {
+  "name": "store: invalid reports exported",
+  "file": "packages/collector/src/store.ts",
+  "old": "WHERE t.kind = 'snapshot' AND t.status = 'done' AND p.valid = 1",
+  "new": "WHERE t.kind = 'snapshot' AND t.status = 'done'"
+ },
+ {
+  "name": "store: later tasks' reports exported",
+  "file": "packages/collector/src/store.ts",
+  "old": "WHERE t.kind = 'snapshot' AND t.status = 'done' AND p.valid = 1",
+  "new": "WHERE t.status = 'done' AND p.valid = 1"
+ },
+ {
+  "name": "store: newest pool first",
+  "file": "packages/collector/src/store.ts",
+  "old": "ORDER BY l.created_at, l.mint`",
+  "new": "ORDER BY l.created_at DESC, l.mint`"
+ },
+ {
+  "name": "store: read-only open accepts any version",
+  "file": "packages/collector/src/store.ts",
+  "old": "if (version() !== SCHEMA_VERSION) {\n        const found",
+  "new": "if (false) {\n        const found"
+ },
+ {
+  "name": "store: read-only open writable",
+  "file": "packages/collector/src/store.ts",
+  "old": "options.readOnly === true ? { readOnly: true } : {}",
+  "new": "{}"
+ }
+]

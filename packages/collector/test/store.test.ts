@@ -187,3 +187,69 @@ describe("stats", () => {
     expect(s.stats().tasks).toEqual({ snapshot: { done: 1 }, path72: { pending: 1 }, path30d: { pending: 1 } });
   });
 });
+
+describe("doneSnapshots", () => {
+  const setup = () => {
+    const s = new CollectorStore(":memory:");
+    for (const [i, mint] of ["A", "B", "C", "D", "E"].entries()) {
+      s.addLaunch(launch(mint, { createdAt: 1_000_000 + (4 - i) * 1000 }), planTasks(1_000_000 + (4 - i) * 1000));
+    }
+    const snap = (mint: string) => s.tasksOf(mint).find((t) => t.kind === "snapshot")!;
+    const put = (mint: string, step: string, status: number, valid: boolean, body: string, fetchedAt = 7) => s.savePayload(snap(mint).id, { step, url: "u", fetchedAt, status, valid, body });
+    put("A", "report", 200, true, "BODY-A", 111);
+    s.finishTask(snap("A").id, 1);
+    put("B", "report", 404, true, '{"error":"no"}', 222);
+    s.finishTask(snap("B").id, 1);
+    put("C", "report", 200, false, "<html>");
+    s.finishTask(snap("C").id, 1);
+    put("D", "report", 200, true, "BODY-D"); // saved, but the task is still pending
+    s.finishTask(snap("E").id, 1); // done with no report saved
+    put("E", "candles-minute", 200, true, "{}"); // only another step
+    // a later task of A with its own report must not be returned
+    const p72 = s.tasksOf("A").find((t) => t.kind === "path72")!;
+    s.savePayload(p72.id, { step: "report", url: "u", fetchedAt: 999, status: 200, valid: true, body: "BODY-A-72H" });
+    s.finishTask(p72.id, 1);
+    return s;
+  };
+
+  it("returns the first-hour report of every finished snapshot task that has a valid one, oldest pool first, bodies decoded", () => {
+    const rows = setup().doneSnapshots();
+    expect(rows.map((r) => r.mint)).toEqual(["B", "A"]); // B was created before A in this setup
+    expect(rows.find((r) => r.mint === "A")).toEqual({ mint: "A", createdAt: 1_004_000, asOf: 111, status: 200, body: "BODY-A" });
+    expect(rows.find((r) => r.mint === "B")).toMatchObject({ status: 404, asOf: 222, body: '{"error":"no"}' });
+  });
+
+  it("opens a state file read-only: it can read everything and write nothing, so exporting cannot disturb the collector", () => {
+    const dir = mkdtempSync(join(tmpdir(), "collector-ro-"));
+    dirs.push(dir);
+    const path = join(dir, "state.sqlite");
+    const w = new CollectorStore(path);
+    w.addLaunch(launch("A"), planTasks(1_000_000));
+    w.close();
+    const r = CollectorStore.openReadOnly(path);
+    expect(r.stats().launches).toBe(1);
+    expect(r.hasLaunch("A")).toBe(true);
+    expect(() => r.addLaunch(launch("B"))).toThrow();
+    expect(() => r.setMeta("k", "v")).toThrow();
+    r.close();
+  });
+
+  it("refuses to open a read-only file of another schema version", () => {
+    const dir = mkdtempSync(join(tmpdir(), "collector-ro-"));
+    dirs.push(dir);
+    const path = join(dir, "state.sqlite");
+    new CollectorStore(path).close();
+    const raw = new DatabaseSync(path);
+    raw.exec("PRAGMA user_version = 99");
+    raw.close();
+    expect(() => CollectorStore.openReadOnly(path)).toThrow(/schema/i);
+  });
+
+  it("refuses to open a read-only file that is empty (a path typed wrong must not look like an empty collection)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "collector-ro-"));
+    dirs.push(dir);
+    const path = join(dir, "empty.sqlite");
+    new DatabaseSync(path).close();
+    expect(() => CollectorStore.openReadOnly(path)).toThrow(/schema|not a collector/i);
+  });
+});

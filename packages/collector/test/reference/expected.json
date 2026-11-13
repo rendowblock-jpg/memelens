@@ -1,0 +1,223 @@
+{
+ "protocolWallets": [
+  "BwWK17cbHxwWBKZkUYvzxLcNQ1YVyaFezduWbtm2de6s"
+ ],
+ "reports": {
+  "rugcheck-report-established.json": {
+   "withProtocolWallets": {
+    "countedHolders": 2467,
+    "countedTotal": 997749628886633,
+    "creatorShare": null,
+    "curveListed": false,
+    "curveUnlisted": 2227948643255,
+    "freezeAuthorityActive": false,
+    "hhi": 0.0022530457661799376,
+    "listed": 20,
+    "mintAuthorityActive": false,
+    "quality": "unmodelled",
+    "remainder": 798638528965256,
+    "supply": 999977577529888,
+    "tailHolders": 2447,
+    "top10Share": 0.09978011873195973,
+    "top1Share": 0.009978016165816261
+   },
+   "withoutProtocolWallets": {
+    "countedHolders": 2467,
+    "countedTotal": 997749628886633,
+    "creatorShare": null,
+    "curveListed": false,
+    "curveUnlisted": 2227948643255,
+    "freezeAuthorityActive": false,
+    "hhi": 0.0022530457661799376,
+    "listed": 20,
+    "mintAuthorityActive": false,
+    "quality": "unmodelled",
+    "remainder": 798638528965256,
+    "supply": 999977577529888,
+    "tailHolders": 2447,
+    "top10Share": 0.09978011873195973,
+    "top1Share": 0.009978016165816261
+   }
+  },
+  "rugcheck-young-creator-1b-curve-unlisted.json": {
+   "withProtocolWallets": {
+    "countedHolders": 3,
+    "countedTotal": 50000000000000,
+    "creatorShare": 1.0,
+    "curveListed": false,
+    "curveUnlisted": 950000000000000,
+    "freezeAuthorityActive": false,
+    "hhi": 1.0,
+    "listed": 3,
+    "mintAuthorityActive": false,
+    "quality": "exact",
+    "remainder": 0,
+    "supply": 1000000000000000,
+    "tailHolders": 0,
+    "top10Share": 1.0,
+    "top1Share": 1.0
+   },
+   "withoutProtocolWallets": {
+    "countedHolders": 3,
+    "countedTotal": 50000000000000,
+    "creatorShare": 1.0,
+    "curveListed": false,
+    "curveUnlisted": 950000000000000,
+    "freezeAuthorityActive": false,
+    "hhi": 1.0,
+    "listed": 3,
+    "mintAuthorityActive": false,
+    "quality": "exact",
+    "remainder": 0,
+    "supply": 1000000000000000,
+    "tailHolders": 0,
+    "top10Share": 1.0,
+    "top1Share": 1.0
+   }
+  },
+  "rugcheck-young-curve-listed-2b.json": {
+   "withProtocolWallets": {
+    "countedHolders": 4,
+    "countedTotal": 0,
+    "creatorShare": null,
+    "curveListed": true,
+    "curveUnlisted": 0,
+    "freezeAuthorityActive": false,
+    "hhi": null,
+    "listed": 6,
+    "mintAuthorityActive": false,
+    "quality": "exact",
+    "remainder": 0,
+    "supply": 2000000000000000,
+    "tailHolders": 0,
+    "top10Share": null,
+    "top1Share": null
+   },
+   "withoutProtocolWallets": {
+    "countedHolders": 5,
+    "countedTotal": 991335952239449,
+    "creatorShare": 0.0,
+    "curveListed": true,
+    "curveUnlisted": 0,
+    "freezeAuthorityActive": false,
+    "hhi": 1.0,
+    "listed": 6,
+    "mintAuthorityActive": false,
+    "quality": "exact",
+    "remainder": 0,
+    "supply": 2000000000000000,
+    "tailHolders": 0,
+    "top10Share": 1.0,
+    "top1Share": 1.0
+   }
+  },
+  "rugcheck-young-curve-unlisted-2b.json": {
+   "withProtocolWallets": {
+    "countedHolders": 3,
+    "countedTotal": 0,
+    "creatorShare": null,
+    "curveListed": false,
+    "curveUnlisted": 991795071723369,
+    "freezeAuthorityActive": false,
+    "hhi": null,
+    "listed": 4,
+    "mintAuthorityActive": false,
+    "quality": "exact",
+    "remainder": 0,
+    "supply": 2000000000000000,
+    "tailHolders": 0,
+    "top10Share": null,
+    "top1Share": null
+   },
+   "withoutProtocolWallets": {
+    "countedHolders": 4,
+    "countedTotal": 1008204928276631,
+    "creatorShare": 0.0,
+    "curveListed": false,
+    "curveUnlisted": 991795071723369,
+    "freezeAuthorityActive": false,
+    "hhi": 1.0,
+    "listed": 4,
+    "mintAuthorityActive": false,
+    "quality": "exact",
+    "remainder": 0,
+    "supply": 2000000000000000,
+    "tailHolders": 0,
+    "top10Share": 1.0,
+    "top1Share": 1.0
+   }
+  },
+  "rugcheck-young-tail-1b.json": {
+   "withProtocolWallets": {
+    "countedHolders": 24,
+    "countedTotal": 72217123839415,
+    "creatorShare": null,
+    "curveListed": true,
+    "curveUnlisted": 0,
+    "freezeAuthorityActive": false,
+    "hhi": 0.5505218511039072,
+    "listed": 20,
+    "mintAuthorityActive": false,
+    "quality": "estimated",
+    "remainder": 2259523708544,
+    "supply": 1000000000000000,
+    "tailHolders": 5,
+    "top10Share": 1.0,
+    "top1Share": 0.6857933757354299
+   },
+   "withoutProtocolWallets": {
+    "countedHolders": 24,
+    "countedTotal": 72217123839415,
+    "creatorShare": null,
+    "curveListed": true,
+    "curveUnlisted": 0,
+    "freezeAuthorityActive": false,
+    "hhi": 0.5505218511039072,
+    "listed": 20,
+    "mintAuthorityActive": false,
+    "quality": "estimated",
+    "remainder": 2259523708544,
+    "supply": 1000000000000000,
+    "tailHolders": 5,
+    "top10Share": 1.0,
+    "top1Share": 0.6857933757354299
+   }
+  },
+  "rugcheck-young-unattributed-2b.json": {
+   "withProtocolWallets": {
+    "countedHolders": 3,
+    "countedTotal": 0,
+    "creatorShare": null,
+    "curveListed": true,
+    "curveUnlisted": 0,
+    "freezeAuthorityActive": false,
+    "hhi": null,
+    "listed": 4,
+    "mintAuthorityActive": false,
+    "quality": "unattributed",
+    "remainder": 997674756308265,
+    "supply": 2000000000000000,
+    "tailHolders": 0,
+    "top10Share": null,
+    "top1Share": null
+   },
+   "withoutProtocolWallets": {
+    "countedHolders": 3,
+    "countedTotal": 0,
+    "creatorShare": null,
+    "curveListed": true,
+    "curveUnlisted": 0,
+    "freezeAuthorityActive": false,
+    "hhi": null,
+    "listed": 4,
+    "mintAuthorityActive": false,
+    "quality": "unattributed",
+    "remainder": 997674756308265,
+    "supply": 2000000000000000,
+    "tailHolders": 0,
+    "top10Share": null,
+    "top1Share": null
+   }
+  }
+ }
+}

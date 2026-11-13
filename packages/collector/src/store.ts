@@ -1,5 +1,6 @@
 import { DatabaseSync } from "node:sqlite";
 import { gunzipSync, gzipSync } from "node:zlib";
+import type { StoredReport } from "./export";
 import type { Launch } from "./parse";
 import type { TaskKind, TaskPlan } from "./plan";
 
@@ -92,18 +93,33 @@ CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL) WITHOUT ROWID;
 export class CollectorStore {
   private readonly db: DatabaseSync;
 
-  constructor(path: string) {
-    this.db = new DatabaseSync(path);
+  constructor(path: string, options: { readOnly?: boolean } = {}) {
+    this.db = new DatabaseSync(path, options.readOnly === true ? { readOnly: true } : {});
+    const version = (): number => Number((this.db.prepare("PRAGMA user_version").get() as { user_version: number }).user_version);
+    if (options.readOnly === true) {
+      // Reading must never create or change anything: an empty file is not a collection, it is a wrong path.
+      if (version() !== SCHEMA_VERSION) {
+        const found = version();
+        this.db.close();
+        throw new SchemaError(`${path} is not a collector state file of schema version ${SCHEMA_VERSION} (found version ${found})`);
+      }
+      return;
+    }
     if (path !== ":memory:") this.db.exec("PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;");
     this.db.exec("PRAGMA foreign_keys = ON;");
-    const version = Number((this.db.prepare("PRAGMA user_version").get() as { user_version: number }).user_version);
-    if (version === 0) {
+    const found = version();
+    if (found === 0) {
       this.db.exec(SCHEMA);
       this.db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
-    } else if (version !== SCHEMA_VERSION) {
+    } else if (found !== SCHEMA_VERSION) {
       this.db.close();
-      throw new SchemaError(`the state file has schema version ${version}, this collector reads version ${SCHEMA_VERSION}`);
+      throw new SchemaError(`the state file has schema version ${found}, this collector reads version ${SCHEMA_VERSION}`);
     }
+  }
+
+  /** Opens an existing state file for reading only, so an export can run while the collector is writing to it. */
+  static openReadOnly(path: string): CollectorStore {
+    return new CollectorStore(path, { readOnly: true });
   }
 
   close(): void {
@@ -187,6 +203,22 @@ export class CollectorStore {
   savedSteps(taskId: number): Set<string> {
     const rows = this.db.prepare("SELECT step FROM payload WHERE task_id = ? AND valid = 1").all(taskId) as unknown as Array<{ step: string }>;
     return new Set(rows.map((r) => r.step));
+  }
+
+  /**
+   * The first-hour report of every finished snapshot task that has a valid one (a 404 counts: it says the source has nothing),
+   * oldest pool first. A later task's report is never returned: the scoring time is the first hour.
+   */
+  doneSnapshots(): StoredReport[] {
+    const rows = this.db
+      .prepare(
+        `SELECT l.mint AS mint, l.created_at AS createdAt, p.fetched_at AS asOf, p.status AS status, p.body AS body
+         FROM task t JOIN launch l ON l.mint = t.mint JOIN payload p ON p.task_id = t.id AND p.step = 'report'
+         WHERE t.kind = 'snapshot' AND t.status = 'done' AND p.valid = 1
+         ORDER BY l.created_at, l.mint`,
+      )
+      .all() as unknown as Array<{ mint: string; createdAt: number; asOf: number; status: number; body: Uint8Array }>;
+    return rows.map((r) => ({ mint: r.mint, createdAt: Number(r.createdAt), asOf: Number(r.asOf), status: Number(r.status), body: gunzipSync(r.body).toString("utf8") }));
   }
 
   getMeta(key: string): string | null {
