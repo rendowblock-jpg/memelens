@@ -522,10 +522,10 @@ intervals are wide (see above); (7) if the weights are changed after this, the n
 
 ## Milestones (order set 12 Nov 2026)
 
-1. **M3c** screens: feed, token panel with risk lens, smart-money ranking, wallet panel - **done on the host** (see "The screens"); not yet seen on Windows
-2. **W** Windows packaging: MSI from CI - **built, installed, run and uninstalled on a Windows runner (run 43185415658)**; still open: the owner installs it and sees it (L3)
+1. **M3c** screens: feed, token panel with risk lens, smart-money ranking, wallet panel - **done on the host** (see "The screens"); on 13 Nov I looked at the feed, wallet and Backtest screens as pictures from the Linux preview and fixed three findings (`docs/ui-readings/`); the installed app on Windows is driven through its screens by 29 checks on every code push; the owner has not seen it
+2. **W** Windows packaging: MSI from CI - **built, installed, run and uninstalled on a Windows runner on every code push (first run 43185415658; latest green 43422838862 at `18e4e0b`: 1693 unit tests, 26 smoke checks, 9 first-run and 29 installed-app checks, uninstall exit 0)**; still open: the owner installs it and sees it (L3)
 3. **S** sidecar: the slot (manager, protocol, versioned folder, update check) and the Go backtest engine, with conformance vectors - **engine, contract test, signed update path and release tool built and tested; wired into the Electron main process behind ten IPC channels; Backtest screen built, not yet seen on Windows or by the owner**
-4. **C** calibration gate: 30 rugged vs 30 not, numbers into the weights table above
+4. **C** calibration gate: 30 rugged vs 30 not, numbers into the weights table above - **the collector has run since 13 Nov 2026 09:44Z and the whole pipeline (exporter, labeller, analysis) is built and mutation-checked; the table stays NOT MEASURED until one `analyze` run once every reading is taken, mid-December 2026 at the earliest**
 5. **M4** Solana adapter (needs a user-supplied RPC or data API key)
 6. **M5** agent chat and tools (with the red-team suite above)
 7. **M6** backtest report UI
