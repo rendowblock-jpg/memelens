@@ -495,6 +495,12 @@ wallet address; totals plus a positions table). The look is a dark instrument pa
   with a test) and two false alarms in its own first version. Forced-colors is Chromium's emulation, not real Windows
   High Contrast, and has not been rendered on a Windows desktop. The Windows runner runs the same axe and 24 px
   checks on the installed app (run 43399748516 on `b8e133d`: 29 of 29 and 9 of 9, 0 violations on 6 screens).
+- **Looking at the UI (13 Nov 2026):** pixels reach the agent only through the sandbox route (`audit/tools/eyes`: sealed
+  proof, then tag -> decode -> `read_file`); proven 6/6 on 13 Nov (S59A). A picture is for structure, weight and
+  overlap; fractions, sizes, counts and words come from `scripts/probe-page.mjs` (real Chromium, real mouse and keys) and
+  `scripts/audit-states.mjs`. First looks and their checking are in `docs/ui-readings/`: 14 claims from the eye, 9 right or
+  close, 3 wrong in a detail, 1 an artifact of the preview's scripted start. Findings so far: a finished backtest sits
+  306px below the fold with nothing to announce it.
 - **The uninstall stall (13 Nov):** in three runs (43218046784, 43222454513, 43267334943) the Uninstall step began and never
   ended until the job limit cancelled it, although `msiexec /x` takes about 2 s and the step's own time limits (3 and 6
   minutes) never fired; so the runner itself stopped answering, not `msiexec`. Run 43399748516 uninstalled in 1.2 s. Cause
