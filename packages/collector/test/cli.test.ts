@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatExportSummary, formatStats, parseCliArgs, UsageError } from "../src/cli";
+import { formatExportSummary, formatLabelSummary, formatStats, parseCliArgs, UsageError } from "../src/cli";
 import type { Stats } from "../src/store";
 
 describe("parseCliArgs", () => {
@@ -14,6 +14,10 @@ describe("parseCliArgs", () => {
   it("reads export", () => {
     expect(parseCliArgs(["export", "--state", "s", "--out", "f.json"])).toEqual({ command: "export", state: "s", out: "f.json", minCensus: 100 });
     expect(parseCliArgs(["export", "--state", "s", "--out", "f.json", "--min-census", "6"])).toEqual({ command: "export", state: "s", out: "f.json", minCensus: 6 });
+  });
+
+  it("reads label", () => {
+    expect(parseCliArgs(["label", "--state", "s", "--out", "labels.jsonl"])).toEqual({ command: "label", state: "s", out: "labels.jsonl" });
   });
 
   it("reads status", () => {
@@ -32,6 +36,9 @@ describe("parseCliArgs", () => {
       [["run", "--state", "s", "--window-hours", "0"], /--window-hours/],
       [["run", "--state", "s", "--discover-every", "1.5"], /--discover-every/],
       [["status", "--state", "s", "--rate", "0.1"], /unknown option --rate/],
+      [["label", "--state", "s"], /--out/],
+      [["label", "--out", "f"], /--state/],
+      [["label", "--state", "s", "--out", "f", "--min-census", "5"], /unknown option --min-census/],
       [["export", "--state", "s"], /--out/],
       [["export", "--out", "f"], /--state/],
       [["export", "--state", "s", "--out", "f", "--min-census", "0"], /--min-census/],
@@ -82,5 +89,21 @@ describe("formatExportSummary", () => {
 
   it("says none were found when the census ran and found none", () => {
     expect(formatExportSummary({ ...summary, protocolWallets: [] })).toContain("protocol wallets (census over 100 reports): none");
+  });
+});
+
+describe("formatLabelSummary", () => {
+  it("prints the counts by label and why the neither tokens are neither, the commonest reason first", () => {
+    expect(
+      formatLabelSummary({ total: 7, byLabel: { rugged: 2, survived: 1, neither: 3, "collapsed-before-scoring": 1 }, neitherByReason: { faded: 1, "missing-72h": 2 } }),
+    ).toBe(["tokens labelled 7: rugged 2, survived 1, neither 3, collapsed-before-scoring 1", "neither because: missing-72h 2, faded 1"].join("\n"));
+  });
+
+  it("breaks a tie between reasons by name", () => {
+    expect(formatLabelSummary({ total: 2, byLabel: { rugged: 0, survived: 0, neither: 2, "collapsed-before-scoring": 0 }, neitherByReason: { zebra: 1, apple: 1 } })).toContain("neither because: apple 1, zebra 1");
+  });
+
+  it("says none when nothing is neither", () => {
+    expect(formatLabelSummary({ total: 0, byLabel: { rugged: 0, survived: 0, neither: 0, "collapsed-before-scoring": 0 }, neitherByReason: {} })).toBe("tokens labelled 0: rugged 0, survived 0, neither 0, collapsed-before-scoring 0\nneither because: none");
   });
 });

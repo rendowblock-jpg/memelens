@@ -1,6 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { gunzipSync, gzipSync } from "node:zlib";
 import type { StoredReport } from "./export";
+import type { StoredToken } from "./load";
 import type { Launch } from "./parse";
 import type { TaskKind, TaskPlan } from "./plan";
 
@@ -219,6 +220,22 @@ export class CollectorStore {
       )
       .all() as unknown as Array<{ mint: string; createdAt: number; asOf: number; status: number; body: Uint8Array }>;
     return rows.map((r) => ({ mint: r.mint, createdAt: Number(r.createdAt), asOf: Number(r.asOf), status: Number(r.status), body: gunzipSync(r.body).toString("utf8") }));
+  }
+
+  /**
+   * Every followed launch, oldest pool first, with its three readings and the replies stored in them, one launch at a time
+   * (so a state file with thousands of tokens is never held in memory whole). A reading that was never planned is null.
+   */
+  *storedTokens(): Generator<StoredToken> {
+    const launches = this.db.prepare("SELECT mint, created_at AS createdAt FROM launch WHERE followed = 1 ORDER BY created_at, mint").all() as unknown as Array<{ mint: string; createdAt: number }>;
+    for (const l of launches) {
+      const tasks = this.tasksOf(l.mint);
+      const reading = (kind: TaskKind): StoredToken["snapshot"] => {
+        const t = tasks.find((x) => x.kind === kind);
+        return t === undefined ? null : { status: t.status, payloads: this.payloads(t.id) };
+      };
+      yield { mint: l.mint, createdAt: Number(l.createdAt), snapshot: reading("snapshot"), path72: reading("path72"), path30d: reading("path30d") };
+    }
   }
 
   getMeta(key: string): string | null {

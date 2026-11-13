@@ -253,3 +253,51 @@ describe("doneSnapshots", () => {
     expect(() => CollectorStore.openReadOnly(path)).toThrow(/schema|not a collector/i);
   });
 });
+
+describe("storedTokens", () => {
+  it("yields every followed launch with its three readings and their replies, the oldest pool first, and not a launch that was only seen", () => {
+    const s = new CollectorStore(":memory:");
+    s.addLaunch(launch("A", { createdAt: 2_000_000 }), planTasks(2_000_000));
+    s.addLaunch(launch("Z", { createdAt: 1_000_000 }), planTasks(1_000_000));
+    s.addLaunch(launch("SEEN", { createdAt: 1_500_000, followed: false }));
+    const task = (mint: string, kind: string) => s.tasksOf(mint).find((t) => t.kind === kind)!;
+    s.savePayload(task("Z", "snapshot").id, { step: "report", url: "u", fetchedAt: 5, status: 200, valid: true, body: "BODY" });
+    s.finishTask(task("Z", "snapshot").id, 6);
+    s.savePayload(task("Z", "path72").id, { step: "candles-hour:P", url: "u", fetchedAt: 7, status: 404, valid: true, body: "{}" });
+    const all = [...s.storedTokens()];
+    expect(all.map((t) => t.mint)).toEqual(["Z", "A"]); // by creation time, not by name
+    const first = all[0]!;
+    expect(first.createdAt).toBe(1_000_000);
+    expect(first.snapshot).toEqual({ status: "done", payloads: [{ step: "report", url: "u", fetchedAt: 5, status: 200, valid: true, body: "BODY" }] });
+    expect(first.path72).toEqual({ status: "pending", payloads: [{ step: "candles-hour:P", url: "u", fetchedAt: 7, status: 404, valid: true, body: "{}" }] });
+    expect(first.path30d).toEqual({ status: "pending", payloads: [] });
+  });
+
+  it("orders pools created at the same moment by their address", () => {
+    const s = new CollectorStore(":memory:");
+    for (const m of ["M2", "M1", "M3"]) s.addLaunch(launch(m, { createdAt: 3_000_000 }), planTasks(3_000_000));
+    expect([...s.storedTokens()].map((t) => t.mint)).toEqual(["M1", "M2", "M3"]);
+  });
+
+  it("gives null for a reading that was never planned", () => {
+    const s = new CollectorStore(":memory:");
+    s.addLaunch(launch("A"));
+    expect([...s.storedTokens()][0]).toEqual({ mint: "A", createdAt: 1_000_000, snapshot: null, path72: null, path30d: null });
+  });
+
+  it("works on a state file opened read-only, and a missed task keeps its status", () => {
+    const dir = mkdtempSync(join(tmpdir(), "collector-ro-"));
+    dirs.push(dir);
+    const path = join(dir, "state.sqlite");
+    const w = new CollectorStore(path);
+    w.addLaunch(launch("A"), planTasks(1_000_000));
+    w.sweepMissed(1_000_000 + 100 * 3_600_000);
+    w.close();
+    const r = CollectorStore.openReadOnly(path);
+    const t = [...r.storedTokens()][0]!;
+    expect(t.snapshot!.status).toBe("missed");
+    expect(t.path72!.status).toBe("missed");
+    expect(t.path30d!.status).toBe("pending");
+    r.close();
+  });
+});

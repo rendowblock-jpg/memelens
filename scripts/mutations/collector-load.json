@@ -1,0 +1,176 @@
+[
+ {
+  "name": "load: first hour report not required",
+  "file": "packages/collector/src/load.ts",
+  "old": "if (first === null || firstReport === undefined) return",
+  "new": "if (first === null) return"
+ },
+ {
+  "name": "load: pending first hour read as missing",
+  "file": "packages/collector/src/load.ts",
+  "old": "if (first !== null && first.status === \"pending\") return { ok: false, reason: \"pending-first-hour\" };",
+  "new": ""
+ },
+ {
+  "name": "load: missed snapshot used",
+  "file": "packages/collector/src/load.ts",
+  "old": "first !== null && first.status === \"done\" ? valid(first, \"report\") : undefined",
+  "new": "first !== null ? valid(first, \"report\") : undefined"
+ },
+ {
+  "name": "load: invalid minute step used",
+  "file": "packages/collector/src/load.ts",
+  "old": "const minutePayload = valid(first, \"candles-minute\");",
+  "new": "const minutePayload = first.payloads.find((p) => p.step === \"candles-minute\");"
+ },
+ {
+  "name": "load: 404 candles unreadable",
+  "file": "packages/collector/src/load.ts",
+  "old": "if (p.status === 404) return [];",
+  "new": ""
+ },
+ {
+  "name": "load: unfinished reading has candles",
+  "file": "packages/collector/src/load.ts",
+  "old": "if (t === null || t.status !== \"done\") return null;\n  return t.payloads.filter",
+  "new": "if (t === null) return null;\n  return t.payloads.filter"
+ },
+ {
+  "name": "load: invalid candle step used",
+  "file": "packages/collector/src/load.ts",
+  "old": "t.payloads.filter((p) => p.valid && p.step.startsWith(\"candles-hour:\"))",
+  "new": "t.payloads.filter((p) => p.step.startsWith(\"candles-hour:\"))"
+ },
+ {
+  "name": "load: every step read as candles",
+  "file": "packages/collector/src/load.ts",
+  "old": "p.valid && p.step.startsWith(\"candles-hour:\")",
+  "new": "p.valid"
+ },
+ {
+  "name": "load: pool name not cut",
+  "file": "packages/collector/src/load.ts",
+  "old": "p.step.slice(\"candles-hour:\".length)",
+  "new": "p.step"
+ },
+ {
+  "name": "load: creator rows not added by owner",
+  "file": "packages/collector/src/load.ts",
+  "old": "if (h.owner === creator) sum += h.amount;",
+  "new": "sum += h.amount;"
+ },
+ {
+  "name": "load: creator holding 0 kept",
+  "file": "packages/collector/src/load.ts",
+  "old": "return sum === 0n ? null : sum;",
+  "new": "return sum;"
+ },
+ {
+  "name": "load: unfinished 72h reading creator null",
+  "file": "packages/collector/src/load.ts",
+  "old": "t.path72 === null || t.path72.status !== \"done\" ? \"unknown\" : creator === null",
+  "new": "t.path72 === null || t.path72.status !== \"done\" ? null : creator === null"
+ },
+ {
+  "name": "load: unlisted 72h creator unknown",
+  "file": "packages/collector/src/load.ts",
+  "old": "creator === null ? null : listedAmount(report72, creator)",
+  "new": "creator === null ? null : (listedAmount(report72, creator) ?? \"unknown\")"
+ },
+ {
+  "name": "load: scoring time from the minute candles",
+  "file": "packages/collector/src/load.ts",
+  "old": "scoredAt: firstReport.fetchedAt,",
+  "new": "scoredAt: first.payloads[0]!.fetchedAt,"
+ },
+ {
+  "name": "load: pending 72h not told apart",
+  "file": "packages/collector/src/load.ts",
+  "old": "r.reason === \"missing-72h\" && t.path72?.status === \"pending\"",
+  "new": "false"
+ },
+ {
+  "name": "load: missed 72h called pending",
+  "file": "packages/collector/src/load.ts",
+  "old": "r.reason === \"missing-72h\" && t.path72?.status === \"pending\"",
+  "new": "r.reason === \"missing-72h\""
+ },
+ {
+  "name": "load: pending 30d not told apart",
+  "file": "packages/collector/src/load.ts",
+  "old": "r.reason === \"missing-30d\" && t.path30d?.status === \"pending\"",
+  "new": "false"
+ },
+ {
+  "name": "load: missed 30d called pending",
+  "file": "packages/collector/src/load.ts",
+  "old": "r.reason === \"missing-30d\" && t.path30d?.status === \"pending\"",
+  "new": "r.reason === \"missing-30d\""
+ },
+ {
+  "name": "load: summary counts every reason",
+  "file": "packages/collector/src/load.ts",
+  "old": "if (r.label === \"neither\") neitherByReason",
+  "new": "if (true) neitherByReason"
+ },
+ {
+  "name": "load: summary label not counted",
+  "file": "packages/collector/src/load.ts",
+  "old": "byLabel[r.label]++;",
+  "new": ""
+ },
+ {
+  "name": "storedTokens: unfollowed launches too",
+  "file": "packages/collector/src/store.ts",
+  "old": "FROM launch WHERE followed = 1 ORDER BY created_at, mint\").all() as unknown as Array<{ mint: string; createdAt: number }>",
+  "new": "FROM launch ORDER BY created_at, mint\").all() as unknown as Array<{ mint: string; createdAt: number }>"
+ },
+ {
+  "name": "storedTokens: ordered by name",
+  "file": "packages/collector/src/store.ts",
+  "old": "WHERE followed = 1 ORDER BY created_at, mint",
+  "new": "WHERE followed = 1 ORDER BY mint"
+ },
+ {
+  "name": "(equivalent) storedTokens: ties not ordered (a WITHOUT ROWID table already returns ties in primary-key order; the ORDER BY keeps it guaranteed)",
+  "file": "packages/collector/src/store.ts",
+  "old": "WHERE followed = 1 ORDER BY created_at, mint",
+  "new": "WHERE followed = 1 ORDER BY created_at"
+ },
+ {
+  "name": "storedTokens: wrong reading",
+  "file": "packages/collector/src/store.ts",
+  "old": "reading(\"path72\"), path30d",
+  "new": "reading(\"snapshot\"), path30d"
+ },
+ {
+  "name": "storedTokens: status dropped",
+  "file": "packages/collector/src/store.ts",
+  "old": "return t === undefined ? null : { status: t.status, payloads",
+  "new": "return t === undefined ? null : { status: \"done\" as const, payloads"
+ },
+ {
+  "name": "cli: label summary: rarest reason first",
+  "file": "packages/collector/src/cli.ts",
+  "old": "y[1] - x[1] || (x[0] < y[0] ? -1 : 1)",
+  "new": "x[1] - y[1] || (x[0] < y[0] ? -1 : 1)"
+ },
+ {
+  "name": "cli: label summary: ties by larger name",
+  "file": "packages/collector/src/cli.ts",
+  "old": "y[1] - x[1] || (x[0] < y[0] ? -1 : 1)",
+  "new": "y[1] - x[1] || (x[0] > y[0] ? -1 : 1)"
+ },
+ {
+  "name": "cli: label summary: none not said",
+  "file": "packages/collector/src/cli.ts",
+  "old": "reasons.length === 0 ? \"none\"",
+  "new": "reasons.length === 0 ? \"\""
+ },
+ {
+  "name": "cli: label: no output file needed",
+  "file": "packages/collector/src/cli.ts",
+  "old": "if (command === \"label\") {\n    const out = values.get(\"--out\");\n    if (out === undefined || out === \"\") throw",
+  "new": "if (command === \"label\") {\n    const out = values.get(\"--out\");\n    if (false) throw"
+ }
+]

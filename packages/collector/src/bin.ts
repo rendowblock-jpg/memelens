@@ -2,8 +2,9 @@
 // The process that runs on the build host: `memelens-collector run --state FILE` and `memelens-collector status --state FILE`.
 // Glue only; what it does is tested in packages/collector/test (the network is replaced there by recorded replies).
 import { writeFileSync } from "node:fs";
-import { formatExportSummary, formatStats, parseCliArgs, UsageError } from "./cli";
+import { formatExportSummary, formatLabelSummary, formatStats, parseCliArgs, UsageError } from "./cli";
 import { exportFromStored } from "./export";
+import { labelStored, summarizeLabels, type LabelRow } from "./load";
 import { PoliteClient } from "./http";
 import { Collector } from "./runner";
 import { CollectorStore } from "./store";
@@ -22,6 +23,19 @@ async function main(): Promise<void> {
     console.log(formatExportSummary(result.summary));
     for (const u of result.unreadable.slice(0, 10)) console.log(`unreadable ${u.mint}: ${u.why}`);
     console.log(`wrote ${result.fixture.tokens.length} tokens to ${args.out}`);
+    return;
+  }
+  if (args.command === "label") {
+    const store = CollectorStore.openReadOnly(args.state);
+    const rows: LabelRow[] = [];
+    for (const token of store.storedTokens()) {
+      const r = labelStored(token);
+      rows.push({ mint: token.mint, createdAt: token.createdAt, label: r.label, reason: r.reason });
+    }
+    store.close();
+    writeFileSync(args.out, rows.map((r) => JSON.stringify(r)).join("\n") + (rows.length > 0 ? "\n" : ""));
+    console.log(formatLabelSummary(summarizeLabels(rows)));
+    console.log(`wrote ${rows.length} labels to ${args.out}`);
     return;
   }
   const store = new CollectorStore(args.state);
@@ -81,7 +95,7 @@ async function main(): Promise<void> {
 
 main().catch((error) => {
   if (error instanceof UsageError) {
-    console.error(`${error.message}\nusage: memelens-collector run --state FILE [--rate 0.1] [--window-hours 72] [--discover-every 20]\n       memelens-collector status --state FILE\n       memelens-collector export --state FILE --out FIXTURE.json [--min-census 100]`);
+    console.error(`${error.message}\nusage: memelens-collector run --state FILE [--rate 0.1] [--window-hours 72] [--discover-every 20]\n       memelens-collector status --state FILE\n       memelens-collector export --state FILE --out FIXTURE.json [--min-census 100]\n       memelens-collector label --state FILE --out LABELS.jsonl`);
     process.exit(2);
   }
   console.error(error);

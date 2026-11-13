@@ -1,4 +1,5 @@
 import type { ExportSummary } from "./export";
+import type { LabelSummary } from "./load";
 import type { Stats } from "./store";
 
 export class UsageError extends Error {}
@@ -6,15 +7,17 @@ export class UsageError extends Error {}
 export type CliArgs =
   | { command: "run"; state: string; rate: number; windowHours: number; discoverEverySeconds: number }
   | { command: "status"; state: string }
-  | { command: "export"; state: string; out: string; minCensus: number };
+  | { command: "export"; state: string; out: string; minCensus: number }
+  | { command: "label"; state: string; out: string };
 
 const OPTIONS: Record<string, string[]> = {
   run: ["--state", "--rate", "--window-hours", "--discover-every"],
   status: ["--state"],
   export: ["--state", "--out", "--min-census"],
+  label: ["--state", "--out"],
 };
 
-/** Reads `run`, `status` and `export` with their options. Anything else is refused by name. */
+/** Reads `run`, `status`, `export` and `label` with their options. Anything else is refused by name. */
 export function parseCliArgs(argv: readonly string[]): CliArgs {
   const [command, ...rest] = argv;
   if (command === undefined) throw new UsageError("a command is needed: run or status");
@@ -31,6 +34,11 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
   const state = values.get("--state");
   if (state === undefined || state === "") throw new UsageError("--state FILE is needed");
   if (command === "status") return { command: "status", state };
+  if (command === "label") {
+    const out = values.get("--out");
+    if (out === undefined || out === "") throw new UsageError("--out FILE is needed");
+    return { command: "label", state, out };
+  }
   if (command === "export") {
     const out = values.get("--out");
     if (out === undefined || out === "") throw new UsageError("--out FILE is needed");
@@ -72,5 +80,15 @@ export function formatExportSummary(s: ExportSummary): string {
       ? `protocol wallets (census over ${s.used} reports): ${s.protocolWallets.length === 0 ? "none" : s.protocolWallets.join(", ")}`
       : `protocol wallets: NOT USED (a census needs at least the number of readable reports given by --min-census; ${s.used} were readable)`,
     `quality: exact ${q.exact}, estimated ${q.estimated}, unattributed ${q.unattributed}, inconsistent ${q.inconsistent}, unmodelled ${q.unmodelled}`,
+  ].join("\n");
+}
+
+/** The text `label` prints: how many tokens got each label, and why the neither ones did (the commonest reason first). */
+export function formatLabelSummary(s: LabelSummary): string {
+  const b = s.byLabel;
+  const reasons = Object.entries(s.neitherByReason).sort((x, y) => y[1] - x[1] || (x[0] < y[0] ? -1 : 1));
+  return [
+    `tokens labelled ${s.total}: rugged ${b.rugged}, survived ${b.survived}, neither ${b.neither}, collapsed-before-scoring ${b["collapsed-before-scoring"]}`,
+    `neither because: ${reasons.length === 0 ? "none" : reasons.map(([r, n]) => `${r} ${n}`).join(", ")}`,
   ].join("\n");
 }
