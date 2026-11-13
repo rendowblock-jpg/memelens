@@ -1,0 +1,338 @@
+[
+ {
+  "name": "label: candle times not converted from seconds",
+  "file": "packages/collector/src/label.ts",
+  "old": "start: r[0]! * 1000",
+  "new": "start: r[0]!"
+ },
+ {
+  "name": "label: parse sort reversed",
+  "file": "packages/collector/src/label.ts",
+  "old": "out.sort((a, b) => a.start - b.start);\n  for (let i = 1",
+  "new": "out.sort((a, b) => b.start - a.start);\n  for (let i = 1"
+ },
+ {
+  "name": "label: duplicate candles accepted",
+  "file": "packages/collector/src/label.ts",
+  "old": "if (out[i]!.start === out[i - 1]!.start) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "label: high below low accepted",
+  "file": "packages/collector/src/label.ts",
+  "old": "|| c.high < c.low) throw",
+  "new": "|| false) throw"
+ },
+ {
+  "name": "label: negative volume accepted",
+  "file": "packages/collector/src/label.ts",
+  "old": "c.volume < 0 ||",
+  "new": "false ||"
+ },
+ {
+  "name": "label: negative open accepted",
+  "file": "packages/collector/src/label.ts",
+  "old": "c.open < 0 ||",
+  "new": "false ||"
+ },
+ {
+  "name": "label: candle shape not checked",
+  "file": "packages/collector/src/label.ts",
+  "old": "if (!isCandles(json)) throw",
+  "new": "if (false) throw"
+ },
+ {
+  "name": "label: minute candle still running kept",
+  "file": "packages/collector/src/label.ts",
+  "old": "c.start + MINUTE_MS <= scoredAt",
+  "new": "c.start <= scoredAt"
+ },
+ {
+  "name": "label: minute candle ending at S dropped",
+  "file": "packages/collector/src/label.ts",
+  "old": "c.start + MINUTE_MS <= scoredAt",
+  "new": "c.start + MINUTE_MS < scoredAt"
+ },
+ {
+  "name": "label: hourly candle starting at S dropped",
+  "file": "packages/collector/src/label.ts",
+  "old": "if (c.start < scoredAt ||",
+  "new": "if (c.start <= scoredAt ||"
+ },
+ {
+  "name": "label: hour containing S kept",
+  "file": "packages/collector/src/label.ts",
+  "old": "if (c.start < scoredAt ||",
+  "new": "if (c.start + HOUR_MS < scoredAt ||"
+ },
+ {
+  "name": "label: hour ending late kept",
+  "file": "packages/collector/src/label.ts",
+  "old": "c.start + HOUR_MS > until) continue",
+  "new": "c.start > until) continue"
+ },
+ {
+  "name": "label: hour ending at the limit dropped",
+  "file": "packages/collector/src/label.ts",
+  "old": "c.start + HOUR_MS > until) continue",
+  "new": "c.start + HOUR_MS >= until) continue"
+ },
+ {
+  "name": "label: tie goes to the later pool",
+  "file": "packages/collector/src/label.ts",
+  "old": "c.volume > cur.candle.volume ||",
+  "new": "c.volume >= cur.candle.volume ||"
+ },
+ {
+  "name": "label: tie goes to the larger name",
+  "file": "packages/collector/src/label.ts",
+  "old": "c.volume === cur.candle.volume && p.pool < cur.pool",
+  "new": "c.volume === cur.candle.volume && p.pool > cur.pool"
+ },
+ {
+  "name": "label: least volume wins",
+  "file": "packages/collector/src/label.ts",
+  "old": "c.volume > cur.candle.volume ||",
+  "new": "c.volume < cur.candle.volume ||"
+ },
+ {
+  "name": "label: hours not sorted",
+  "file": "packages/collector/src/label.ts",
+  "old": ".map((x) => x.candle).sort((a, b) => a.start - b.start)",
+  "new": ".map((x) => x.candle)"
+ },
+ {
+  "name": "label: minutes not sorted",
+  "file": "packages/collector/src/label.ts",
+  "old": ".sort((a, b) => a.start - b.start);\n  const byHour",
+  "new": ";\n  const byHour"
+ },
+ {
+  "name": "label: peak by close",
+  "file": "packages/collector/src/label.ts",
+  "old": "Math.max(m, c.high)",
+  "new": "Math.max(m, c.close)"
+ },
+ {
+  "name": "label: peak starts at 1",
+  "file": "packages/collector/src/label.ts",
+  "old": "c.high), 0)",
+  "new": "c.high), 1)"
+ },
+ {
+  "name": "label: running peak starts at 1",
+  "file": "packages/collector/src/label.ts",
+  "old": "let peak = 0;",
+  "new": "let peak = 1;"
+ },
+ {
+  "name": "label: running peak never updated",
+  "file": "packages/collector/src/label.ts",
+  "old": "    peak = Math.max(peak, c.high);\n",
+  "new": ""
+ },
+ {
+  "name": "label: collapse strict",
+  "file": "packages/collector/src/label.ts",
+  "old": "c.low * 10 <= peak)",
+  "new": "c.low * 10 < peak)"
+ },
+ {
+  "name": "label: collapse from exclusive",
+  "file": "packages/collector/src/label.ts",
+  "old": "if (c.start >= from &&",
+  "new": "if (c.start > from &&"
+ },
+ {
+  "name": "label: collapse from ignored",
+  "file": "packages/collector/src/label.ts",
+  "old": "if (c.start >= from && c.low * 10 <= peak)",
+  "new": "if (c.low * 10 <= peak)"
+ },
+ {
+  "name": "label: collapsed before scoring strict",
+  "file": "packages/collector/src/label.ts",
+  "old": "close * 10 <= peakOf(first)",
+  "new": "close * 10 < peakOf(first)"
+ },
+ {
+  "name": "label: collapsed before scoring by low",
+  "file": "packages/collector/src/label.ts",
+  "old": "first[first.length - 1]!.close * 10",
+  "new": "first[first.length - 1]!.low * 10"
+ },
+ {
+  "name": "label: no-price-data check removed",
+  "file": "packages/collector/src/label.ts",
+  "old": "if (first.length === 0) return neither(\"no-price-data\");",
+  "new": ""
+ },
+ {
+  "name": "label: recovered strict",
+  "file": "packages/collector/src/label.ts",
+  "old": "close * 4 > peakOf(p72)",
+  "new": "close * 4 >= peakOf(p72)"
+ },
+ {
+  "name": "label: recovered at half",
+  "file": "packages/collector/src/label.ts",
+  "old": "close * 4 > peakOf(p72)",
+  "new": "close * 2 > peakOf(p72)"
+ },
+ {
+  "name": "label: creator of 0 held",
+  "file": "packages/collector/src/label.ts",
+  "old": "i.creatorAtScoring > 0n",
+  "new": "i.creatorAtScoring >= 0n"
+ },
+ {
+  "name": "label: creator null check only",
+  "file": "packages/collector/src/label.ts",
+  "old": "i.creatorAtScoring !== null && i.creatorAtScoring > 0n",
+  "new": "i.creatorAtScoring !== null"
+ },
+ {
+  "name": "label: sat through at exactly 90%",
+  "file": "packages/collector/src/label.ts",
+  "old": "still * 10n > i.creatorAtScoring! * 9n",
+  "new": "still * 10n >= i.creatorAtScoring! * 9n"
+ },
+ {
+  "name": "label: sat through bar 80%",
+  "file": "packages/collector/src/label.ts",
+  "old": "still * 10n > i.creatorAtScoring! * 9n",
+  "new": "still * 10n > i.creatorAtScoring! * 8n"
+ },
+ {
+  "name": "label: unlisted creator keeps its amount",
+  "file": "packages/collector/src/label.ts",
+  "old": "i.creatorAt72h ?? 0n",
+  "new": "i.creatorAt72h ?? i.creatorAtScoring!"
+ },
+ {
+  "name": "label: unknown creator report ignored",
+  "file": "packages/collector/src/label.ts",
+  "old": "if (i.creatorAt72h === \"unknown\") return neither(\"creator-at-72h-unknown\");",
+  "new": ""
+ },
+ {
+  "name": "label: 72 hours becomes 73",
+  "file": "packages/collector/src/label.ts",
+  "old": "i.createdAt + 72 * HOUR_MS",
+  "new": "i.createdAt + 73 * HOUR_MS"
+ },
+ {
+  "name": "label: 72 hours becomes 48",
+  "file": "packages/collector/src/label.ts",
+  "old": "i.createdAt + 72 * HOUR_MS",
+  "new": "i.createdAt + 48 * HOUR_MS"
+ },
+ {
+  "name": "label: missing 72h check removed",
+  "file": "packages/collector/src/label.ts",
+  "old": "if (i.hourly72 === null) return neither(\"missing-72h\");",
+  "new": ""
+ },
+ {
+  "name": "label: 30 days becomes 29",
+  "file": "packages/collector/src/label.ts",
+  "old": "i.createdAt + 30 * DAY_MS",
+  "new": "i.createdAt + 29 * DAY_MS"
+ },
+ {
+  "name": "label: missing 30d check removed",
+  "file": "packages/collector/src/label.ts",
+  "old": "if (i.hourly30d === null) return neither(\"missing-30d\");",
+  "new": ""
+ },
+ {
+  "name": "label: collapse after 72h only from S",
+  "file": "packages/collector/src/label.ts",
+  "old": "collapses(p30, Number.NEGATIVE_INFINITY)",
+  "new": "collapses(p30, i.scoredAt)"
+ },
+ {
+  "name": "label: collapse after 72h never",
+  "file": "packages/collector/src/label.ts",
+  "old": "if (collapses(p30, Number.NEGATIVE_INFINITY))",
+  "new": "if (false)"
+ },
+ {
+  "name": "label: collapse reasons swapped",
+  "file": "packages/collector/src/label.ts",
+  "old": "collapses(p30, i.scoredAt) ? \"collapsed-after-72h\" : \"dipped-before-scoring\"",
+  "new": "collapses(p30, i.scoredAt) ? \"dipped-before-scoring\" : \"collapsed-after-72h\""
+ },
+ {
+  "name": "label: liquidity check removed",
+  "file": "packages/collector/src/label.ts",
+  "old": "if (i.pools30d === null) return neither(\"liquidity-unknown\");",
+  "new": ""
+ },
+ {
+  "name": "label: volume bar exclusive",
+  "file": "packages/collector/src/label.ts",
+  "old": "return volume >= 1000 &&",
+  "new": "return volume > 1000 &&"
+ },
+ {
+  "name": "label: liquidity bar exclusive",
+  "file": "packages/collector/src/label.ts",
+  "old": "reserve >= 1000",
+  "new": "reserve > 1000"
+ },
+ {
+  "name": "label: last 24 hours start exclusive",
+  "file": "packages/collector/src/label.ts",
+  "old": "c.start >= t30 - 24 * HOUR_MS",
+  "new": "c.start > t30 - 24 * HOUR_MS"
+ },
+ {
+  "name": "label: last 25 hours",
+  "file": "packages/collector/src/label.ts",
+  "old": "c.start >= t30 - 24 * HOUR_MS",
+  "new": "c.start >= t30 - 25 * HOUR_MS"
+ },
+ {
+  "name": "label: last hour ending at 30d dropped",
+  "file": "packages/collector/src/label.ts",
+  "old": "c.start + HOUR_MS <= t30)",
+  "new": "c.start + HOUR_MS < t30)"
+ },
+ {
+  "name": "label: hours after 30d counted",
+  "file": "packages/collector/src/label.ts",
+  "old": "&& c.start + HOUR_MS <= t30)",
+  "new": ")"
+ },
+ {
+  "name": "label: every pool must pass",
+  "file": "packages/collector/src/label.ts",
+  "old": "i.hourly30d.some((p) =>",
+  "new": "i.hourly30d.every((p) =>"
+ },
+ {
+  "name": "label: liquidity of any pool",
+  "file": "packages/collector/src/label.ts",
+  "old": "x.pool === p.pool",
+  "new": "true"
+ },
+ {
+  "name": "label: a day is 23 hours",
+  "file": "packages/collector/src/label.ts",
+  "old": "DAY_MS = 24 * HOUR_MS",
+  "new": "DAY_MS = 23 * HOUR_MS"
+ },
+ {
+  "name": "label: an hour is 50 minutes",
+  "file": "packages/collector/src/label.ts",
+  "old": "HOUR_MS = 3_600_000",
+  "new": "HOUR_MS = 3_000_000"
+ },
+ {
+  "name": "label: a minute is 30 seconds",
+  "file": "packages/collector/src/label.ts",
+  "old": "MINUTE_MS = 60_000",
+  "new": "MINUTE_MS = 30_000"
+ }
+]

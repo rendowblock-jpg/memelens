@@ -1,0 +1,26 @@
+[
+ {
+  "name": "reveal: any done",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "return before.phase !== \"done\" && after.phase === \"done\";",
+  "new": "return after.phase === \"done\";"
+ },
+ {
+  "name": "reveal: any change into a non-done",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "return before.phase !== \"done\" && after.phase === \"done\";",
+  "new": "return before.phase !== \"done\" && after.phase !== \"done\";"
+ },
+ {
+  "name": "reveal: before is done",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "return before.phase !== \"done\" && after.phase === \"done\";",
+  "new": "return before.phase === \"done\" && after.phase === \"done\";"
+ },
+ {
+  "name": "reveal: never",
+  "file": "apps/desktop/src/renderer/backtest.ts",
+  "old": "return before.phase !== \"done\" && after.phase === \"done\";",
+  "new": "return false;"
+ }
+]

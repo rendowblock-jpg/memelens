@@ -248,3 +248,41 @@ describe("labelToken: survived and the rest", () => {
     expect(labelToken(base({ pools30d: [{ pool: "A", reserveUsd: null }] })).label).toBe("neither");
   });
 });
+
+describe("labelToken: the cases a mutation check asked for", () => {
+  it("on a tie in an hour's volume the smaller pool name supplies the candle, whichever order the pools are given", () => {
+    const a = pool("A", [hr(2, 1, { volume: 7 })]);
+    const b = pool("B", [hr(2, 2, { volume: 7 })]);
+    expect(buildPath([], [a, b], S, T0 + 100 * H)[0]!.close).toBe(1);
+    expect(buildPath([], [b, a], S, T0 + 100 * H)[0]!.close).toBe(1);
+  });
+
+  it("the peak is the highest HIGH, not the highest close: a spike that did not close still sets it", () => {
+    const spike = { 30: { high: 5, close: 1 } }; // rose to 5 inside a minute and closed back at 1 (a fifth: not yet a collapse at S)
+    const world = base({ minute: minutes(1, spike), hourly72: [pool("A", [...hours(2, 5, 1), hr(6, 0.45, { high: 1, low: 0.45, close: 0.45 }), ...hours(7, 71, 1)])] });
+    expect(labelToken(world).label).toBe("rugged"); // low 0.45 <= 10% of 5, and the price 1 <= 25% of 5
+  });
+
+  it("works at real pump.fun prices (a few 1e-7), not only at prices near 1", () => {
+    const k = 3e-7;
+    const scaled = [...hours(2, 5, k), hr(6, k * 0.05, { high: k, low: k * 0.05, close: k * 0.05 }), ...hours(7, 71, k * 0.02)];
+    expect(labelToken(base({ minute: minutes(k), hourly72: [pool("A", scaled)], hourly30d: [pool("A", scaled)] })).label).toBe("rugged");
+    expect(labelToken(base({ minute: minutes(k), hourly72: [pool("A", hours(2, 71, k))], hourly30d: [pool("A", hours(2, 719, k))] })).label).toBe("survived");
+  });
+
+  it("a collapse in a candle that starts exactly at S counts", () => {
+    const atS = [cd(S, 1, 1, 0.05, 0.05, 100), ...hours(2, 71, 0.2)];
+    expect(labelToken(base({ hourly72: [pool("A", atS)] })).label).toBe("rugged"); // the later hours stay at 0.2: no further collapse, and 0.2 <= 25%
+  });
+
+  it("the price at S is the close of the last first-hour candle, not its low: a long wick that came back is not a collapse", () => {
+    const wick = minutes(1, { 59: { open: 1, high: 1, low: 0.05, close: 1 } });
+    expect(labelToken(base({ minute: wick })).label).not.toBe("collapsed-before-scoring");
+  });
+
+  it("no price at all is reported before a missing reading, and a collapse before scoring is reported before a missing reading", () => {
+    expect(labelToken(base({ minute: [], hourly72: null }))).toEqual({ label: "neither", reason: "no-price-data" });
+    const dead = minutes(1, { 59: { open: 0.05, high: 0.05, low: 0.05, close: 0.05 } });
+    expect(labelToken(base({ minute: dead, hourly72: null })).label).toBe("collapsed-before-scoring");
+  });
+});
