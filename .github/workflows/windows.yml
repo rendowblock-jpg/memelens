@@ -50,7 +50,7 @@ jobs:
     name: MSI, install, run, uninstall
     needs: test
     runs-on: windows-latest
-    timeout-minutes: 40
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
@@ -92,16 +92,29 @@ jobs:
         # What a person sees right after installing: no database yet, in the app's own user-data folder (no MEMELENS_DB). The
         # check presses "Load the sample data" and then tries to load it a second time, which must be refused.
         timeout-minutes: 5
-        run: node scripts/check-packaged.mjs --exe "$env:EXE" --db "$env:RUNNER_TEMP\unused.sqlite" --out "$env:RUNNER_TEMP\shots" --first-run --default-db
+        run: node scripts/check-packaged.mjs --exe "$env:EXE" --db "$env:RUNNER_TEMP\unused.sqlite" --out "$env:RUNNER_TEMP\shots" --first-run --default-db --axe node_modules/axe-core/axe.min.js
       - name: Run the INSTALLED app and look at it (no --no-sandbox)
         timeout-minutes: 12
         env:
           LIVE_ENGINE: ${{ inputs.live_engine }}
         run: |
           # An array, not one string: PowerShell hands a string with a space in it to node as a single argument.
-          $extra = @()
-          if ($env:LIVE_ENGINE -eq 'true') { $extra = @('--live-engine', '--default-engine-folder') }
+          $extra = @('--axe', 'node_modules/axe-core/axe.min.js')
+          if ($env:LIVE_ENGINE -eq 'true') { $extra += @('--live-engine', '--default-engine-folder') }
           node scripts/check-packaged.mjs --exe "$env:EXE" --db "$env:RUNNER_TEMP\check.sqlite" --out "$env:RUNNER_TEMP\shots" @extra
+      # The MSI, the pictures and the install log are saved BEFORE the uninstall. Three runs (43218046784, 43222454513,
+      # 43267334943) stalled in the uninstall until the job was cancelled, and a stalled job uploads nothing after it.
+      - name: Keep the MSI, the pictures and the install log
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: memelens-windows
+          path: |
+            apps/desktop/release/*.msi
+            ${{ runner.temp }}/shots/*.png
+            ${{ runner.temp }}/install.log
+          if-no-files-found: warn
+          retention-days: 14
       # The next four steps were one step. Runs 43218046784 and 43222454513 sat in it for 20+ minutes and ignored both a
       # cancel and the step's own time limit, with nothing in the log we could read. Four small steps, each with a limit
       # and timestamps, tell us which command stalls.
@@ -171,15 +184,11 @@ jobs:
           $actual = (Get-FileHash (Join-Path $dir 'memelens-sidecar.exe') -Algorithm SHA256).Hash
           if ($actual -ne $manifest.sha256) { throw "the engine's bytes changed: $actual, the manifest says $($manifest.sha256)" }
           "engine $($cur.version) is still in $root after the uninstall, sha256 $actual"
-      - name: Keep the MSI, the pictures and the logs
+      - name: Keep the uninstall log
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: memelens-windows
-          path: |
-            apps/desktop/release/*.msi
-            ${{ runner.temp }}/shots/*.png
-            ${{ runner.temp }}/install.log
-            ${{ runner.temp }}/uninstall.log
+          name: memelens-windows-uninstall
+          path: ${{ runner.temp }}/uninstall.log
           if-no-files-found: warn
           retention-days: 14

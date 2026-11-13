@@ -162,7 +162,7 @@ thead th {
   font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted);
   border-bottom: 1px solid var(--line); white-space: nowrap;
 }
-.detail thead th, .single thead th { background: transparent; position: static; }
+.detail thead th, .single thead th { background: transparent; position: static; white-space: normal; }
 tbody th { font-weight: 500; }
 tbody tr:hover { background: var(--hover); }
 thead th.num { text-align: right; }

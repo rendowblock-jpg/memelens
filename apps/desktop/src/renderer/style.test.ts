@@ -197,4 +197,12 @@ describe("type, colour and motion rules", () => {
     const summary = /\.empty summary\s*\{([^}]*)\}/.exec(CSS)?.[1] ?? "";
     expect(summary).toMatch(/min-height\s*:\s*24px/);
   });
+
+  // Measured in a real Chromium (scripts/audit-states.mjs): at the smallest window, 900 x 600, the wallet's positions table
+  // was 24px wider than its panel because a header, "Sold without a known buy", would not wrap. A header may wrap in the
+  // screens that hold a table inside a panel; only the feed's headers stay on one line.
+  it("lets the header cells of a table inside a panel wrap, so a long header cannot push the table out of its panel", () => {
+    const panel = /\.detail thead th,\s*\.single thead th\s*\{([^}]*)\}/.exec(CSS)?.[1] ?? "";
+    expect(panel).toMatch(/white-space\s*:\s*normal/);
+  });
 });
