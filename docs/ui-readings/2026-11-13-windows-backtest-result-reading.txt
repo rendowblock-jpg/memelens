@@ -1,0 +1,32 @@
+READING written BEFORE checking any number. Picture: the installed app ON WINDOWS, run 43423985212, 5-backtest-result.png, 1008x655,
+integrity OK 58870 bytes. A look: the sealed test P59B (12:55Z, MATCH 6/6) shows the read_file channel delivers pictures in this window.
+- Left rail: three items (Feed, Smart money, Backtest). Backtest is selected: a blue bar on the left edge and a filled pill behind it.
+- Top bar: heading "Backtest". Under it one notice line: "Chain synthetic - as of 2023-11-15 03:58 UTC (newest data in the database)" with the
+  yellow pill "SYNTHETIC DATA: made up for tests and demos, not real chain data." on the same line.
+- The page is scrolled down: a scrollbar on the right with its thumb in the lower part.
+- At the top of the content: a heading "Result" inside a violet/blue outlined box (the focus ring). The box's TOP edge looks cut off, flush
+  with the bottom of the notice bar; left, right and bottom edges of the ring are visible.
+- Under it a grey line of prose in two lines: "A replay of recorded trades, not a forecast. Each entry is priced at the token's next recorded
+  trade after your delay, plus the slippage you chose. Engine 0.1.2 - Data up to 2023-11-15 03:48 UTC."
+- Three equal cards: RESULT "-0.0016 SOL" in red-pink; RETURN ON COST "-31.8%" in white; POSITIONS "5 positions" in white.
+- Below, a two-column list (label left, value right) that is NARROWER than the cards: it ends near x=726 while the cards end near x=965.
+  Rows: Signals from the chosen wallets 7; Entered 5; Ignored while a position was open 2; Skipped: no later price 0; Skipped: amount too small 0;
+  Winning positions 1; Losing positions 4; Exits "Take profit 0 - Stop loss 0 - Max hold 0 - End of data 5" wrapped onto two lines; Total spent
+  (with fees) 0.005 SOL. Rows alternate in tone slightly (striped), thin rules between them.
+- Nothing overlaps. Text is crisp.
+CLAIMS TO CHECK BY NUMBERS: (1) the Result ring's top edge is clipped by the notice bar; (2) the list is about 620px wide, cards about 860px;
+(3) the Exits value wraps to two lines; (4) the red figure is the loss colour and passes contrast; (5) the window is 1008x655 and the
+content area is therefore much narrower than the 1124px I measured on Linux at 1366.
+
+CHECKED BY NUMBERS afterwards (PIL on the downloaded PNG, 12:5x Z):
+- (1) the Result heading's focus ring has NO TOP EDGE: ring colour rgb(139,155,255); the two 2px horizontal edges found are at y=117-118 (the
+  bottom), while at the top of the scroll area (y=91) only the two side edges start. The ring reaches 4px outside the heading (outline 2px +
+  offset 2px) and scrollIntoView({block:"start"}) puts the heading flush with the top of the scroll area, so the top 4px are clipped.
+  READING RIGHT, and it found a real defect in my own F1 fix: the F1 audit check compared the heading's top with the window (top >= 0), not
+  with its scroll area, so it could not see this. Fix below in the same day's commit.
+- (2) list rules at x=106..725 -> 620px wide.                                                          reading said ~620   RIGHT
+  cards: three cards, the card background (17,21,28) runs at least to x=600 at y=200..260 and is the page colour at x=980; exact right edge NOT
+  measured yet (reading said ~965).
+- (3) the Exits row: rules at 556 and 614 -> a 58px row against 38.5px for the others -> two lines.    RIGHT
+- (4) red figure: rgb(255,122,134) on rgb(17,21,28) = contrast 7.30:1 (needs 4.5:1 for text of this size).   RIGHT
+- NOT checked by number: the striped row tone, the rail's three items, the exact label texts (OCR not run).

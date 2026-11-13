@@ -146,7 +146,16 @@ const MEASURE = `(() => {
   // After a run has finished, its result must be where the person is looking: the heading holds focus (so a screen reader says
   // "Result") and is on screen. Measured 13 Nov 2026: it started 306px below the fold and nothing moved it.
   const resultHeading = document.querySelector("section.bt-result h2");
-  const reveal = resultHeading === null ? null : (() => { const b = resultHeading.getBoundingClientRect(); return { focused: document.activeElement === resultHeading, top: Math.round(b.top), bottom: Math.round(b.bottom), viewport: innerHeight }; })();
+  const reveal = resultHeading === null ? null : (() => {
+    const b = resultHeading.getBoundingClientRect();
+    // The scroll area the heading lives in, and how far its focus ring reaches outside its box (outline width + offset).
+    // Measured 13 Nov 2026 on the Windows build: the ring's top edge was missing, cut off by the top of this scroll area.
+    let sc = resultHeading.parentElement; while (sc !== null && !(sc.scrollHeight > sc.clientHeight && /(auto|scroll)/.test(getComputedStyle(sc).overflowY))) sc = sc.parentElement;
+    const area = (sc ?? document.documentElement).getBoundingClientRect();
+    const cs = getComputedStyle(resultHeading);
+    const reach = cs.outlineStyle === "none" ? 4 : Math.max(0, parseFloat(cs.outlineWidth)) + Math.max(0, parseFloat(cs.outlineOffset));
+    return { focused: document.activeElement === resultHeading, top: Math.round(b.top), bottom: Math.round(b.bottom), viewport: innerHeight, areaTop: Math.round(area.top), areaBottom: Math.round(area.bottom), reach };
+  })();
   // The title of a detail panel (a token's or a wallet's) is set as a title: the largest text inside it is at least 16px.
   // Measured 13 Nov 2026: a wallet's address was 12px grey, smaller than the figures under it.
   const panelH2 = document.querySelector(".wallet-panel h2, .token-panel h2");
@@ -217,6 +226,7 @@ try {
         at("the Backtest screen fills the room its parent gives it (up to the width the other screens share)", m.btFill === null || m.btFill.w >= m.btFill.inner - 1, m.btFill);
         if (path.includes("run=1") && !path.includes("fail=1")) {
           at("a finished run focuses the result's heading and brings it on screen", m.reveal !== null && m.reveal.focused && m.reveal.top >= 0 && m.reveal.bottom <= m.reveal.viewport, m.reveal);
+          at("the result heading's focus ring is not cut off by the top or bottom of its scroll area", m.reveal !== null && m.reveal.top - m.reveal.reach >= m.reveal.areaTop && m.reveal.bottom + m.reveal.reach <= m.reveal.areaBottom, m.reveal);
         }
         if (modeName === "forced-colors") {
           at("the forced-colors emulation took effect", m.forced === true, { forced: m.forced });

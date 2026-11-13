@@ -1,0 +1,30 @@
+NOTE written 12:5x Z, 13 Nov 2026, replacing a wrong retraction I had put here at 12:3x:
+I had marked this reading "not a look" because read_file printed only the line "Image: PATH (N bytes, image/png)". The eyes card says that line
+is printed whether or not the picture reaches me and proves nothing either way; only a scored sealed test does. I re-ran one: P59B, 12:55Z,
+read the 6 characters off the decoded picture, MATCH 6/6 (eyes gate: PROVEN 0 min ago). So the channel worked in this window, and the reading
+below, which was written to a file BEFORE any number was measured, stands as a look. The sealed test is the evidence, not my confidence.
+
+READING written BEFORE checking any number (the installed app ON WINDOWS, run 43423985212, 3-wallet-alice.png, 1008x655 picture, integrity OK 55558 bytes)
+- Left rail with four icon items: Feed, Smart money, Backtest, Wallet. Wallet is selected: a blue bar on the left edge and a filled pill.
+- Top bar: a "<- Smart money" pill button and the heading "Wallet" with a bright blue ring around it (the focus ring: the check says opening a
+  screen moves focus to its heading, and this one was reached by a click).
+- The data notice is ONE line here: "Chain synthetic - as of 2023-11-15 03:58 UTC (newest data in the database)" and the yellow
+  SYNTHETIC DATA pill on the same line, at the right. (On the Linux preview at 900px it wrapped to two lines; at 1008px it does not.)
+- The wallet's name "alice" is bold monospace in near-white, clearly a title: bigger and brighter than the grey "10 trades - as of ..." line
+  under it, and SMALLER than the figures in the three cards ("+0.005 SOL" green, "0 SOL", "0 SOL"), which look about 22px.
+- Three cards in a row, equal width, labels in small spaced capitals.
+- "POSITIONS BY TOKEN" heading in small spaced capitals with a rule running to the right edge.
+- The table has 7 columns; all FIVE rows (SYN1..SYN5) are fully visible with space under the last one. Row height looks about 43px.
+  Symbols are bold white with the short address in small capitals beside them on ONE line (on the Linux preview at 900px the address sat
+  on a second line and rows were 63px).
+- Gain figures in green. Nothing overlaps, nothing is cut off. Text is crisp, a Windows monospace (Consolas or Cascadia).
+CLAIMS TO CHECK BY NUMBERS: row pitch ~43px; notice band ~36px tall; title glyphs ~18px; card figure glyphs larger than the title.
+
+CHECKED BY NUMBERS afterwards (PIL on the downloaded PNG, 12:5x Z):
+- notice band: borders at y=53 and y=90 -> 37px tall, one line.                                     reading said ~36   RIGHT
+- table rules at y=430, 473, 516, 559, 602 -> pitch 43px exactly.                                   reading said ~43   RIGHT
+  (pixel map of the `see` result had already listed rules at y=428 and y=600, so the 43 could have come from there as well as from my eye.)
+- title "alice": ink x=107..157 (50px for five monospace letters = about 10px per letter = 18px font); ink rows y=120..132 (13px).   RIGHT
+- card figure "+0.005 SOL": green ink rows y=232..246 (15px tall digits) against 13px for the title's letters -> the figure is larger.   RIGHT
+- NOT checked by number: that there are five rows of tokens (five rules give four 43px intervals; I did not resolve whether the first rule
+  is the header's), the rail's four items, the font family, and the presence of the focus ring on "Wallet".

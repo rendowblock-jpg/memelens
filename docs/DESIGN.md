@@ -600,15 +600,15 @@ commit (5adebe4) contains a test-run output file with absolute build-host paths 
 rather than rewrite history. No licence file yet, so by default nobody may reuse the code (see Open questions).
 
 **Measured on the host, 13 Nov 2026:**
-- `vitest run`: 1694 tests passed, 26 skipped, 62 files, exit 0. The skipped ones are the end-to-end tests that need a
+- `vitest run`: 1695 tests passed, 26 skipped, 62 files, exit 0. The skipped ones are the end-to-end tests that need a
   built engine binary or a live release host (they run in CI and in the release job) and one POSIX-only symlink test.
 - `tsc --noEmit` exit 0 for every project in `npm run typecheck:all` (core, data, service, desktop, sidecar, collector, renderer).
 - The real-Chromium state audit (`scripts/audit-states.mjs`): 10 states x 3 window sizes x 4 modes (normal, forced
-  colours, more contrast, reduced motion) = 120 combinations, 1122 of 1122 checks passed. The checks: one `<h1>` and one
+  colours, more contrast, reduced motion) = 120 combinations, 1134 of 1134 checks passed. The checks: one `<h1>` and one
   `<main>`, no sideways scroll, nothing past the window, no text running out of its box, controls at least 24 x 24 px,
   visible edges on controls, the selection marked without colour, the contrast and motion preferences reaching the page,
   nothing animating under reduced motion, axe-core (no WCAG 2.2 AA or best-practice violation), and, since 13 Nov, that a
-  finished backtest is focused and on screen, that a detail panel's title is set as a title, and that the Backtest
+  finished backtest is focused, on screen and its focus ring is not cut off by its scroll area, that a detail panel's title is set as a title, and that the Backtest
   screen uses the shared measure.
 - Windows CI (`.github/workflows/windows.yml`): on `0ba1cb8` both jobs passed, including the installed app and the uninstall.
 
@@ -622,8 +622,9 @@ rather than rewrite history. No licence file yet, so by default nobody may reuse
   reaches me intact (checksummed), wrote down what I saw before measuring, and checked it by numbers: of 14 first readings
   (`docs/ui-readings/`), 9 were right or close, 3 were wrong in a detail (counts and sizes), 1 was an artefact of the
   preview and 1 a new fact, which is why sizes and counts always come from numbers. The two readings after the fixes
-  held on every claim that was checked. Three findings were fixed (focus on the finished result, the Backtest
-  width, the wallet's title). One is left to the owner's taste: row density (rows are 66 px, 87 with a flag, so nine
+  held on every claim that was checked. Four findings were fixed (focus on the finished result, the Backtest
+  width, the wallet's title, and the focus ring of the Result heading, which lost its top edge; that one was found on a picture of the
+  installed Windows build, and my own earlier check had been unable to see it). One is left to the owner's taste: row density (rows are 66 px, 87 with a flag, so nine
   fit in a 728 px window). The owner has not seen the app and has not installed the draft installer.
 - **The risk weights are still not measured.** The table in "Risk engine signals and calibration" says NOT MEASURED and
   will be filled only from one `analyze` run once every reading has been taken (earliest mid-December 2026).

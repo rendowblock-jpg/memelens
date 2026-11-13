@@ -114,3 +114,42 @@ the fold (y=775 in a 728px window), which the picture could not show and the num
 checked held (title colour and size ordering, the 18/22px relation, the notice on two lines, 4+3 fields, the two-line
 help text, the right edge, the hidden Run button). The only disagreement was between the picture and my own earlier
 script, and the numbers sided with the picture. Not checked by number: that the textarea spans the full width.
+
+## Third look: the installed app on Windows (run 43423985212, 13 Nov 2026, same day)
+First pictures of the real Windows build: the installed app, driven by the live-engine CI run, 1008x655 pictures saved by its own checks.
+The eyes channel was proven again before I read them: sealed test P59B at 12:55Z, six characters read off a decoded picture, MATCH 6/6.
+(The `read_file` result is only the text line "Image: PATH (N bytes)" whether or not a picture arrives; that line is not evidence. At 12:3x I
+wrongly marked one of these readings as "not a look" because of that line, then corrected it after the sealed test.)
+
+Readings were written before any number (`2026-11-13-windows-wallet-reading.txt`, `...-backtest-result-reading.txt`) and checked on the PNGs:
+
+| Claim in the reading | Number | Verdict |
+|---|---|---|
+| Wallet: the data notice is one line at this width | borders at y=53 and 90: 37px | right |
+| Wallet: table rows about 43px | rules at y=430, 473, 516, 559, 602: 43px | right (the pixel map had already listed two of them) |
+| Wallet: title "alice" bold, larger than the grey line, smaller than the card figures | title letters 13px tall, figure digits 15px tall | right |
+| Backtest result: the list is narrower than the cards | list rules x=106..725 = 620px | right (card edge not measured) |
+| Backtest result: the Exits value wraps to two lines | that row is 58px, the others 38.5px | right |
+| Backtest result: the red figure reads well | rgb(255,122,134) on rgb(17,21,28) = 7.30:1 | right |
+| **Backtest result: the Result heading's focus ring has no top edge** | **no horizontal ring row at the top of the scroll area; the 2px bottom edge at y=117-118; sides start at y=91** | **right, and a real defect** |
+
+**The defect, and why my own check missed it.** After a run, `scrollIntoView({block:"start"})` puts the Result heading flush with the top of
+its scroll area. Its focus ring reaches 4px outside the box (2px outline + 2px offset), so the top 4px of the ring were clipped. The F1 audit
+check I wrote this morning asked "is the heading focused, and is its top >= 0?" - against the window, not against the scroll area, which
+starts at y=91 under the title bar and notice. It could not fail. Now it measures the heading and its ring against the scroll area.
+
+A second slip, caught the same hour: after I ran a plain `npm run build -w apps/desktop` to check the README, the audit's preview folder
+(`apps/desktop/dist/preview`) was gone, and the red run failed all 12 combinations with "no <main> content within 20 s". That is a red for the
+wrong reason (a 404, not the focus ring), so I rebuilt the preview and ran it again before changing any CSS.
+
+| | Before | After |
+|---|---|---|
+| Room above the Result heading in its scroll area | 0px (heading top 91 = area top 91 at 1366x728; 113 = 113 at 900x600) | 12px (heading top 103, area top 91) |
+| Stylesheet contract (`style.test.ts`) | red 1 of 42 ("expected undefined to be defined") | 42 of 42 |
+| Real Chromium, finished backtest, 12 combinations | the new ring check failed in every combination shown (8 of 8 lines kept) | 135 of 135 checks |
+| Full audit | 120 combinations, 1122 of 1122 (the old check could not see this) | 120 combinations, 1134 of 1134 |
+| Full suite | 1694 passed, 26 skipped | 1695 passed, 26 skipped; `tsc` clean |
+
+Fix: `.bt-result h2 { scroll-margin-top: 12px; }` (scrollIntoView honours it). Not yet seen again on Windows: the live-engine run on the commit
+with the fix is the next look.
+

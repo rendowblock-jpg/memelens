@@ -238,4 +238,14 @@ describe("the Backtest screen", () => {
     expect(cap === undefined || Number(cap) >= 1180).toBe(true);
     expect(/\.single\s*\{[^}]*max-width\s*:\s*1180px/.test(CSS)).toBe(true);
   });
+
+  // Measured on the Windows build (run 43423985212, 13 Nov 2026): after a run the Result heading is scrolled flush to the top of
+  // its scroll area, and its focus ring (2px outline + 2px offset = 4px outside the box) lost its top edge. scrollIntoView honours
+  // scroll-margin, so the heading asks for at least the ring's reach.
+  it("leaves room above the result heading for its focus ring when it is scrolled into view", () => {
+    const rule = [...CSS.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((m) => m[1]!.split(",").map((x) => x.trim()).includes(".bt-result h2"));
+    const margin = rule.map((m) => /scroll-margin-top\s*:\s*(\d+)px/.exec(m[2]!)?.[1]).find((v) => v !== undefined);
+    expect(margin).toBeDefined();
+    expect(Number(margin)).toBeGreaterThanOrEqual(4);
+  });
 });
