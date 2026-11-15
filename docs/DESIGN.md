@@ -692,10 +692,10 @@ node --disable-warning=ExperimentalWarning --import tsx packages/collector/src/b
 
 The queue command uses `CollectorStore.openReadOnly` and never runs `sweepMissed`, re-times tasks, fetches network
 data, or alters score/label rules. It gives operators a deadline view before the +72-hour and +30-day windows; it is
-not a calibration result and does not imply predictive performance. The running collector continues with its
-previous bundled code until a separately approved deployment.
+not a calibration result and does not imply predictive performance. The bundle deployed at 09:49 UTC on 15 Nov
+includes this command (see deployment record below).
 
-### Collector completion deadline enforced after network reads (15 Nov 2026; awaiting Windows verification)
+### Collector completion deadline enforced after network reads (15 Nov 2026; Windows verified and deployed)
 
 The collector previously swept tasks that had expired *before* starting a request, but accepted an in-flight request
 that **finished after** the measurement deadline as `done`. HTTP retries and several sequential source calls make this
@@ -712,8 +712,20 @@ Tests first demonstrated that the old code wrongly returned `done` for a respons
 and `retry` for a failed response finishing late. Boundary, persisted-payload, missing-label and +72-hour/+30-day
 tests now cover the correction. A read-only check on the **running** database found zero completed tasks or valid
 done-task payloads fetched after their deadline at the time of inspection. This change does not alter sampling,
-scoring weights, or outcome definitions. Its source-code merge alone does not update the already-running
-`/opt/memelens-collector/collector.mjs` process; a separate verified deployment and restart would be necessary.
+scoring weights, or outcome definitions.
+
+**Deployment record, 15 Nov 2026:** PR #4 at `0f51d0f` passed Windows run
+`43700553899` (both test/smoke and MSI install/run/uninstall jobs). The bundled collector was separately tested:
+Node syntax check, `status` and `queue` against the live state read-only, invalid-path refusal, and a full offline
+startup/shutdown against a disposable database with its discovery window already closed. Before deployment,
+a consistent SQLite online backup passed `PRAGMA integrity_check`; the old standalone executable (version
+`66aaab8`) and that state snapshot were retained in
+`/root/.cache/memelens-backups/before-0f51d0f-20261115-094856/`.
+The installed bundle's SHA-256 is `c57f9adac486a1ff4f83c21a6025f9024669caf9c438aa8b26b2d7acbe6db841`.
+The `memelens-collector` systemd service stopped cleanly and restarted at 09:49:34 UTC with the new bundle,
+same persisted discovery-start time, 0 automatic restarts, and unchanged sampling configuration. The new process
+subsequently discovered additional launches and completed snapshots. The first +72 h readings are still pending,
+so their real-world quality has **not** yet been verified; the calibration weights remain NOT MEASURED.
 
 ## History: M3 groundwork (measured on the host; date not recorded)
 
