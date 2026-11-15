@@ -54,6 +54,26 @@ export interface Stats {
   payloadBytes: number;
 }
 
+/** A read-only deadline census. Only pending tasks count; this is not a prediction of outcomes. */
+export interface QueueBucket {
+  pending: number;
+  runnable: number;
+  retryWaiting: number;
+  overdue: number;
+  expiringSoon: number;
+  nextDueAt: number | null;
+  nextDeadlineAt: number | null;
+}
+
+export interface QueueHealth {
+  checkedAt: number;
+  /** The lookahead for expiringSoon (15 minutes). */
+  windowMs: number;
+  kinds: Record<TaskKind, QueueBucket>;
+}
+
+const QUEUE_WINDOW_MS = 15 * 60_000;
+
 const SCHEMA = `
 CREATE TABLE launch (
   mint TEXT PRIMARY KEY,
@@ -261,6 +281,42 @@ export class CollectorStore {
       payloads: one("SELECT COUNT(*) AS n FROM payload"),
       payloadBytes: one("SELECT COALESCE(SUM(LENGTH(body)), 0) AS n FROM payload"),
     };
+  }
+
+  /** Report deadlines without sweeping missed tasks, updating retries, or changing any label/calibration rule. */
+  queueHealth(now: number): QueueHealth {
+    if (!Number.isSafeInteger(now) || now < 0 || now > Number.MAX_SAFE_INTEGER - QUEUE_WINDOW_MS) {
+      throw new RangeError("queue clock must be a non-negative safe unix timestamp in milliseconds");
+    }
+    const empty = (): QueueBucket => ({
+      pending: 0, runnable: 0, retryWaiting: 0, overdue: 0, expiringSoon: 0,
+      nextDueAt: null, nextDeadlineAt: null,
+    });
+    const kinds: QueueHealth["kinds"] = { snapshot: empty(), path72: empty(), path30d: empty() };
+    const rows = this.db.prepare(`
+      SELECT kind, COUNT(*) AS pending,
+        SUM(CASE WHEN due_at <= ? AND next_try_at <= ? AND deadline_at >= ? THEN 1 ELSE 0 END) AS runnable,
+        SUM(CASE WHEN due_at <= ? AND next_try_at > ? AND deadline_at >= ? THEN 1 ELSE 0 END) AS retryWaiting,
+        SUM(CASE WHEN deadline_at < ? THEN 1 ELSE 0 END) AS overdue,
+        SUM(CASE WHEN deadline_at >= ? AND deadline_at <= ? THEN 1 ELSE 0 END) AS expiringSoon,
+        MIN(CASE WHEN due_at > ? THEN due_at END) AS nextDueAt,
+        MIN(CASE WHEN deadline_at >= ? THEN deadline_at END) AS nextDeadlineAt
+      FROM task WHERE status = 'pending' GROUP BY kind
+    `).all(now, now, now, now, now, now, now, now, now + QUEUE_WINDOW_MS, now, now) as unknown as
+      Array<{ kind: string; pending: number; runnable: number; retryWaiting: number; overdue: number;
+        expiringSoon: number; nextDueAt: number | null; nextDeadlineAt: number | null }>;
+    for (const row of rows) {
+      if (row.kind !== "snapshot" && row.kind !== "path72" && row.kind !== "path30d") {
+        throw new SchemaError(`unknown task kind in collection: ${row.kind}`);
+      }
+      kinds[row.kind] = {
+        pending: Number(row.pending), runnable: Number(row.runnable), retryWaiting: Number(row.retryWaiting),
+        overdue: Number(row.overdue), expiringSoon: Number(row.expiringSoon),
+        nextDueAt: row.nextDueAt === null ? null : Number(row.nextDueAt),
+        nextDeadlineAt: row.nextDeadlineAt === null ? null : Number(row.nextDeadlineAt),
+      };
+    }
+    return { checkedAt: now, windowMs: QUEUE_WINDOW_MS, kinds };
   }
 
   private transaction<T>(fn: () => T): T {

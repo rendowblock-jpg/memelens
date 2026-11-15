@@ -674,6 +674,27 @@ valid existing state is reported without changing its stored rows or journal con
 WAL support files as part of opening a read-only WAL database; this is distinct from initializing or editing data.
 The running collector process and its live state file are not replaced or restarted by this code change.
 
+### Collector queue deadline visibility (15 Nov 2026; awaiting review)
+
+`packages/collector` has a separate, **read-only** `queue --state FILE` command that prints JSON with the timestamp of
+the check and, for each kind (`snapshot`, `path72`, `path30d`), its count of pending tasks, currently runnable tasks
+(due and past the retry timer), tasks awaiting retry, tasks that are past the deadline but have not yet been swept to
+`missed`, tasks with a deadline in the next 15 minutes, the next future due time, and the earliest unexpired pending
+deadline. Times are Unix milliseconds. A deadline exactly equal to the check time is still in-window, not overdue.
+The actual number already marked `missed` remains in `status`. A pending task with an expired deadline is **not** a
+valid late outcome: only the running collector may mark it missed.
+
+Example on a host with Node 22 and dependencies installed:
+
+```
+node --disable-warning=ExperimentalWarning --import tsx packages/collector/src/bin.ts queue --state /path/to/state.sqlite
+```
+
+The queue command uses `CollectorStore.openReadOnly` and never runs `sweepMissed`, re-times tasks, fetches network
+data, or alters score/label rules. It gives operators a deadline view before the +72-hour and +30-day windows; it is
+not a calibration result and does not imply predictive performance. The running collector continues with its
+previous bundled code until a separately approved deployment.
+
 ## History: M3 groundwork (measured on the host; date not recorded)
 
 Probe in a throwaway project, `electron@45.3.0` under `xvfb-run -a npx electron --no-sandbox main.js`:

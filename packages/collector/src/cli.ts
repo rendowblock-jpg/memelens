@@ -9,6 +9,7 @@ export class UsageError extends Error {}
 export type CliArgs =
   | { command: "run"; state: string; rate: number; windowHours: number; discoverEverySeconds: number }
   | { command: "status"; state: string }
+  | { command: "queue"; state: string }
   | { command: "export"; state: string; out: string; minCensus: number }
   | { command: "label"; state: string; out: string }
   | { command: "analyze"; state: string; out: string; minCensus: number; groupSize: number };
@@ -16,12 +17,13 @@ export type CliArgs =
 const OPTIONS: Record<string, string[]> = {
   run: ["--state", "--rate", "--window-hours", "--discover-every"],
   status: ["--state"],
+  queue: ["--state"],
   export: ["--state", "--out", "--min-census"],
   label: ["--state", "--out"],
   analyze: ["--state", "--out", "--min-census", "--group-size"],
 };
 
-/** Reads `run`, `status`, `export`, `label` and `analyze` with their options. Anything else is refused by name. */
+/** Reads the named commands and their options. Unknown commands and flags are refused. */
 export function parseCliArgs(argv: readonly string[]): CliArgs {
   const [command, ...rest] = argv;
   if (command === undefined) throw new UsageError("a command is needed: run or status");
@@ -37,7 +39,7 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
   }
   const state = values.get("--state");
   if (state === undefined || state === "") throw new UsageError("--state FILE is needed");
-  if (command === "status") return { command: "status", state };
+  if (command === "status" || command === "queue") return { command, state };
   if (command === "analyze") {
     const out = values.get("--out");
     if (out === undefined || out === "") throw new UsageError("--out FILE is needed");

@@ -16,6 +16,16 @@ const stamp = (line: string): void => console.log(`${new Date().toISOString()} $
 
 async function main(): Promise<void> {
   const args = parseCliArgs(process.argv.slice(2));
+  if (args.command === "queue") {
+    // Monitoring is an observer only. It must not initialize the state or change its scheduler.
+    const store = CollectorStore.openReadOnly(args.state);
+    try {
+      console.log(JSON.stringify(store.queueHealth(Date.now()), null, 2));
+    } finally {
+      store.close();
+    }
+    return;
+  }
   if (args.command === "export") {
     const store = CollectorStore.openReadOnly(args.state);
     const result = exportFromStored(store.doneSnapshots(), { minCensus: args.minCensus });
@@ -117,7 +127,7 @@ async function main(): Promise<void> {
 
 main().catch((error) => {
   if (error instanceof UsageError) {
-    console.error(`${error.message}\nusage: memelens-collector run --state FILE [--rate 0.1] [--window-hours 72] [--discover-every 20]\n       memelens-collector status --state FILE\n       memelens-collector export --state FILE --out FIXTURE.json [--min-census 100]\n       memelens-collector label --state FILE --out LABELS.jsonl\n       memelens-collector analyze --state FILE --out RESULT.json [--min-census 100] [--group-size 30]`);
+    console.error(`${error.message}\nusage: memelens-collector run --state FILE [--rate 0.1] [--window-hours 72] [--discover-every 20]\n       memelens-collector status --state FILE\n       memelens-collector queue --state FILE\n       memelens-collector export --state FILE --out FIXTURE.json [--min-census 100]\n       memelens-collector label --state FILE --out LABELS.jsonl\n       memelens-collector analyze --state FILE --out RESULT.json [--min-census 100] [--group-size 30]`);
     process.exit(2);
   }
   console.error(error);

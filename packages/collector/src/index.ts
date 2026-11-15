@@ -9,4 +9,4 @@ export { ParseError, isCandles, isReport, parseNewPools, parseTokenPools, type L
 export { DAY, HOUR, MINUTE, planTasks, type TaskKind, type TaskPlan } from "./plan";
 export { Collector, DEFAULT_WINDOW_MS, FOLLOW_LATE_MS, MAX_POOLS, retryDelayMs, type CollectorDeps, type DiscoverResult, type WorkResult } from "./runner";
 export { PICK_SALT, SAMPLING_SALT, fraction, isFollowed, pickKey } from "./sampling";
-export { CollectorStore, SchemaError, SCHEMA_VERSION, type DueTask, type Payload, type Stats, type TaskRow } from "./store";
+export { CollectorStore, SchemaError, SCHEMA_VERSION, type DueTask, type Payload, type Stats, type TaskRow, type QueueHealth, type QueueBucket } from "./store";
