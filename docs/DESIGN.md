@@ -727,7 +727,7 @@ same persisted discovery-start time, 0 automatic restarts, and unchanged samplin
 subsequently discovered additional launches and completed snapshots. The first +72 h readings are still pending,
 so their real-world quality has **not** yet been verified; the calibration weights remain NOT MEASURED.
 
-### Collector task ordering: prioritize the shortest remaining grace window (15 Nov 2026; awaiting CI)
+### Collector task ordering: prioritize the shortest remaining grace window (15 Nov 2026; Windows verified, deployed)
 
 The scheduler previously selected any due task by earliest `due_at`. When the prospective +72-hour observations
 begin, an older +72h task (six-hour grace) may compete with a new first-hour snapshot (15-minute grace). Oldest-due
@@ -744,13 +744,27 @@ single historical 15-minute due-time bucket and 305 in the first three hours of 
 regression tests reproduced the starvation ordering before the change, and green runner/store tests exercise
 earliest-deadline selection, deterministic equal-deadline ties and retry eligibility. On the live SQLite state,
 1,000 read-only selections with the new query averaged about 0.017 ms each; no database schema migration is needed.
-**The running collector must be separately deployed and verified before this applies to real observations.**
+The running collector was subsequently deployed and verified independently of the source-code merge (see below).
 
 The first Windows PR CI run (`43702033747`) failed before the MSI job with seven 5-second Vitest timeouts in
 unrelated SQLite and spawned-process test suites (the new scheduler tests passed). The Windows unit-test step is
 therefore run with at most two test workers and a 20-second per-test cap. This retains each child process's own
-timeout and does not suppress assertions or mark failures successful. Windows re-verification of this change is
-required before merge or deployment.
+timeout and does not suppress assertions or mark failures successful. The next PR CI run (`43702410182`) passed
+both Windows jobs: 1,724 tests passed, 27 environment-dependent skips, and all 26 Electron smoke checks passed;
+MSI installation, the installed app, uninstall and SQLite persistence checks also passed. The difference from
+Linux's 1,725 passed / 26 skipped is an environment-specific skip, not a failing test.
+
+**Deployment record, 15 Nov 2026:** The new standalone Node bundle was built from `e6b0835` and checked against
+the live SQLite file using read-only `status` and `queue`, a missing-file refusal test, and a disposable SQLite
+start/clean-shutdown rehearsal. Source code and bundled bytes were rebuilt reproducibly: SHA-256
+`3749d34bd8b444d2dfa343b8ea4e786495f2d9ebdada722ff5cbfdbe193bf3b2`. A consistent SQLite online backup
+passed `PRAGMA integrity_check`; it and the previous `0f51d0f` executable were saved under
+`/root/.cache/memelens-backups/before-e6b0835-20261115-101150/` (the backup is a recovery point, **not** an
+instruction to restore over newer measurements). At 10:13:12 UTC, the systemd collector completed its active
+work after SIGTERM, exited normally, and restarted with version `e6b0835`, PID 4030690 and zero automatic restarts.
+Its original discovery-start timestamp, sample rate and pending tasks were unchanged; the new process discovered
+additional launches and the queue reported zero overdue pending tasks. Real +72-hour work is still scheduled for
+16 Nov, so this verifies deployment and scheduler unit semantics, **not** the completion rate of that future wave.
 
 ## History: M3 groundwork (measured on the host; date not recorded)
 
