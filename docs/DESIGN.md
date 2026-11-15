@@ -746,6 +746,12 @@ earliest-deadline selection, deterministic equal-deadline ties and retry eligibi
 1,000 read-only selections with the new query averaged about 0.017 ms each; no database schema migration is needed.
 **The running collector must be separately deployed and verified before this applies to real observations.**
 
+The first Windows PR CI run (`43702033747`) failed before the MSI job with seven 5-second Vitest timeouts in
+unrelated SQLite and spawned-process test suites (the new scheduler tests passed). The Windows unit-test step is
+therefore run with at most two test workers and a 20-second per-test cap. This retains each child process's own
+timeout and does not suppress assertions or mark failures successful. Windows re-verification of this change is
+required before merge or deployment.
+
 ## History: M3 groundwork (measured on the host; date not recorded)
 
 Probe in a throwaway project, `electron@45.3.0` under `xvfb-run -a npx electron --no-sandbox main.js`:

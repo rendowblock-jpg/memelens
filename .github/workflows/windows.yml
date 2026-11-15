@@ -42,7 +42,10 @@ jobs:
       - name: Type check
         run: npm run typecheck:all
       - name: Unit tests
-        run: npx vitest run
+        # Several suites spawn real Node/SQLite subprocesses. Running all files in parallel can
+        # exhaust a hosted Windows runner and trip Vitest's 5-second default test timer.
+        # Keep subprocess timeouts and assertions intact; limit contention and allow startup slack.
+        run: npx vitest run --maxWorkers=2 --testTimeout=20000
       - name: Smoke test of the real Electron app (sandbox ON, no --no-sandbox)
         run: node scripts/smoke-desktop.mjs
 
