@@ -360,7 +360,7 @@ describe("the first-hour snapshot", () => {
     expect(web.calls).toEqual([]);
   });
 
-  it("runs one task per call, the one that became due first", async () => {
+  it("runs one task per call, in order of deadline (also due order for identical snapshot windows)", async () => {
     const web = new Web().on(/page=1/, ok(page(pool("LATE", "P2", T0 + 10 * MINUTE), pool("EARLY", "P1", T0)))).on(/page=2/, ok(page())).on(/rugcheck/, ok(fixtureText("rugcheck-report-established.json"))).on(/ohlcv/, ok(fixtureText("gt-ohlcv-minute.json")));
     clockNow = T0 + 12 * MINUTE;
     const { collector } = make(web);
@@ -369,6 +369,24 @@ describe("the first-hour snapshot", () => {
     expect(await collector.workOne()).toMatchObject({ mint: "EARLY" });
     expect(await collector.workOne()).toMatchObject({ mint: "LATE" });
     expect((await collector.workOne()).status).toBe("idle");
+  });
+
+  it("runs an urgent snapshot before an already-due 72h observation with a later deadline", async () => {
+    const web = new Web()
+      .on(/rugcheck/, ok(fixtureText("rugcheck-report-established.json")))
+      .on(/ohlcv\/minute/, ok(fixtureText("gt-ohlcv-minute.json")));
+    const { store, collector } = make(web);
+    clockNow = T0 + 72 * HOUR + 6 * MINUTE;
+    const now = clockNow;
+    store.addLaunch({ mint: "OLD", pool: "OLDPOOL", name: "OLD", createdAt: now - 72 * HOUR - 5 * MINUTE, seenAt: now, followed: true },
+      [{ kind: "path72", dueAt: now - 5 * MINUTE, deadlineAt: now + 5 * HOUR + 55 * MINUTE }]);
+    store.addLaunch({ mint: "NEW", pool: "NEWPOOL", name: "NEW", createdAt: now - 61 * MINUTE, seenAt: now, followed: true },
+      [{ kind: "snapshot", dueAt: now - MINUTE, deadlineAt: now + 14 * MINUTE }]);
+    expect(await collector.workOne()).toEqual({ status: "done", kind: "snapshot", mint: "NEW" });
+    expect(store.tasksOf("NEW")[0]?.status).toBe("done");
+    expect(store.tasksOf("OLD")[0]?.status).toBe("pending");
+    expect(web.calls.some((url) => url.includes("ohlcv/hour"))).toBe(false);
+    store.close();
   });
 });
 

@@ -175,14 +175,17 @@ export class CollectorStore {
     });
   }
 
-  /** Pending tasks that may run now, the one that became due first first. */
+  /** Pending and retry-ready tasks, earliest hard measurement deadline first.
+   * An older +72h/+30d task must not starve a first-hour snapshot with only 15 minutes of grace.
+   * Equal deadlines break ties by due time, then stable insertion ID.
+   */
   dueTasks(now: number, limit: number): DueTask[] {
     const rows = this.db
       .prepare(
         `SELECT t.id, t.mint, l.pool, t.kind, t.due_at AS dueAt, t.deadline_at AS deadlineAt, t.attempts
          FROM task t JOIN launch l ON l.mint = t.mint
          WHERE t.status = 'pending' AND t.due_at <= ? AND t.next_try_at <= ?
-         ORDER BY t.due_at, t.id LIMIT ?`,
+         ORDER BY t.deadline_at, t.due_at, t.id LIMIT ?`,
       )
       .all(now, now, limit) as unknown as DueTask[];
     return rows.map((r) => ({ ...r }));

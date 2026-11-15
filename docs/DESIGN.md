@@ -727,6 +727,25 @@ same persisted discovery-start time, 0 automatic restarts, and unchanged samplin
 subsequently discovered additional launches and completed snapshots. The first +72 h readings are still pending,
 so their real-world quality has **not** yet been verified; the calibration weights remain NOT MEASURED.
 
+### Collector task ordering: prioritize the shortest remaining grace window (15 Nov 2026; awaiting CI)
+
+The scheduler previously selected any due task by earliest `due_at`. When the prospective +72-hour observations
+begin, an older +72h task (six-hour grace) may compete with a new first-hour snapshot (15-minute grace). Oldest-due
+selection can then exhaust the short first-hour window while processing lower-urgency hourly history.
+
+Pending tasks whose due time and retry time have arrived are now ordered by **earliest `deadline_at` first**, with
+`due_at` and then task ID as deterministic tie-breakers. Not-yet-due tasks and retries still under backoff remain
+ineligible; the existing deadline sweep and after-network completion check remain unchanged. No network requests,
+sampling decisions, outcome definitions, saved payloads, schema version, or risk weights change as a result. This
+is an operational scheduling policy improvement, not proof that source APIs will complete every task.
+
+The prospective collection already has over 5,100 pending +72-hour tasks; a read-only query found up to 51 in a
+single historical 15-minute due-time bucket and 305 in the first three hours of the +72-hour wave. Two red-first
+regression tests reproduced the starvation ordering before the change, and green runner/store tests exercise
+earliest-deadline selection, deterministic equal-deadline ties and retry eligibility. On the live SQLite state,
+1,000 read-only selections with the new query averaged about 0.017 ms each; no database schema migration is needed.
+**The running collector must be separately deployed and verified before this applies to real observations.**
+
 ## History: M3 groundwork (measured on the host; date not recorded)
 
 Probe in a throwaway project, `electron@45.3.0` under `xvfb-run -a npx electron --no-sandbox main.js`:

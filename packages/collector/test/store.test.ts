@@ -63,7 +63,7 @@ describe("tasks", () => {
     expect(s.tasksOf("A").every((t) => t.status === "pending" && t.attempts === 0)).toBe(true);
   });
 
-  it("offers only pending tasks that are due, oldest due first, up to the limit, with the mint and the pool", () => {
+  it("offers only pending tasks that are due, earliest deadline first, up to the limit, with the mint and the pool", () => {
     const s = setup();
     s.addLaunch(launch("B", { createdAt: 500_000 }));
     s.addTasks("B", planTasks(500_000));
@@ -75,6 +75,34 @@ describe("tasks", () => {
     expect(both.map((t) => t.mint)).toEqual(["B", "A"]);
     expect(both[0]).toMatchObject({ pool: "pool-B", dueAt: snapB, deadlineAt: 500_000 + 75 * 60_000, attempts: 0 });
     expect(s.dueTasks(snapA, 1)).toHaveLength(1);
+  });
+
+  it("prioritizes an urgent first-hour snapshot over older +72h and +30d readings", () => {
+    const s = new CollectorStore(":memory:");
+    const now = 1_000_000_000;
+    s.addLaunch(launch("PATH72"));
+    s.addTasks("PATH72", [{ kind: "path72", dueAt: now - 10 * 60_000, deadlineAt: now + 5 * 3_600_000 }]);
+    s.addLaunch(launch("PATH30D"));
+    s.addTasks("PATH30D", [{ kind: "path30d", dueAt: now - 20 * 60_000, deadlineAt: now + 11 * 3_600_000 }]);
+    s.addLaunch(launch("SNAP"));
+    s.addTasks("SNAP", [{ kind: "snapshot", dueAt: now - 2 * 60_000, deadlineAt: now + 13 * 60_000 }]);
+    expect(s.dueTasks(now, 3).map((t) => t.mint)).toEqual(["SNAP", "PATH72", "PATH30D"]);
+    expect(s.dueTasks(now, 1)[0]?.mint).toBe("SNAP");
+    s.close();
+  });
+
+  it("preserves due-time and task-id order for identical deadlines, and ignores retries not ready", () => {
+    const s = new CollectorStore(":memory:");
+    const now = 10_000_000;
+    for (const [mint, dueAt] of [["EARLY", now - 1000], ["LATER", now - 500], ["TIE", now - 1000]] as const) {
+      s.addLaunch(launch(mint));
+      s.addTasks(mint, [{ kind: "snapshot", dueAt, deadlineAt: now + 1000 }]);
+    }
+    expect(s.dueTasks(now, 3).map((t) => t.mint)).toEqual(["EARLY", "TIE", "LATER"]);
+    const early = s.tasksOf("EARLY")[0]!;
+    s.failAttempt(early.id, { now, retryAt: now + 1, error: "429" });
+    expect(s.dueTasks(now, 3).map((t) => t.mint)).toEqual(["TIE", "LATER"]);
+    s.close();
   });
 
   it("does not offer a task again once it is finished", () => {

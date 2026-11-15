@@ -112,7 +112,7 @@ export class Collector {
     return result;
   }
 
-  /** Runs the one task that became due first, if any. */
+  /** Runs the pending task with the earliest measurement deadline, if any. */
   async workOne(): Promise<WorkResult> {
     const now = this.now();
     const missed = this.store.sweepMissed(now);
