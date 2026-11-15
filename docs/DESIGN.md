@@ -650,7 +650,7 @@ Known gaps (not hidden):
   Glue and plain rendering are not mutation-checked.
 - Unmeasured: WAL versus rollback journal with a second reader.
 
-### Windows user-data persistence check (15 Nov 2026, pending CI result)
+### Windows user-data persistence check (15 Nov 2026, verified on CI)
 
 The Windows MSI job previously checked that the installed executable was removed and, on live-engine runs, that the
 versioned engine survived uninstall. It did **not** reopen or compare the user's *default* SQLite database after
@@ -660,8 +660,10 @@ altering the packaged app: after the installed first-run screen loads the bundle
 checks the sample token/trade/snapshot identities, and records SHA-256 of the DB and any WAL. After MSI uninstall it
 checks that the same profile's file(s), bytes and rows remain. The ephemeral `-shm` file is deliberately not compared.
 Nine Linux unit tests cover passing and failing evidence (missing file, mismatched sample, modified bytes, lost WAL,
-wrong profile, duplicate baseline). **A green Windows CI job is still needed before this is called verified on
-Windows.** Neither the user's PC nor any existing database was changed.
+wrong profile, duplicate baseline). **Windows CI run 43695312157 passed both jobs**, including the real MSI install,
+first-run sample, read-only pre-uninstall record, uninstall and post-uninstall verification. Logs show 5 tokens, 25 trades,
+3 snapshots and the same SHA-256 (`97e8d54f8a72...`) before and after, from the real packaged user's roaming path.
+This verifies the CI Windows runner, **not** the owner's PC; neither that PC nor an existing user's database was changed.
 
 ## History: M3 groundwork (measured on the host; date not recorded)
 
