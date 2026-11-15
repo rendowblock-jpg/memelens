@@ -85,6 +85,29 @@ describe("tasks", () => {
     expect(s.tasksOf("A")[0]).toMatchObject({ status: "done", doneAt: 1_000_000 + 3_700_000 });
   });
 
+  it("refuses to mark a late completion as done, without destroying the saved response", () => {
+    const s = setup();
+    const task = s.tasksOf("A")[0]!;
+    const deadline = 1_000_000 + 75 * 60_000;
+    s.savePayload(task.id, { step: "report", url: "https://example.test", fetchedAt: deadline + 1, status: 200, valid: true, body: "{}" });
+    expect(s.finishTask(task.id, deadline + 1)).toBe(false);
+    expect(s.tasksOf("A")[0]).toMatchObject({ status: "pending", doneAt: null });
+    expect(s.payloads(task.id)).toHaveLength(1);
+    expect(s.sweepMissed(deadline + 1)).toBe(1);
+    expect(s.tasksOf("A")[0]?.status).toBe("missed");
+    expect(s.finishTask(task.id, deadline + 2)).toBe(false);
+  });
+
+  it("allows a completion exactly at the deadline", () => {
+    const s = setup();
+    const t = s.tasksOf("A")[0]!;
+    const deadline = 1_000_000 + 75 * 60_000;
+    expect(s.finishTask(t.id, deadline)).toBe(true);
+    expect(s.tasksOf("A")[0]).toMatchObject({ status: "done", doneAt: deadline });
+    expect(s.finishTask(t.id, deadline + 1)).toBe(false);
+    expect(s.tasksOf("A")[0]).toMatchObject({ status: "done", doneAt: deadline });
+  });
+
   it("holds a failed task back until its retry time and counts the attempt", () => {
     const s = setup();
     const due = 1_000_000 + 3_600_000;

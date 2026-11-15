@@ -42,7 +42,7 @@ export interface DiscoverResult {
   error?: string;
 }
 
-export type WorkResult = { status: "idle" } | { status: "done" | "retry"; kind: TaskKind; mint: string; error?: string };
+export type WorkResult = { status: "idle" } | { status: "done" | "retry" | "missed"; kind: TaskKind; mint: string; error?: string };
 
 const reportUrl = (mint: string): string => `https://api.rugcheck.xyz/v1/tokens/${mint}/report`;
 const minuteUrl = (pool: string): string => `${GT}/pools/${pool}/ohlcv/minute?aggregate=1&limit=100&currency=usd`;
@@ -120,8 +120,18 @@ export class Collector {
     const task = this.store.dueTasks(now, 1)[0];
     if (task === undefined) return { status: "idle" };
     const errors = await this.run(task);
+    const completedAt = this.now();
+    // Network retries can take longer than the task's grace window. A response which *started* on time
+    // but finished late is not an on-time observation. Keep fetched payloads for audit, but mark it missed.
+    if (completedAt > task.deadlineAt) {
+      const expired = this.store.sweepMissed(completedAt);
+      this.log(`missed ${task.kind} ${task.mint}: response finished after deadline (${expired} expired task(s) swept)`);
+      return { status: "missed", kind: task.kind, mint: task.mint };
+    }
     if (errors.length === 0) {
-      this.store.finishTask(task.id, this.now());
+      if (!this.store.finishTask(task.id, completedAt)) {
+        throw new Error(`task ${task.id} could not be completed while still pending and within its deadline`);
+      }
       this.log(`done ${task.kind} ${task.mint}`);
       return { status: "done", kind: task.kind, mint: task.mint };
     }

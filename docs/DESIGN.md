@@ -695,6 +695,26 @@ data, or alters score/label rules. It gives operators a deadline view before the
 not a calibration result and does not imply predictive performance. The running collector continues with its
 previous bundled code until a separately approved deployment.
 
+### Collector completion deadline enforced after network reads (15 Nov 2026; awaiting Windows verification)
+
+The collector previously swept tasks that had expired *before* starting a request, but accepted an in-flight request
+that **finished after** the measurement deadline as `done`. HTTP retries and several sequential source calls make this
+possible even when a task starts inside its allowed grace window. That risks late data entering the prospective
+calibration under a first-hour, +72-hour or +30-day measurement label.
+
+The runner now checks the clock again after all source calls: if the deadline has passed, it marks the pending task
+`missed`, logs the expiry, and keeps whatever source payloads arrived for audit. It does not schedule a retry, accept
+a score input from a missed snapshot or claim a final outcome from a missed path. The SQLite `finishTask` update is
+also conditional on the task still being pending and `doneAt <= deadlineAt`, so future callers cannot override this
+rule. A completion at the exact deadline is permitted, as in the existing sampling protocol.
+
+Tests first demonstrated that the old code wrongly returned `done` for a response finishing one millisecond late,
+and `retry` for a failed response finishing late. Boundary, persisted-payload, missing-label and +72-hour/+30-day
+tests now cover the correction. A read-only check on the **running** database found zero completed tasks or valid
+done-task payloads fetched after their deadline at the time of inspection. This change does not alter sampling,
+scoring weights, or outcome definitions. Its source-code merge alone does not update the already-running
+`/opt/memelens-collector/collector.mjs` process; a separate verified deployment and restart would be necessary.
+
 ## History: M3 groundwork (measured on the host; date not recorded)
 
 Probe in a throwaway project, `electron@45.3.0` under `xvfb-run -a npx electron --no-sandbox main.js`:

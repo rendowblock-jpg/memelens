@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { DAY, HOUR, MINUTE } from "../src/plan";
+import { labelStored } from "../src/load";
 import { Collector, retryDelayMs } from "../src/runner";
 import { isFollowed } from "../src/sampling";
 import { CollectorStore } from "../src/store";
@@ -207,6 +208,58 @@ const REPORT = `https://api.rugcheck.xyz/v1/tokens/MINT1/report`;
 const MINUTES = `${GT}/pools/POOL1/ohlcv/minute?aggregate=1&limit=100&currency=usd`;
 
 describe("the first-hour snapshot", () => {
+  it("does not call a slow request a successful on-time reading when it finishes one millisecond after the deadline", async () => {
+    const web = new Web().on(REPORT, ok(fixtureText("rugcheck-report-established.json"))).on(MINUTES, ok(fixtureText("gt-ohlcv-minute.json")));
+    const originalGet = web.get.bind(web);
+    const late = T0 + 75 * MINUTE + 1;
+    web.get = async (url, headers) => {
+      const reply = await originalGet(url, headers);
+      if (url === MINUTES) clockNow = late; // the last source answered after the allowed measurement window
+      return reply;
+    };
+    const { store, collector, lines } = oneLaunch(web);
+    await collector.discover();
+    clockNow = T0 + 74 * MINUTE;
+    expect(await collector.workOne()).toEqual({ status: "missed", kind: "snapshot", mint: "MINT1" });
+    const task = store.tasksOf("MINT1")[0]!;
+    expect(task).toMatchObject({ status: "missed", doneAt: null });
+    expect(store.payloads(task.id).map((p) => p.step)).toEqual(["candles-minute", "report"]);
+    expect(labelStored([...store.storedTokens()][0]!)).toEqual({ label: "neither", reason: "missing-first-hour" });
+    expect(lines.join(" ")).toMatch(/deadline/i);
+    expect(await collector.workOne()).toEqual({ status: "idle" });
+  });
+
+  it("accepts a reading completed at the exact deadline, rather than treating equality as late", async () => {
+    const web = new Web().on(REPORT, ok(fixtureText("rugcheck-report-established.json"))).on(MINUTES, ok(fixtureText("gt-ohlcv-minute.json")));
+    const originalGet = web.get.bind(web);
+    web.get = async (url, headers) => {
+      const reply = await originalGet(url, headers);
+      if (url === MINUTES) clockNow = T0 + 75 * MINUTE;
+      return reply;
+    };
+    const { store, collector } = oneLaunch(web);
+    await collector.discover();
+    clockNow = T0 + 74 * MINUTE;
+    expect(await collector.workOne()).toEqual({ status: "done", kind: "snapshot", mint: "MINT1" });
+    expect(store.tasksOf("MINT1")[0]).toMatchObject({ status: "done", doneAt: T0 + 75 * MINUTE });
+  });
+
+  it("marks a failed request that returned after the deadline missed instead of scheduling a futile retry", async () => {
+    const web = new Web().on(REPORT, { status: 503, body: "down" }).on(MINUTES, ok(fixtureText("gt-ohlcv-minute.json")));
+    const originalGet = web.get.bind(web);
+    web.get = async (url, headers) => {
+      const reply = await originalGet(url, headers);
+      if (url === MINUTES) clockNow = T0 + 75 * MINUTE + 1;
+      return reply;
+    };
+    const { store, collector } = oneLaunch(web);
+    await collector.discover();
+    clockNow = T0 + 74 * MINUTE;
+    expect(await collector.workOne()).toEqual({ status: "missed", kind: "snapshot", mint: "MINT1" });
+    expect(store.tasksOf("MINT1")[0]).toMatchObject({ status: "missed", attempts: 0, doneAt: null });
+    expect((await collector.workOne()).status).toBe("idle");
+  });
+
   it("waits until +60 minutes and makes no request before that", async () => {
     const web = new Web();
     const { collector } = oneLaunch(web);
@@ -334,6 +387,46 @@ describe("the 72-hour and 30-day paths", () => {
     clockNow = T0 + 72 * HOUR;
     return made;
   }
+
+  it("keeps late +72h source replies for audit but excludes a path that finished after its six-hour grace", async () => {
+    const web = new Web()
+      .on(REPORT, ok(fixtureText("rugcheck-report-established.json")))
+      .on(POOLS, ok(tokenPools(["POOL1", "pump-fun", "5"])))
+      .on(hour("POOL1"), ok(fixtureText("gt-ohlcv-hour.json")));
+    const originalGet = web.get.bind(web);
+    web.get = async (url, headers) => {
+      const reply = await originalGet(url, headers);
+      if (url === hour("POOL1")) clockNow = T0 + 78 * HOUR + 1;
+      return reply;
+    };
+    const { store, collector } = await atPath72(web);
+    clockNow = T0 + 78 * HOUR;
+    expect(await collector.workOne()).toEqual({ status: "missed", kind: "path72", mint: "MINT1" });
+    const path = store.tasksOf("MINT1").find((t) => t.kind === "path72")!;
+    expect(path).toMatchObject({ status: "missed", doneAt: null });
+    expect(store.payloads(path.id).map((p) => p.step)).toEqual(["candles-hour:POOL1", "report", "token-pools"]);
+    expect((await collector.workOne()).status).toBe("idle");
+  });
+
+  it("does not accept a +30d path which finishes after its twelve-hour grace", async () => {
+    const web = new Web()
+      .on(REPORT, ok(fixtureText("rugcheck-report-established.json")))
+      .on(POOLS, ok(tokenPools(["POOL1", "pump-fun", "5"])))
+      .on(hour("POOL1"), ok(fixtureText("gt-ohlcv-hour.json")));
+    const originalGet = web.get.bind(web);
+    web.get = async (url, headers) => {
+      const reply = await originalGet(url, headers);
+      if (url === hour("POOL1") && clockNow >= T0 + 30 * DAY) clockNow = T0 + 30 * DAY + 12 * HOUR + 1;
+      return reply;
+    };
+    const { store, collector } = await atPath72(web);
+    expect((await collector.workOne()).status).toBe("done"); // the +72h path was on time
+    clockNow = T0 + 30 * DAY + 12 * HOUR;
+    expect(await collector.workOne()).toEqual({ status: "missed", kind: "path30d", mint: "MINT1" });
+    const path = store.tasksOf("MINT1").find((t) => t.kind === "path30d")!;
+    expect(path).toMatchObject({ status: "missed", doneAt: null });
+    expect(store.payloads(path.id)).toHaveLength(3);
+  });
 
   it("reads the report, the token's pools, and the hourly candles of the launch pool and the best other pools: three pools at most", async () => {
     const web = new Web()

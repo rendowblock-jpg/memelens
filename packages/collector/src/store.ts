@@ -193,8 +193,13 @@ export class CollectorStore {
     return Number(this.db.prepare("UPDATE task SET status = 'missed' WHERE status = 'pending' AND deadline_at < ?").run(now).changes);
   }
 
-  finishTask(id: number, now: number): void {
-    this.db.prepare("UPDATE task SET status = 'done', done_at = ? WHERE id = ?").run(now, id);
+  /** Mark done only while the task is still pending and its measurement window is open.
+   * A late reply remains in payload for audit, but must not turn an expired reading into calibration data.
+   */
+  finishTask(id: number, now: number): boolean {
+    return Number(this.db.prepare(
+      "UPDATE task SET status = 'done', done_at = ? WHERE id = ? AND status = 'pending' AND deadline_at >= ?",
+    ).run(now, id, now).changes) === 1;
   }
 
   failAttempt(id: number, f: { now: number; retryAt: number; error: string }): void {
