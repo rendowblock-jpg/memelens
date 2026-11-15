@@ -665,6 +665,15 @@ first-run sample, read-only pre-uninstall record, uninstall and post-uninstall v
 3 snapshots and the same SHA-256 (`97e8d54f8a72...`) before and after, from the real packaged user's roaming path.
 This verifies the CI Windows runner, **not** the owner's PC; neither that PC nor an existing user's database was changed.
 
+### Collector status reads must not initialize state (15 Nov 2026)
+
+The calibration collector's `status --state FILE` used to construct a writable `CollectorStore`, which could silently
+create a brand-new state database when given a mistyped path and switch an existing SQLite file to WAL mode. It now
+uses the same read-only path as `export`, `label` and `analyze`. A missing state file or wrong schema is an error; a
+valid existing state is reported without changing its stored rows or journal configuration. SQLite may still create
+WAL support files as part of opening a read-only WAL database; this is distinct from initializing or editing data.
+The running collector process and its live state file are not replaced or restarted by this code change.
+
 ## History: M3 groundwork (measured on the host; date not recorded)
 
 Probe in a throwaway project, `electron@45.3.0` under `xvfb-run -a npx electron --no-sandbox main.js`:

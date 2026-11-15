@@ -98,7 +98,8 @@ export class CollectorStore {
     this.db = new DatabaseSync(path, options.readOnly === true ? { readOnly: true } : {});
     const version = (): number => Number((this.db.prepare("PRAGMA user_version").get() as { user_version: number }).user_version);
     if (options.readOnly === true) {
-      // Reading must never create or change anything: an empty file is not a collection, it is a wrong path.
+      // Do not initialize the schema or change database rows. SQLite may create WAL support files while reading.
+      // An empty file is not a collection: a mistyped path must fail rather than look like an empty run.
       if (version() !== SCHEMA_VERSION) {
         const found = version();
         this.db.close();

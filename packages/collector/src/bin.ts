@@ -52,13 +52,21 @@ async function main(): Promise<void> {
     console.log(`wrote ${rows.length} labels to ${args.out}`);
     return;
   }
-  const store = new CollectorStore(args.state);
   if (args.command === "status") {
-    console.log(formatStats(store.stats()));
-    console.log(`discovery started: ${store.getMeta("discovery_started_at") === null ? "not yet" : new Date(Number(store.getMeta("discovery_started_at"))).toISOString()}`);
-    store.close();
+    // Reporting must never initialize a new state file or switch an existing writer's journal mode.
+    // A typo in --state is an error, not an empty collection.
+    const store = CollectorStore.openReadOnly(args.state);
+    try {
+      console.log(formatStats(store.stats()));
+      const started = store.getMeta("discovery_started_at");
+      console.log(`discovery started: ${started === null ? "not yet" : new Date(Number(started)).toISOString()}`);
+    } finally {
+      store.close();
+    }
     return;
   }
+
+  const store = new CollectorStore(args.state);
 
   const client = new PoliteClient({
     fetch: (url, init) => fetch(url, { headers: init.headers, signal: AbortSignal.timeout(30_000) }),
