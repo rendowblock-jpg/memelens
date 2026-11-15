@@ -650,6 +650,19 @@ Known gaps (not hidden):
   Glue and plain rendering are not mutation-checked.
 - Unmeasured: WAL versus rollback journal with a second reader.
 
+### Windows user-data persistence check (15 Nov 2026, pending CI result)
+
+The Windows MSI job previously checked that the installed executable was removed and, on live-engine runs, that the
+versioned engine survived uninstall. It did **not** reopen or compare the user's *default* SQLite database after
+uninstall, so database preservation was not measured. `scripts/user-db-survival.mjs` closes that evidence gap without
+altering the packaged app: after the installed first-run screen loads the bundled sample into
+`%APPDATA%\MemeLens\memelens.sqlite`, an outside process reopens the database read-only, runs SQLite integrity checks,
+checks the sample token/trade/snapshot identities, and records SHA-256 of the DB and any WAL. After MSI uninstall it
+checks that the same profile's file(s), bytes and rows remain. The ephemeral `-shm` file is deliberately not compared.
+Nine Linux unit tests cover passing and failing evidence (missing file, mismatched sample, modified bytes, lost WAL,
+wrong profile, duplicate baseline). **A green Windows CI job is still needed before this is called verified on
+Windows.** Neither the user's PC nor any existing database was changed.
+
 ## History: M3 groundwork (measured on the host; date not recorded)
 
 Probe in a throwaway project, `electron@45.3.0` under `xvfb-run -a npx electron --no-sandbox main.js`:

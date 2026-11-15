@@ -102,6 +102,12 @@ jobs:
           $extra = @('--axe', 'node_modules/axe-core/axe.min.js')
           if ($env:LIVE_ENGINE -eq 'true') { $extra += @('--live-engine', '--default-engine-folder') }
           node scripts/check-packaged.mjs --exe "$env:EXE" --db "$env:RUNNER_TEMP\check.sqlite" --out "$env:RUNNER_TEMP\shots" @extra
+      - name: Record the user's database before MSI uninstall
+        # First-run uses app.getPath("userData"), NOT MEMELENS_DB. Reopen its SQLite file from the outside,
+        # check the actual sample and save the DB/WAL hashes. An MSI must not remove or rewrite this file.
+        timeout-minutes: 2
+        shell: pwsh
+        run: node scripts/user-db-survival.mjs record --manifest "$env:RUNNER_TEMP\user-db-before.json"
       # The MSI, the pictures and the install log are saved BEFORE the uninstall. Three runs (43218046784, 43222454513,
       # 43267334943) stalled in the uninstall until the job was cancelled, and a stalled job uploads nothing after it.
       - name: Keep the MSI, the pictures and the install log
@@ -169,6 +175,19 @@ jobs:
         run: |
           if ($env:EXE -and (Test-Path $env:EXE)) { throw "MemeLens.exe is still there after uninstall: $env:EXE" }
           "uninstalled: $env:EXE is gone"
+      - name: The user's database survives uninstall unchanged
+        if: always()
+        timeout-minutes: 2
+        shell: pwsh
+        run: |
+          $baseline = Join-Path $env:RUNNER_TEMP 'user-db-before.json'
+          if (-not (Test-Path $baseline)) {
+            # A failed first-run/packaged check cannot provide a valid baseline; don't pretend we verified persistence.
+            Write-Output 'User database persistence was not checked: no successful pre-uninstall baseline.'
+            exit 0
+          }
+          node scripts/user-db-survival.mjs verify --manifest "$baseline"
+          if ($LASTEXITCODE -ne 0) { throw "the user database did not survive uninstall unchanged" }
       - name: The engine survives the uninstall (live runs only)
         # The design: removing the app leaves the engine and the database. The live run put the engine in the app's own per-user
         # folder; here it must still be there after the uninstall, with the bytes its manifest names.
