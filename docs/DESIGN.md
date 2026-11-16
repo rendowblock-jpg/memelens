@@ -766,6 +766,31 @@ Its original discovery-start timestamp, sample rate and pending tasks were uncha
 additional launches and the queue reported zero overdue pending tasks. Real +72-hour work is still scheduled for
 16 Nov, so this verifies deployment and scheduler unit semantics, **not** the completion rate of that future wave.
 
+### Prospective +72-hour outcome wave: independent read-only audit (16 Nov 2026)
+
+The +72-hour readings began on 16 Nov 2026 (first task due 09:42:04 UTC). An additional standalone
+`scripts/collector-wave-audit.mjs` checks both `path72` and `path30d` directly from a **read-only, transactionally
+consistent SQLite snapshot**, without touching the running worker. Run from the repository with Node 22:
+
+```
+node --disable-warning=ExperimentalWarning scripts/collector-wave-audit.mjs --state /var/lib/memelens-collector/state.sqlite
+```
+
+The JSON reports the check timestamp, scheduled vs **due** readings, completed/missed/pending-due/pending-future
+counts, retry-waiting and overdue-pending counts, due tasks that had retries, and anomalous completion or payload
+times. For completed readings it separately counts valid HTTP 200 and valid HTTP 404 source replies from RugCheck
+and token-pools, plus whether at least one valid hourly-candle source reply was saved. These counts are **source
+coverage**, not enough to conclude the contents have a price path or a reliable rugged/survived label. It checks
+the collector schema before reading, refuses missing/wrong files, never sweeps deadlines, and never writes labels.
+The test suite covers exact due/deadline boundaries, failed/retried tasks, missing source replies, invalid schema,
+and read-only CLI behavior. `pendingFuture` is not a failure; it includes tasks not yet due.
+
+At approximately 12:05 UTC on 16 Nov, the first live audit found 230 due +72-hour readings, 226 completed and four
+pending; none missed or completed after its deadline. All 226 completed readings had valid HTTP 200 report,
+token-pools, and hourly-candle replies. 27 due readings had required one or more tries after an initial failure.
+At that point, **all +30-day tasks were still pending**. This is an operational checkpoint only; do not enter
+calibration weights or claim measured risk-model performance until the predefined complete analysis gate opens.
+
 ## History: M3 groundwork (measured on the host; date not recorded)
 
 Probe in a throwaway project, `electron@45.3.0` under `xvfb-run -a npx electron --no-sandbox main.js`:
