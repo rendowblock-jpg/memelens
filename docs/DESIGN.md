@@ -785,6 +785,19 @@ the collector schema before reading, refuses missing/wrong files, never sweeps d
 The test suite covers exact due/deadline boundaries, failed/retried tasks, missing source replies, invalid schema,
 and read-only CLI behavior. `pendingFuture` is not a failure; it includes tasks not yet due.
 
+**Post-scoring hourly-candle coverage, 16 Nov 2026:** A valid (HTTP 200, shape-checked) hourly reply can contain
+only candles from **before the first-hour scoring timestamp S**, especially for tokens that quickly stopped
+trading. The audit now counts `hourlyEligibleTasks` (completed readings containing at least one candle whose hour
+starts at/after S and ends no later than the outcome's exact +72 h or +30 d target), `hourlyIneligibleTasks`
+(completed readings without one), and `eligibleHourlyCandleRows` (raw eligible rows across pools, not unique
+hours). The scoring anchor comes from the valid stored first-hour report, as in `loadLabelInput`; absent anchors
+cannot establish usable post-scoring coverage. Saved compressed hourly replies are decompressed and checked for
+a candle list; corrupted replies fail the audit rather than silently appearing usable. The audit still does not
+label or repair any reading. At about 12:22 UTC, **262 of 262 due +72 h observations were complete, but only 53
+had any eligible post-scoring hourly candles**; the other 209 successful HTTP responses did not establish a
+post-scoring hourly path. This is an important completeness caveat, **not** evidence that 209 tokens rugged or
+that the model has predictive power. Empty or earlier price histories can be genuine market inactivity.
+
 At approximately 12:05 UTC on 16 Nov, the first live audit found 230 due +72-hour readings, 226 completed and four
 pending; none missed or completed after its deadline. All 226 completed readings had valid HTTP 200 report,
 token-pools, and hourly-candle replies. 27 due readings had required one or more tries after an initial failure.

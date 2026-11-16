@@ -2,6 +2,7 @@
 // Standalone, read-only monitoring of the prospective +72h and +30d collection.
 // This reports coverage and source evidence. It never computes or updates risk labels.
 import { DatabaseSync } from "node:sqlite";
+import { gunzipSync } from "node:zlib";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -11,6 +12,7 @@ const empty = () => ({
   retryWaiting: 0, overduePending: 0, retriedDue: 0,
   completedOutsideWindow: 0, completedWithLatePayload: 0,
   report200: 0, report404: 0, pools200: 0, pools404: 0, hourlyValid: 0,
+  hourlyEligibleTasks: 0, hourlyIneligibleTasks: 0, eligibleHourlyCandleRows: 0,
 });
 
 /**
@@ -84,6 +86,41 @@ export function auditWaves(state, checkedAt = Date.now()) {
         for (const field of ["report200", "report404", "pools200", "pools404", "hourlyValid", "completedWithLatePayload"]) {
           w[field] = Number(q[field] ?? 0);
         }
+      }
+
+      // An HTTP 200 hourly response may contain only old, pre-scoring candles. The frozen
+      // labelling protocol counts a candle only when its hour starts at/after the first-hour
+      // score timestamp and its full hour ends no later than the outcome's target due time.
+      // This inspects original persisted replies; no labels, prices or risk weights are computed.
+      const eligibleTasks = new Set();
+      const candles = db.prepare(`
+        SELECT t.id, t.kind, t.due_at AS dueAt, firstReport.fetched_at AS scoredAt, p.body
+        FROM task t
+        JOIN payload p ON p.task_id=t.id AND p.step LIKE 'candles-hour:%' AND p.valid=1 AND p.status=200
+        LEFT JOIN task s ON s.mint=t.mint AND s.kind='snapshot' AND s.status='done'
+        LEFT JOIN payload firstReport ON firstReport.task_id=s.id AND firstReport.step='report' AND firstReport.valid=1
+        WHERE t.kind IN ('path72', 'path30d') AND t.status='done' AND t.due_at <= ?
+      `).all(checkedAt);
+      for (const c of candles) {
+        if (c.scoredAt === null) continue; // missing anchor cannot establish post-scoring coverage
+        const payload = JSON.parse(gunzipSync(c.body).toString("utf8"));
+        const rows = payload?.data?.attributes?.ohlcv_list;
+        if (!Array.isArray(rows)) throw new Error(`unreadable valid hourly-candle reply in task ${c.id}`);
+        for (const row of rows) {
+          if (!Array.isArray(row) || row.length !== 6 || !Number.isFinite(row[0])) {
+            throw new Error(`invalid saved hourly candle in task ${c.id}`);
+          }
+          const start = row[0] * 1000;
+          if (start >= c.scoredAt && start + 3_600_000 <= c.dueAt) {
+            waves[c.kind].eligibleHourlyCandleRows++;
+            eligibleTasks.add(`${c.kind}:${c.id}`);
+          }
+        }
+      }
+      for (const kind of KINDS) {
+        const w = waves[kind];
+        w.hourlyEligibleTasks = [...eligibleTasks].filter((key) => key.startsWith(`${kind}:`)).length;
+        w.hourlyIneligibleTasks = w.completed - w.hourlyEligibleTasks;
       }
       db.exec("COMMIT");
       return { checkedAt, scope: "measurement coverage and source responses only; not token risk labels", waves };

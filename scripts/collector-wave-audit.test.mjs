@@ -26,8 +26,11 @@ function task(s, mint, kind, dueAt, deadlineAt) {
   return s.tasksOf(mint)[0];
 }
 
-function payload(s, id, step, status, at, valid = true) {
-  s.savePayload(id, { step, url: "https://example.test/" + step, fetchedAt: at, status, valid, body: "{}" });
+function payload(s, id, step, status, at, valid = true, body = "{}") {
+  if (step.startsWith("candles-hour:") && status === 200 && body === "{}") {
+    body = JSON.stringify({ data: { attributes: { ohlcv_list: [] } } });
+  }
+  s.savePayload(id, { step, url: "https://example.test/" + step, fetchedAt: at, status, valid, body });
 }
 
 describe("prospective outcome wave audit", () => {
@@ -39,7 +42,7 @@ describe("prospective outcome wave audit", () => {
     expect(x.checkedAt).toBe(AT);
     expect(x.scope).toMatch(/not token risk labels/);
     for (const kind of ["path72", "path30d"]) {
-      expect(Object.values(x.waves[kind])).toEqual(Array(16).fill(0));
+      expect(Object.values(x.waves[kind])).toEqual(Array(19).fill(0));
     }
   });
 
@@ -73,16 +76,58 @@ describe("prospective outcome wave audit", () => {
       retryWaiting: 1, overduePending: 1, retriedDue: 1,
       completedOutsideWindow: 0, completedWithLatePayload: 1,
       report200: 1, report404: 0, pools200: 0, pools404: 1, hourlyValid: 1,
+      hourlyEligibleTasks: 0, hourlyIneligibleTasks: 2, eligibleHourlyCandleRows: 0,
     });
     expect(audit.waves.path30d).toEqual({
       scheduled: 2, due: 1, completed: 1, missed: 0, pendingDue: 0, pendingFuture: 1,
       retryWaiting: 0, overduePending: 0, retriedDue: 0,
       completedOutsideWindow: 0, completedWithLatePayload: 0,
       report200: 0, report404: 1, pools200: 1, pools404: 0, hourlyValid: 0,
+      hourlyEligibleTasks: 0, hourlyIneligibleTasks: 1, eligibleHourlyCandleRows: 0,
     });
     expect(s.stats()).toEqual(before);
     expect(s.tasksOf("RETRY")[0].status).toBe("pending");
     expect(s.tasksOf("EXPIRED")[0].status).toBe("pending");
+    s.close();
+  });
+
+  it("counts only fully elapsed hourly price candles after scoring, not merely successful HTTP responses", () => {
+    const path = file();
+    const s = new CollectorStore(path);
+    const H = 3_600_000;
+    const scoredAt = 10 * H + 30_000;
+    const dueAt = 14 * H;
+    for (const mint of ["ELIGIBLE", "BEFORE_ONLY"]) {
+      const t = task(s, mint, "path72", dueAt, dueAt + 6 * H);
+      s.addTasks(mint, [{ kind: "snapshot", dueAt: 9 * H, deadlineAt: 11 * H }]);
+      const first = s.tasksOf(mint).find((x) => x.kind === "snapshot");
+      expect(s.finishTask(first.id, scoredAt)).toBe(true);
+      payload(s, first.id, "report", 200, scoredAt);
+      expect(s.finishTask(t.id, dueAt + 3000)).toBe(true);
+      const stamps = mint === "ELIGIBLE" ? [10, 11, 13, 14] : [9, 10];
+      const body = JSON.stringify({ data: { attributes: { ohlcv_list: stamps.map((h) => [h * 3600, 1, 2, 0.5, 1, 5]) } } });
+      payload(s, t.id, "candles-hour:pool", 200, dueAt + 3000, true, body);
+    }
+    const x = auditWaves(path, dueAt + 5000).waves.path72;
+    expect(x).toMatchObject({ completed: 2, hourlyValid: 2, hourlyEligibleTasks: 1,
+      hourlyIneligibleTasks: 1, eligibleHourlyCandleRows: 2 });
+    expect(s.stats().tasks.path72.done).toBe(2);
+    s.close();
+  });
+
+  it("refuses to present corrupted stored hourly evidence as a successful quality audit", () => {
+    const path = file();
+    const s = new CollectorStore(path);
+    const t = task(s, "BROKEN", "path72", AT - 100, AT + 100);
+    s.addTasks("BROKEN", [{ kind: "snapshot", dueAt: AT - 200, deadlineAt: AT - 100 }]);
+    const snapshot = s.tasksOf("BROKEN").find((x) => x.kind === "snapshot");
+    expect(s.finishTask(snapshot.id, AT - 150)).toBe(true);
+    payload(s, snapshot.id, "report", 200, AT - 150);
+    expect(s.finishTask(t.id, AT)).toBe(true);
+    payload(s, t.id, "candles-hour:pool", 200, AT, true, '{"data":null}');
+    const before = s.stats();
+    expect(() => auditWaves(path, AT)).toThrow(/unreadable valid hourly-candle reply/);
+    expect(s.stats()).toEqual(before);
     s.close();
   });
 
